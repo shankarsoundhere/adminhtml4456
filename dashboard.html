@@ -61,7 +61,7 @@ justify-content:center;
 <script>
 // login protection
 if(localStorage.getItem("login") !== "true"){
-location.href = "login.html";
+location.href = "index.html";
 }
 </script>
 
@@ -105,7 +105,7 @@ location.href = page;
 
 function logout(){
 localStorage.removeItem("login");
-location.href = "login.html";
+location.href = "index.html";
 }
 </script>
 
