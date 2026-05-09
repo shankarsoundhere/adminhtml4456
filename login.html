@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#28a745">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+padding-top:120px;
+background:#f1f3f6;
+}
+
+.box{
+background:white;
+padding:20px;
+width:260px;
+margin:auto;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.2);
+}
+
+input,button{
+padding:10px;
+margin:5px;
+width:90%;
+}
+
+button{
+background:green;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+button:hover{opacity:0.9;}
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Admin Login</h2>
+
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+<script>
+
+// already login check
+if(localStorage.getItem("login")==="true"){
+location.href="dashboard.html";
+}
+
+// enter key login
+document.addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+login();
+}
+});
+
+function login(){
+
+let u = document.getElementById("user").value.trim();
+let p = document.getElementById("pass").value.trim();
+
+if(u==="admin" && p==="@1234"){
+localStorage.setItem("login","true");
+location.href="dashboard.html";
+}else{
+alert("Wrong Username or Password");
+}
+
+}
+
+</script>
+
+<!-- PWA Script -->
+<script src="pwa.js"></script>
+
+</body>
+</html>
