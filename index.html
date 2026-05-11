@@ -25,7 +25,7 @@ body{
   height:100vh;
 }
 
-/* Login Box */
+/* Box */
 .box{
   background:white;
   width:90%;
@@ -63,7 +63,6 @@ button{
   border-radius:8px;
   font-size:16px;
   cursor:pointer;
-  transition:0.2s;
 }
 
 button:active{
@@ -71,11 +70,15 @@ button:active{
   background:#0b5ed7;
 }
 
-/* Mobile */
-@media(max-width:480px){
-  .box{
-    padding:20px;
-  }
+/* Error Message */
+.errorMsg{
+  display:none;
+  color:#dc3545;
+  background:#ffe6e6;
+  padding:8px;
+  border-radius:6px;
+  font-size:14px;
+  margin-top:8px;
 }
 </style>
 </head>
@@ -88,6 +91,11 @@ button:active{
 
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
+
+<!-- Custom Error -->
+<p id="errorMsg" class="errorMsg">
+  ❌ Wrong Username or Password
+</p>
 
 <button onclick="login()">Login</button>
 
@@ -111,15 +119,25 @@ function login(){
 
 let u = document.getElementById("user").value.trim();
 let p = document.getElementById("pass").value.trim();
+let error = document.getElementById("errorMsg");
 
 if(u==="admin" && p==="@1234"){
   localStorage.setItem("login","true");
   location.href="dashboard.html";
 }else{
-  alert("Wrong Username or Password");
+  error.style.display = "block";
 }
 
 }
+
+// hide error when typing
+document.getElementById("user").addEventListener("input", hideError);
+document.getElementById("pass").addEventListener("input", hideError);
+
+function hideError(){
+  document.getElementById("errorMsg").style.display = "none";
+}
+
 </script>
 
 <script src="pwa.js"></script>
