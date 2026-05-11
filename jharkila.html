@@ -82,7 +82,6 @@ width:90%;
 max-width:400px;
 }
 
-/* PRINT - सिर्फ table print होगा */
 @media print{
     body{
         background:white;
@@ -220,7 +219,6 @@ max-width:400px;
 </div>
 
 <script type="module">
-
 import {
 db,
 collection,
@@ -234,6 +232,21 @@ getDoc
 
 let editId=null;
 let noteEditId=null;
+
+function sortDate(d){
+    let p=(d||"").split("-");
+    if(p.length!==3) return 0;
+
+    let dd=p[0].padStart(2,"0");
+    let mm=p[1].padStart(2,"0");
+    let yy=p[2];
+
+    if(yy.length===2){
+        yy="20"+yy;
+    }
+
+    return Number(yy+mm+dd);
+}
 
 window.saveData=async()=>{
 let note=noteInput.value.trim();
@@ -275,20 +288,39 @@ noteInput.value="";
 
 onSnapshot(collection(db,"jharkila"),snap=>{
 tbody.innerHTML="";
+
+let arr=[];
+
 snap.forEach(d=>{
 let x=d.data();
+
+arr.push({
+id:d.id,
+date:x.date||"",
+n1:x.n1||"",
+n2:x.n2||"",
+n3:x.n3||"",
+n4:x.n4||"",
+n5:x.n5||"",
+n6:x.n6||""
+});
+});
+
+arr.sort((a,b)=>sortDate(a.date)-sortDate(b.date));
+
+arr.forEach(x=>{
 tbody.innerHTML+=`
 <tr>
-<td>${x.date||""}</td>
-<td>${x.n1||""}</td>
-<td>${x.n2||""}</td>
-<td>${x.n3||""}</td>
-<td>${x.n4||""}</td>
-<td>${x.n5||""}</td>
-<td>${x.n6||""}</td>
+<td>${x.date}</td>
+<td>${x.n1}</td>
+<td>${x.n2}</td>
+<td>${x.n3}</td>
+<td>${x.n4}</td>
+<td>${x.n5}</td>
+<td>${x.n6}</td>
 <td>
-<button class="actionBtn" onclick="editData('${d.id}')">✏️</button>
-<button class="actionBtn" onclick="deleteData('${d.id}')">🗑️</button>
+<button class="actionBtn" onclick="editData('${x.id}')">✏️</button>
+<button class="actionBtn" onclick="deleteData('${x.id}')">🗑️</button>
 </td>
 </tr>`;
 });
@@ -393,7 +425,6 @@ noteEditId=null;
 }
 
 window.printData=()=>window.print();
-
 </script>
 
 <script src="pwa.js"></script>
