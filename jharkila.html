@@ -327,18 +327,37 @@ tbody.innerHTML+=`
 });
 
 onSnapshot(collection(db,"jharkila_note"),snap=>{
+
 noteBody.innerHTML="";
+
+let arr=[];
+
+// collect data
 snap.forEach(d=>{
 let n=d.data();
+
+arr.push({
+id:d.id,
+text:n.text||"",
+time:d.id // Firestore ID (timestamp based)
+});
+});
+
+// 🔥 old → new sort
+arr.sort((a,b)=> a.time.localeCompare(b.time));
+
+// render
+arr.forEach(n=>{
 noteBody.innerHTML+=`
 <tr>
-<td class="noteText">${n.text||""}</td>
+<td class="noteText">${n.text}</td>
 <td>
-<button class="actionBtn" onclick="editNoteData('${d.id}')">✏️</button>
-<button class="actionBtn" onclick="deleteNote('${d.id}')">🗑️</button>
+<button class="actionBtn" onclick="editNoteData('${n.id}')">✏️</button>
+<button class="actionBtn" onclick="deleteNote('${n.id}')">🗑️</button>
 </td>
 </tr>`;
 });
+
 });
 
 window.deleteData=async(id)=>{
