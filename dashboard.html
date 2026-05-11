@@ -6,7 +6,7 @@
 <title>Dashboard</title>
 
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d6efd">
+<meta name="theme-color" content="#ffffff">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -24,15 +24,15 @@ body{
 
 /* Header */
 .header{
-  background:#0d6efd;
-  color:white;
+  background:#ffffff;
+  color:#000;
   text-align:center;
-  padding:16px;
+  padding:15px;
   font-size:20px;
   font-weight:bold;
+  border-bottom:1px solid #dee2e6;
   position:sticky;
   top:0;
-  z-index:1000;
 }
 
 /* Container */
@@ -40,24 +40,23 @@ body{
   width:100%;
   max-width:480px;
   margin:auto;
-  padding:14px;
+  padding:12px;
 }
 
 /* Card */
 .card{
   width:100%;
   background:#ffffff;
-  padding:18px;
+  padding:16px;
   margin:12px 0;
-  border-radius:14px;
-  font-size:18px;
+  border-radius:12px;
+  font-size:17px;
   display:flex;
   align-items:center;
   gap:14px;
   cursor:pointer;
-  box-shadow:0 3px 8px rgba(0,0,0,0.08);
+  border:1px solid #dee2e6;
   transition:0.15s;
-  user-select:none;
 }
 
 .card:active{
@@ -65,43 +64,31 @@ body{
   background:#f1f3f6;
 }
 
+/* Icon */
 .icon{
-  font-size:28px;
+  font-size:26px;
   width:35px;
   text-align:center;
 }
 
-.card span:last-child{
-  font-weight:500;
-}
-
 /* Logout */
 .logout{
-  background:#dc3545;
+  background:#ff4d4d;
   color:white;
   justify-content:center;
   font-weight:bold;
-  margin-top:18px;
+  border:none;
 }
 
 .logout:active{
-  background:#bb2d3b;
+  background:#e60000;
 }
 
+/* Mobile */
 @media(max-width:480px){
-  .header{
-    font-size:19px;
-    padding:15px;
-  }
-
-  .box{
-    padding:12px;
-  }
-
   .card{
-    font-size:17px;
-    padding:17px;
-    border-radius:13px;
+    font-size:16px;
+    padding:15px;
   }
 }
 </style>
