@@ -58,17 +58,18 @@ body{
   text-align:center;
 }
 
-/* Logout */
+/* Logout small */
 .logout{
-  background:#ff4d4d;
-  color:white;
-  justify-content:center;
+  text-align:center;
+  margin-top:20px;
+  font-size:14px;
+  color:#ff4d4d;
+  cursor:pointer;
   font-weight:bold;
-  border:none;
 }
 
 .logout:active{
-  background:#e60000;
+  opacity:0.6;
 }
 
 /* Mobile */
@@ -116,8 +117,9 @@ if(localStorage.getItem("login") !== "true"){
   <span>Sound System</span>
 </div>
 
-<div class="card logout" onclick="logout()">
-  🚪 Logout
+<!-- Small Logout -->
+<div class="logout" onclick="logout()">
+  Logout
 </div>
 
 </div>
