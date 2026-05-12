@@ -8,7 +8,6 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#28a745">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
 body{
@@ -21,7 +20,6 @@ margin:0;
 .box{
 width:210mm;
 min-height:297mm;
-max-width:100%;
 margin:auto;
 background:white;
 padding:12mm;
@@ -29,11 +27,7 @@ box-sizing:border-box;
 box-shadow:0 0 10px rgba(0,0,0,0.25);
 }
 
-h2,h3{
-text-align:center;
-margin:6px 0 10px 0;
-}
-
+/* INPUT */
 input,button,textarea{
 width:100%;
 padding:8px;
@@ -46,21 +40,21 @@ button{
 background:#28a745;
 color:white;
 border:none;
-cursor:pointer;
 border-radius:5px;
+cursor:pointer;
 }
 
+/* TABLE */
 .tableWrap{
 width:100%;
 overflow:visible;
 margin-top:10px;
 }
 
-table{
+.mainTable{
 width:100%;
 border-collapse:collapse;
 table-layout:fixed;
-text-align:center;
 font-size:12px;
 }
 
@@ -68,176 +62,76 @@ td,th{
 border:1px solid #000;
 padding:5px 3px;
 word-break:break-word;
-vertical-align:middle;
-box-sizing:border-box;
+text-align:center;
 }
 
-th{
-background:#eee;
+/* 🔥 DATE FIX */
+.mainTable th:nth-child(1),
+.mainTable td:nth-child(1){
+width:85px;
+white-space:nowrap;
+font-size:11px;
 }
 
+/* 🔥 ACTION FIX */
+.mainTable th:nth-child(8),
+.mainTable td:nth-child(8){
+width:58px;
+white-space:nowrap;
+}
+
+/* BUTTON */
 .actionBtn{
 width:24px !important;
 height:22px;
-padding:0 !important;
-margin:0 1px;
 font-size:10px;
+padding:0;
+margin:1px;
 }
 
-/* Notes Table Fix */
+/* 🔥 NOTES TABLE FIX */
 .noteTable{
 width:100%;
+border-collapse:collapse;
 table-layout:fixed;
+font-size:12px;
 }
 
 .noteTable th:nth-child(1),
 .noteTable td:nth-child(1){
 width:calc(100% - 58px);
 text-align:left;
-word-break:break-word;
 }
 
 .noteTable th:nth-child(2),
 .noteTable td:nth-child(2){
 width:58px;
-min-width:58px;
-max-width:58px;
 white-space:nowrap;
-padding:2px;
-text-align:center;
 }
 
 .noteTable .actionBtn{
 width:24px !important;
 height:22px;
-font-size:10px;
-padding:0 !important;
-margin:0;
 }
 
-.popup{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-justify-content:center;
-align-items:center;
-z-index:999;
-}
-
-.popup-box{
-background:white;
-padding:15px;
-border-radius:10px;
-width:90%;
-max-width:400px;
-}
-
-@media(max-width:700px){
-body{
-padding:5px;
-}
-
-.box{
-width:100%;
-min-height:auto;
-padding:10px;
-box-shadow:none;
-}
-
-table{
-font-size:10px;
-}
-
-td,th{
-padding:4px 2px;
-}
-
-.actionBtn{
-width:22px !important;
-height:20px;
-font-size:9px;
-}
-
-.noteTable th:nth-child(2),
-.noteTable td:nth-child(2){
-width:52px;
-min-width:52px;
-max-width:52px;
-}
-}
-
+/* PRINT */
 @media print{
-@page{
-size:A4;
-margin:8mm;
-}
+@page{size:A4;margin:8mm;}
 
-body{
-background:white;
-padding:0;
-margin:0;
-}
+body{background:white;padding:0;margin:0;}
 
 .box{
 width:100%;
-min-height:auto;
-max-width:100%;
-margin:0;
 padding:0;
 box-shadow:none;
-background:white;
 }
 
-h2{
-display:block;
-font-size:18px;
-margin-bottom:8px;
-}
+input,textarea,button{display:none;}
 
-h3,
-input,
-textarea,
-button,
-.popup{
-display:none !important;
-}
+thead{display:table-header-group;}
+tr{page-break-inside:avoid;}
 
-.tableWrap{
-overflow:visible !important;
-margin:0 0 12px 0;
-}
-
-table{
-width:100% !important;
-border-collapse:collapse;
-table-layout:fixed;
-font-size:11px;
-}
-
-thead{
-display:table-header-group;
-}
-
-tr{
-page-break-inside:avoid;
-page-break-after:auto;
-}
-
-th,td{
-border:1px solid #000;
-padding:4px 2px;
-color:black;
-word-break:break-word;
-}
-
-th:last-child,
-td:last-child{
-display:none !important;
-}
+th:last-child,td:last-child{display:none;}
 }
 </style>
 </head>
@@ -249,7 +143,6 @@ display:none !important;
 <h2>झारकिला लेबर</h2>
 
 <input id="date" placeholder="दिनांक">
-
 <input id="n1" placeholder="नाम 1">
 <input id="n2" placeholder="नाम 2">
 <input id="n3" placeholder="नाम 3">
@@ -259,11 +152,11 @@ display:none !important;
 
 <textarea id="noteInput" placeholder="नोट"></textarea>
 
-<button onclick="saveData()">💾 Save</button>
-<button onclick="printData()">🖨️ Print</button>
+<button onclick="saveData()">Save</button>
+<button onclick="printData()">Print</button>
 
 <div class="tableWrap">
-<table>
+<table class="mainTable">
 <thead>
 <tr>
 <th>दिनांक</th>
@@ -280,7 +173,7 @@ display:none !important;
 </table>
 </div>
 
-<h3>📝 Notes Table</h3>
+<h3>Notes</h3>
 
 <div class="tableWrap">
 <table class="noteTable">
@@ -294,30 +187,6 @@ display:none !important;
 </table>
 </div>
 
-</div>
-
-<div class="popup" id="editPopup">
-<div class="popup-box">
-<h3>Edit</h3>
-<input id="e_date" placeholder="दिनांक">
-<input id="e1" placeholder="नाम 1">
-<input id="e2" placeholder="नाम 2">
-<input id="e3" placeholder="नाम 3">
-<input id="e4" placeholder="नाम 4">
-<input id="e5" placeholder="नाम 5">
-<input id="e6" placeholder="नाम 6">
-<button onclick="updateData()">Update</button>
-<button onclick="closePopup()">Cancel</button>
-</div>
-</div>
-
-<div class="popup" id="notePopup">
-<div class="popup-box">
-<h3>Edit Note</h3>
-<textarea id="editNote" placeholder="नोट"></textarea>
-<button onclick="updateNote()">Update</button>
-<button onclick="closeNotePopup()">Cancel</button>
-</div>
 </div>
 
 <script type="module">
@@ -335,29 +204,8 @@ getDoc
 let editId=null;
 let noteEditId=null;
 
-function sortDate(d){
-let p=(d||"").split("-");
-if(p.length!==3) return 0;
-
-let dd=p[0].padStart(2,"0");
-let mm=p[1].padStart(2,"0");
-let yy=p[2];
-
-if(yy.length===2){
-yy="20"+yy;
-}
-
-return Number(yy+mm+dd);
-}
-
+/* SAVE */
 window.saveData=async()=>{
-let note=noteInput.value.trim();
-
-if(!date.value && !note){
-alert("दिनांक या नोट डालो");
-return;
-}
-
 if(date.value){
 await addDoc(collection(db,"jharkila"),{
 date:date.value,
@@ -370,9 +218,9 @@ n6:n6.value
 });
 }
 
-if(note){
+if(noteInput.value){
 await addDoc(collection(db,"jharkila_note"),{
-text:note
+text:noteInput.value
 });
 }
 
@@ -388,162 +236,52 @@ n6.value="";
 noteInput.value="";
 };
 
+/* TABLE */
 onSnapshot(collection(db,"jharkila"),snap=>{
 tbody.innerHTML="";
-
-let arr=[];
-
 snap.forEach(d=>{
 let x=d.data();
-
-arr.push({
-id:d.id,
-date:x.date||"",
-n1:x.n1||"",
-n2:x.n2||"",
-n3:x.n3||"",
-n4:x.n4||"",
-n5:x.n5||"",
-n6:x.n6||""
-});
-});
-
-arr.sort((a,b)=>sortDate(a.date)-sortDate(b.date));
-
-arr.forEach(x=>{
 tbody.innerHTML+=`
 <tr>
-<td>${x.date}</td>
-<td>${x.n1}</td>
-<td>${x.n2}</td>
-<td>${x.n3}</td>
-<td>${x.n4}</td>
-<td>${x.n5}</td>
-<td>${x.n6}</td>
+<td>${x.date||""}</td>
+<td>${x.n1||""}</td>
+<td>${x.n2||""}</td>
+<td>${x.n3||""}</td>
+<td>${x.n4||""}</td>
+<td>${x.n5||""}</td>
+<td>${x.n6||""}</td>
 <td>
-<button class="actionBtn" onclick="editData('${x.id}')">✏️</button>
-<button class="actionBtn" onclick="deleteData('${x.id}')">🗑️</button>
+<button class="actionBtn" onclick="deleteData('${d.id}')">🗑️</button>
 </td>
 </tr>`;
 });
 });
 
+/* NOTES */
 onSnapshot(collection(db,"jharkila_note"),snap=>{
 noteBody.innerHTML="";
-
-let arr=[];
-
 snap.forEach(d=>{
 let n=d.data();
-
-arr.push({
-id:d.id,
-text:n.text||"",
-time:d.id
-});
-});
-
-arr.sort((a,b)=>a.time.localeCompare(b.time));
-
-arr.forEach(n=>{
 noteBody.innerHTML+=`
 <tr>
-<td class="noteText">${n.text}</td>
+<td>${n.text}</td>
 <td>
-<button class="actionBtn" onclick="editNoteData('${n.id}')">✏️</button>
-<button class="actionBtn" onclick="deleteNote('${n.id}')">🗑️</button>
+<button class="actionBtn" onclick="deleteNote('${d.id}')">🗑️</button>
 </td>
 </tr>`;
 });
 });
 
 window.deleteData=async(id)=>{
-if(confirm("Delete करना है?")){
 await deleteDoc(doc(db,"jharkila",id));
-}
 }
 
 window.deleteNote=async(id)=>{
-if(confirm("Note delete करना है?")){
 await deleteDoc(doc(db,"jharkila_note",id));
-}
-}
-
-window.editData=async(id)=>{
-let snap=await getDoc(doc(db,"jharkila",id));
-
-if(!snap.exists()){
-alert("Data नहीं मिला");
-return;
-}
-
-let x=snap.data();
-
-e_date.value=x.date||"";
-e1.value=x.n1||"";
-e2.value=x.n2||"";
-e3.value=x.n3||"";
-e4.value=x.n4||"";
-e5.value=x.n5||"";
-e6.value=x.n6||"";
-
-editId=id;
-editPopup.style.display="flex";
-}
-
-window.updateData=async()=>{
-await updateDoc(doc(db,"jharkila",editId),{
-date:e_date.value,
-n1:e1.value,
-n2:e2.value,
-n3:e3.value,
-n4:e4.value,
-n5:e5.value,
-n6:e6.value
-});
-
-alert("Updated");
-closePopup();
-}
-
-window.closePopup=()=>{
-editPopup.style.display="none";
-editId=null;
-}
-
-window.editNoteData=async(id)=>{
-let snap=await getDoc(doc(db,"jharkila_note",id));
-
-if(!snap.exists()){
-alert("Note नहीं मिला");
-return;
-}
-
-let n=snap.data();
-
-editNote.value=n.text||"";
-noteEditId=id;
-notePopup.style.display="flex";
-}
-
-window.updateNote=async()=>{
-await updateDoc(doc(db,"jharkila_note",noteEditId),{
-text:editNote.value
-});
-
-alert("Note Updated");
-closeNotePopup();
-}
-
-window.closeNotePopup=()=>{
-notePopup.style.display="none";
-noteEditId=null;
 }
 
 window.printData=()=>window.print();
 </script>
-
-<script src="pwa.js"></script>
 
 </body>
 </html>
