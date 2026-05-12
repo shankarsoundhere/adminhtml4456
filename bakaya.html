@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>बकाया लिस्ट</title>
 
-<!-- ✅ PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#28a745">
 <link rel="icon" href="icon-192.png">
@@ -101,6 +100,27 @@ let editId=null;
 
 const $ = (id)=>document.getElementById(id);
 
+// ✅ AUTO DATE (DD-MM-YYYY)
+function todayDate(){
+let d = new Date();
+let day = String(d.getDate()).padStart(2,"0");
+let month = String(d.getMonth()+1).padStart(2,"0");
+let year = d.getFullYear();
+return day + "-" + month + "-" + year;
+}
+
+function setTodayDate(){
+$("date").value = todayDate();
+}
+
+// ✅ DATE SORT
+function dateToNumber(dateStr){
+if(!dateStr) return 99999999;
+let p = dateStr.split("-");
+if(p.length !== 3) return 99999999;
+return Number(p[2]+p[1].padStart(2,"0")+p[0].padStart(2,"0"));
+}
+
 function showMsg(t){
 $("msg").innerText=t;
 $("msg").style.display="block";
@@ -108,17 +128,19 @@ setTimeout(()=>{$("msg").style.display="none"},1500);
 }
 
 function clearForm(){
-["date","work","place","amount","name","phone"].forEach(id=>$(id).value="");
+["work","place","amount","name","phone"].forEach(id=>$(id).value="");
+setTodayDate();
 }
 
 window.saveData=async()=>{
 let data={
-date:$("date").value.trim(),
+date:$("date").value.trim() || todayDate(),
 work:$("work").value.trim(),
 place:$("place").value.trim(),
 amount:$("amount").value.trim(),
 name:$("name").value.trim(),
-phone:$("phone").value.trim()
+phone:$("phone").value.trim(),
+time: Date.now()
 };
 
 if(!data.name && !data.amount){
@@ -132,10 +154,27 @@ clearForm();
 }
 
 onSnapshot(colRef,snap=>{
-let html="";
+
+let arr=[];
+
 snap.forEach(d=>{
 let x=d.data();
+arr.push({id:d.id,...x});
+});
 
+// SORT
+arr.sort((a,b)=>{
+let d1=dateToNumber(a.date);
+let d2=dateToNumber(b.date);
+if(d1===d2){
+return (a.time||0)-(b.time||0);
+}
+return d1-d2;
+});
+
+let html="";
+
+arr.forEach(x=>{
 html+=`
 <div class="card">
 
@@ -160,8 +199,8 @@ html+=`
 </div>
 
 <div class="action">
-<button onclick="editData('${d.id}')">✏️</button>
-<button onclick="deleteData('${d.id}')">🗑️</button>
+<button onclick="editData('${x.id}')">✏️</button>
+<button onclick="deleteData('${x.id}')">🗑️</button>
 </div>
 
 </div>
@@ -169,6 +208,7 @@ html+=`
 });
 
 $("list").innerHTML=html;
+
 });
 
 window.deleteData=async(id)=>{
@@ -180,12 +220,6 @@ showMsg("Deleted");
 
 window.editData=async(id)=>{
 let snap = await getDoc(doc(db,"bakaya",id));
-
-if(!snap.exists()){
-alert("Data नहीं मिला");
-return;
-}
-
 let x=snap.data();
 
 $("e_date").value=x.date||"";
@@ -221,9 +255,11 @@ editId=null;
 
 window.printData=()=>window.print();
 
+// ✅ PAGE LOAD पर date auto fill
+setTodayDate();
+
 </script>
 
-<!-- ✅ PWA SCRIPT -->
 <script src="pwa.js"></script>
 
 </body>
