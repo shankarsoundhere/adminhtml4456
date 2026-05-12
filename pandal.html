@@ -75,16 +75,6 @@ padding:6px 12px;
 font-size:14px;
 }
 
-.msg{
-display:none;
-background:#000;
-color:#fff;
-padding:8px;
-text-align:center;
-border-radius:5px;
-margin-bottom:8px;
-}
-
 .popup{
 display:none;
 position:fixed;
@@ -106,8 +96,11 @@ width:90%;
 max-width:500px;
 }
 
+.redBtn{background:red;}
+.blueBtn{background:#007bff;}
+
 @media print{
-textarea,button,.print-hide,.msg,.popup{display:none !important;}
+textarea,button,.print-hide,.popup{display:none !important;}
 body{background:white;}
 .box{box-shadow:none;border-radius:0;}
 }
@@ -120,12 +113,10 @@ body{background:white;}
 
 <h2>🎪 पंडाल मिस्त्री</h2>
 
-<div id="msg" class="msg"></div>
-
 <textarea id="note1" placeholder="नोट"></textarea>
 <textarea id="note2" placeholder="नोट"></textarea>
 
-<button onclick="saveData()">💾 Save</button>
+<button id="saveBtn" onclick="saveData()">💾 Save</button>
 <button onclick="printData()">🖨️ Print</button>
 
 <div id="table1Section" style="display:none;">
@@ -148,8 +139,20 @@ body{background:white;}
 <textarea id="editNote1"></textarea>
 <textarea id="editNote2"></textarea>
 
-<button onclick="updateData()">Update</button>
-<button onclick="closePopup()">Cancel</button>
+<button id="updateBtn" onclick="updateData()">Update</button>
+<button class="redBtn" onclick="closePopup()">Cancel</button>
+
+</div>
+</div>
+
+<div class="popup" id="deletePopup">
+<div class="popup-box">
+
+<h3>Delete करना है?</h3>
+<p>क्या आप इस data को delete करना चाहते हैं?</p>
+
+<button class="redBtn" onclick="confirmDelete()">🗑️ Delete</button>
+<button class="blueBtn" onclick="closeDeletePopup()">Cancel</button>
 
 </div>
 </div>
@@ -168,13 +171,15 @@ getDoc
 } from "./firebase.js";
 
 let editId=null;
+let deleteId=null;
 
 const $ = (id)=>document.getElementById(id);
 
-function showMsg(t){
-$("msg").innerText=t;
-$("msg").style.display="block";
-setTimeout(()=>{$("msg").style.display="none"},2000);
+function buttonText(btnId,newText,oldText){
+$(btnId).innerText=newText;
+setTimeout(()=>{
+$(btnId).innerText=oldText;
+},1200);
 }
 
 function bullet(txt){
@@ -191,29 +196,43 @@ window.saveData=async()=>{
 
 let data={
 note1:$("note1").value.trim(),
-note2:$("note2").value.trim()
+note2:$("note2").value.trim(),
+time:Date.now()
 };
 
 if(!data.note1 && !data.note2){
-alert("कुछ लिखो");
+buttonText("saveBtn","कुछ लिखो","💾 Save");
 return;
 }
 
 await addDoc(collection(db,"pandal"),data);
 
-showMsg("Saved");
-
 $("note1").value="";
 $("note2").value="";
+
+buttonText("saveBtn","✅ Saved","💾 Save");
 };
 
 onSnapshot(collection(db,"pandal"),snap=>{
 
-let t1="",t2="";
-let has1=false,has2=false;
+let arr=[];
 
 snap.forEach(d=>{
 let x=d.data();
+arr.push({
+id:d.id,
+note1:x.note1||"",
+note2:x.note2||"",
+time:x.time||0
+});
+});
+
+arr.sort((a,b)=>a.time-b.time);
+
+let t1="",t2="";
+let has1=false,has2=false;
+
+arr.forEach(x=>{
 
 if(x.note1){
 has1=true;
@@ -221,8 +240,8 @@ t1+=`
 <div class="itemBox">
 ${bullet(x.note1)}
 <div class="action print-hide">
-<button onclick="editData('${d.id}')">Edit</button>
-<button onclick="deleteData('${d.id}')">Delete</button>
+<button onclick="editData('${x.id}')">Edit</button>
+<button onclick="openDeletePopup('${x.id}')">Delete</button>
 </div>
 </div>`;
 }
@@ -233,8 +252,8 @@ t2+=`
 <div class="itemBox">
 ${bullet(x.note2)}
 <div class="action print-hide">
-<button onclick="editData('${d.id}')">Edit</button>
-<button onclick="deleteData('${d.id}')">Delete</button>
+<button onclick="editData('${x.id}')">Edit</button>
+<button onclick="openDeletePopup('${x.id}')">Delete</button>
 </div>
 </div>`;
 }
@@ -249,18 +268,29 @@ $("table2Section").style.display=has2?"block":"none";
 
 });
 
-window.deleteData=async(id)=>{
-if(confirm("Delete?")){
-await deleteDoc(doc(db,"pandal",id));
-showMsg("Deleted");
+window.openDeletePopup=(id)=>{
+deleteId=id;
+$("deletePopup").style.display="flex";
 }
+
+window.closeDeletePopup=()=>{
+deleteId=null;
+$("deletePopup").style.display="none";
+}
+
+window.confirmDelete=async()=>{
+if(!deleteId) return;
+
+await deleteDoc(doc(db,"pandal",deleteId));
+
+deleteId=null;
+$("deletePopup").style.display="none";
 }
 
 window.editData=async(id)=>{
 let snap = await getDoc(doc(db,"pandal",id));
 
 if(!snap.exists()){
-alert("Data नहीं मिला");
 return;
 }
 
@@ -274,13 +304,21 @@ $("editPopup").style.display="flex";
 }
 
 window.updateData=async()=>{
+if(!editId){
+buttonText("updateBtn","पहले Edit चुनो","Update");
+return;
+}
+
 await updateDoc(doc(db,"pandal",editId),{
 note1:$("editNote1").value.trim(),
 note2:$("editNote2").value.trim()
 });
 
-showMsg("Updated");
+buttonText("updateBtn","Updated","Update");
+
+setTimeout(()=>{
 closePopup();
+},500);
 }
 
 window.closePopup=()=>{
