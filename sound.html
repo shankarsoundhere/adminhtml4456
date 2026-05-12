@@ -18,7 +18,17 @@ body{font-family:Arial;background:#f1f3f6;padding:10px;}
 input,button{width:100%;padding:10px;margin:5px 0;box-sizing:border-box;font-size:16px;}
 button{background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;}
 
-.msg{display:none;background:#000;color:#fff;padding:8px;text-align:center;border-radius:5px;margin-bottom:8px;}
+.dateWrap{position:relative;}
+.datePicker{
+position:absolute;
+left:0;
+top:5px;
+width:100%;
+height:42px;
+opacity:0;
+z-index:2;
+cursor:pointer;
+}
 
 table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:10px;}
 
@@ -66,9 +76,12 @@ width:90%;
 max-width:450px;
 }
 
+.redBtn{background:red;}
+.blueBtn{background:#007bff;}
+
 /* PRINT */
 @media print{
-input,button,.actionBtn,.msg,.popup,h2{display:none !important;}
+input,button,.actionBtn,.popup,h2,.datePicker{display:none !important;}
 
 body{background:white;margin:0;padding:0;}
 
@@ -96,14 +109,16 @@ display:none;
 
 <h2>Sound System</h2>
 
-<div id="msg" class="msg"></div>
+<div class="dateWrap">
+<input id="date" placeholder="दिनांक" readonly>
+<input id="datePicker" class="datePicker" type="date">
+</div>
 
-<input id="date" placeholder="दिनांक">
 <input id="work" placeholder="काम">
 <input id="place" placeholder="कहां जाएगा">
 <input id="link" placeholder="Google Drive Link">
 
-<button onclick="saveData()">💾 Save</button>
+<button id="saveBtn" onclick="saveData()">💾 Save</button>
 <button onclick="printData()">🖨️ Print</button>
 
 <table>
@@ -125,13 +140,29 @@ display:none;
 
 <h3>Edit</h3>
 
-<input id="e_date" placeholder="दिनांक DD-MM-YYYY">
+<div class="dateWrap">
+<input id="e_date" placeholder="दिनांक" readonly>
+<input id="e_datePicker" class="datePicker" type="date">
+</div>
+
 <input id="e_work" placeholder="काम">
 <input id="e_place" placeholder="कहां जाएगा">
 <input id="e_link" placeholder="Google Drive Link">
 
-<button onclick="updateData()">Update</button>
-<button onclick="closePopup()">Cancel</button>
+<button id="updateBtn" onclick="updateData()">Update</button>
+<button class="redBtn" onclick="closePopup()">Cancel</button>
+
+</div>
+</div>
+
+<div class="popup" id="deletePopup">
+<div class="popup-box">
+
+<h3>Delete करना है?</h3>
+<p>क्या आप इस data को delete करना चाहते हैं?</p>
+
+<button class="redBtn" onclick="confirmDelete()">🗑️ Delete</button>
+<button class="blueBtn" onclick="closeDeletePopup()">Cancel</button>
 
 </div>
 </div>
@@ -152,23 +183,55 @@ getDoc
 const colRef = collection(db,"main_list");
 
 let editId=null;
+let deleteId=null;
 
 const $ = (id)=>document.getElementById(id);
 
-function showMsg(t){
-$("msg").innerText=t;
-$("msg").style.display="block";
-setTimeout(()=>{$("msg").style.display="none"},1500);
+function isoToDDMMYYYY(iso){
+if(!iso) return "";
+let p=iso.split("-");
+return p[2]+"-"+p[1]+"-"+p[0];
+}
+
+function ddmmyyyyToISO(dateStr){
+if(!dateStr) return "";
+let p=dateStr.split("-");
+if(p.length!==3) return "";
+return p[2]+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0");
+}
+
+$("datePicker").addEventListener("change",function(){
+$("date").value=isoToDDMMYYYY(this.value);
+});
+
+$("e_datePicker").addEventListener("change",function(){
+$("e_date").value=isoToDDMMYYYY(this.value);
+});
+
+function buttonText(btnId,newText,oldText){
+$(btnId).innerText=newText;
+setTimeout(()=>{
+$(btnId).innerText=oldText;
+},1200);
 }
 
 function clearForm(){
-["date","work","place","link"].forEach(id=>$(id).value="");
+["date","datePicker","work","place","link"].forEach(id=>$(id).value="");
 }
 
 function getSortDate(date){
 let p=(date||"").split("-");
-if(p.length!==3) return new Date(9999,11,31);
-return new Date(p[2],p[1]-1,p[0]);
+if(p.length!==3) return 99999999;
+
+let dd=p[0].padStart(2,"0");
+let mm=p[1].padStart(2,"0");
+let yy=p[2];
+
+if(yy.length===2){
+yy="20"+yy;
+}
+
+return Number(yy+mm+dd);
 }
 
 window.saveData=async()=>{
@@ -176,17 +239,19 @@ let data={
 date:$("date").value.trim(),
 work:$("work").value.trim(),
 place:$("place").value.trim(),
-link:$("link").value.trim()
+link:$("link").value.trim(),
+time:Date.now()
 };
 
 if(!data.date && !data.work && !data.place){
-alert("डाटा डालो");
+buttonText("saveBtn","डाटा डालो","💾 Save");
 return;
 }
 
 await addDoc(colRef,data);
-showMsg("Saved");
+
 clearForm();
+buttonText("saveBtn","✅ Saved","💾 Save");
 }
 
 onSnapshot(colRef,snap=>{
@@ -202,11 +267,17 @@ date:x.date||"",
 work:x.work||"",
 place:x.place||"",
 link:x.link||"",
+time:x.time||0,
 sort:getSortDate(x.date)
 });
 });
 
-arr.sort((a,b)=>a.sort-b.sort);
+arr.sort((a,b)=>{
+if(a.sort===b.sort){
+return a.time-b.time;
+}
+return a.sort-b.sort;
+});
 
 let html="";
 
@@ -218,7 +289,7 @@ html+=`
 <td>${x.place}</td>
 <td>
 <button class="actionBtn" onclick="event.stopPropagation(); editData('${x.id}')">✏️</button>
-<button class="actionBtn" onclick="event.stopPropagation(); deleteData('${x.id}')">🗑️</button>
+<button class="actionBtn" onclick="event.stopPropagation(); openDeletePopup('${x.id}')">🗑️</button>
 </td>
 </tr>`;
 });
@@ -231,24 +302,36 @@ window.openLink=(l)=>{
 if(l) window.open(l,"_blank");
 }
 
-window.deleteData=async(id)=>{
-if(confirm("Delete?")){
-await deleteDoc(doc(db,"main_list",id));
-showMsg("Deleted");
+window.openDeletePopup=(id)=>{
+deleteId=id;
+$("deletePopup").style.display="flex";
 }
+
+window.closeDeletePopup=()=>{
+deleteId=null;
+$("deletePopup").style.display="none";
+}
+
+window.confirmDelete=async()=>{
+if(!deleteId) return;
+
+await deleteDoc(doc(db,"main_list",deleteId));
+
+deleteId=null;
+$("deletePopup").style.display="none";
 }
 
 window.editData=async(id)=>{
 let snap = await getDoc(doc(db,"main_list",id));
 
 if(!snap.exists()){
-alert("Data नहीं मिला");
 return;
 }
 
 let x=snap.data();
 
 $("e_date").value=x.date||"";
+$("e_datePicker").value=ddmmyyyyToISO(x.date||"");
 $("e_work").value=x.work||"";
 $("e_place").value=x.place||"";
 $("e_link").value=x.link||"";
@@ -258,6 +341,11 @@ $("editPopup").style.display="flex";
 }
 
 window.updateData=async()=>{
+if(!editId){
+buttonText("updateBtn","पहले Edit चुनो","Update");
+return;
+}
+
 await updateDoc(doc(db,"main_list",editId),{
 date:$("e_date").value.trim(),
 work:$("e_work").value.trim(),
@@ -265,9 +353,12 @@ place:$("e_place").value.trim(),
 link:$("e_link").value.trim()
 });
 
+buttonText("updateBtn","Updated","Update");
+
+setTimeout(()=>{
 $("editPopup").style.display="none";
 editId=null;
-showMsg("Updated");
+},500);
 }
 
 window.closePopup=()=>{
