@@ -68,7 +68,7 @@ border-radius:10px;
 <option value="10">Slot 10</option>
 </select>
 
-<input id="date" placeholder="दिनांक">
+<input id="date" placeholder="दिनांक जैसे 02-05-2026">
 <input id="work" placeholder="काम">
 <input id="place" placeholder="जगह">
 <input id="note" placeholder="नोट">
@@ -152,6 +152,19 @@ function colName(){
 return "light_slot_" + $("slot").value;
 }
 
+function dateToNumber(dateStr){
+if(!dateStr || dateStr === "-") return 99999999;
+
+let parts = dateStr.split("-");
+if(parts.length !== 3) return 99999999;
+
+let day = parts[0].padStart(2,"0");
+let month = parts[1].padStart(2,"0");
+let year = parts[2];
+
+return Number(year + month + day);
+}
+
 window.saveData = async function(){
 
 let hasMainData = $("date").value.trim() || $("work").value.trim() || $("place").value.trim();
@@ -196,6 +209,7 @@ unsubscribe = onSnapshot(collection(db,colName()),(snap)=>{
 $("tbody").innerHTML="";
 $("noteBody").innerHTML="";
 
+let mainData = [];
 let notes = [];
 
 snap.forEach(d=>{
@@ -206,17 +220,13 @@ if(
 (x.work && x.work.trim() !== "") ||
 (x.place && x.place.trim() !== "")
 ){
-$("tbody").innerHTML += `
-<tr>
-<td>${x.date || ""}</td>
-<td>${x.work || ""}</td>
-<td>${x.place || ""}</td>
-<td>
-<button class="btn" onclick="openMainEdit('${d.id}')">✏️ Edit</button>
-<button class="btn" onclick="deleteData('${d.id}')">🗑️ Delete</button>
-</td>
-</tr>
-`;
+mainData.push({
+id:d.id,
+date:x.date || "",
+work:x.work || "",
+place:x.place || "",
+time:x.time || 0
+});
 }
 
 if((x.note || "").trim() !== ""){
@@ -227,6 +237,31 @@ time:x.time || 0
 });
 }
 
+});
+
+mainData.sort((a,b)=>{
+let dateA = dateToNumber(a.date);
+let dateB = dateToNumber(b.date);
+
+if(dateA === dateB){
+return a.time - b.time;
+}
+
+return dateA - dateB;
+});
+
+mainData.forEach(x=>{
+$("tbody").innerHTML += `
+<tr>
+<td>${x.date || ""}</td>
+<td>${x.work || ""}</td>
+<td>${x.place || ""}</td>
+<td>
+<button class="btn" onclick="openMainEdit('${x.id}')">✏️ Edit</button>
+<button class="btn" onclick="deleteData('${x.id}')">🗑️ Delete</button>
+</td>
+</tr>
+`;
 });
 
 notes.sort((a,b)=>a.time - b.time);
