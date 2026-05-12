@@ -69,6 +69,7 @@ border:1px solid #000;
 padding:5px 3px;
 word-break:break-word;
 vertical-align:middle;
+box-sizing:border-box;
 }
 
 th{
@@ -79,50 +80,39 @@ background:#eee;
 width:24px !important;
 height:22px;
 padding:0 !important;
-margin:1px;
+margin:0 1px;
 font-size:10px;
 }
 
-/* Main table column */
-#tbody td:nth-child(1),
-#tbody th:nth-child(1){
-width:14%;
+/* Notes Table Fix */
+.noteTable{
+width:100%;
+table-layout:fixed;
 }
 
-#tbody td:nth-child(8),
-#tbody th:nth-child(8){
-width:12%;
-white-space:nowrap;
-}
-
-/* Notes Table - Action छोटा, Note बड़ा */
-#noteBody td:nth-child(1){
-width:auto;
+.noteTable th:nth-child(1),
+.noteTable td:nth-child(1){
+width:calc(100% - 58px);
 text-align:left;
+word-break:break-word;
 }
 
-#noteBody td:nth-child(2){
-width:1%;
+.noteTable th:nth-child(2),
+.noteTable td:nth-child(2){
+width:58px;
+min-width:58px;
+max-width:58px;
 white-space:nowrap;
-padding:3px;
+padding:2px;
+text-align:center;
 }
 
-table thead th:nth-child(2):last-child{
-width:1%;
-white-space:nowrap;
-}
-
-.noteText{
-text-align:left;
-white-space:normal;
-}
-
-#noteBody .actionBtn{
+.noteTable .actionBtn{
 width:24px !important;
 height:22px;
 font-size:10px;
 padding:0 !important;
-margin:1px;
+margin:0;
 }
 
 .popup{
@@ -170,6 +160,13 @@ padding:4px 2px;
 width:22px !important;
 height:20px;
 font-size:9px;
+}
+
+.noteTable th:nth-child(2),
+.noteTable td:nth-child(2){
+width:52px;
+min-width:52px;
+max-width:52px;
 }
 }
 
@@ -286,11 +283,11 @@ display:none !important;
 <h3>📝 Notes Table</h3>
 
 <div class="tableWrap">
-<table>
+<table class="noteTable">
 <thead>
 <tr>
 <th>नोट</th>
-<th style="width:1%;white-space:nowrap;">Action</th>
+<th>Action</th>
 </tr>
 </thead>
 <tbody id="noteBody"></tbody>
