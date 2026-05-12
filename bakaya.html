@@ -17,6 +17,18 @@ input,button{width:100%;padding:10px;margin:5px 0;box-sizing:border-box;font-siz
 button{background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;}
 .msg{display:none;background:#000;color:#fff;padding:6px;text-align:center;border-radius:5px;margin-bottom:8px;}
 
+.dateWrap{position:relative;}
+#datePicker{
+position:absolute;
+left:0;
+top:5px;
+width:100%;
+height:42px;
+opacity:0;
+z-index:2;
+cursor:pointer;
+}
+
 .card{background:#f1f2f6;padding:8px 10px;border-radius:12px;margin-top:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
 .top{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
 .tag{background:#dfe4ea;padding:3px 8px;border-radius:8px;font-size:13px;font-weight:bold;}
@@ -33,7 +45,7 @@ button{background:#28a745;color:white;border:none;border-radius:5px;cursor:point
 .popup-box{background:white;padding:15px;border-radius:10px;width:90%;max-width:400px;}
 
 @media print{
-input,button,.action,.msg,.popup{display:none !important;}
+input,button,.action,.msg,.popup,#datePicker{display:none !important;}
 body{background:white;padding:0;}
 .box{max-width:100%;margin:0;padding:10px;box-shadow:none;}
 .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
@@ -50,7 +62,11 @@ h2{text-align:center;margin:0 0 10px 0;}
 
 <div id="msg" class="msg"></div>
 
-<input id="date" placeholder="दिनांक">
+<div class="dateWrap">
+<input id="date" placeholder="दिनांक" readonly>
+<input id="datePicker" type="date">
+</div>
+
 <input id="work" placeholder="काम">
 <input id="place" placeholder="जगह">
 <input id="amount" placeholder="बकाया राशि">
@@ -69,7 +85,11 @@ h2{text-align:center;margin:0 0 10px 0;}
 
 <h3>Edit Data</h3>
 
-<input id="e_date">
+<div class="dateWrap">
+<input id="e_date" placeholder="दिनांक" readonly>
+<input id="e_datePicker" type="date">
+</div>
+
 <input id="e_work">
 <input id="e_place">
 <input id="e_amount">
@@ -100,20 +120,27 @@ let editId=null;
 
 const $ = (id)=>document.getElementById(id);
 
-// ✅ AUTO DATE (DD-MM-YYYY)
-function todayDate(){
-let d = new Date();
-let day = String(d.getDate()).padStart(2,"0");
-let month = String(d.getMonth()+1).padStart(2,"0");
-let year = d.getFullYear();
-return day + "-" + month + "-" + year;
+function isoToDDMMYYYY(iso){
+if(!iso) return "";
+let p=iso.split("-");
+return p[2]+"-"+p[1]+"-"+p[0];
 }
 
-function setTodayDate(){
-$("date").value = todayDate();
+function ddmmyyyyToISO(dateStr){
+if(!dateStr) return "";
+let p=dateStr.split("-");
+if(p.length!==3) return "";
+return p[2]+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0");
 }
 
-// ✅ DATE SORT
+$("datePicker").addEventListener("change",function(){
+$("date").value = isoToDDMMYYYY(this.value);
+});
+
+$("e_datePicker").addEventListener("change",function(){
+$("e_date").value = isoToDDMMYYYY(this.value);
+});
+
 function dateToNumber(dateStr){
 if(!dateStr) return 99999999;
 let p = dateStr.split("-");
@@ -128,13 +155,12 @@ setTimeout(()=>{$("msg").style.display="none"},1500);
 }
 
 function clearForm(){
-["work","place","amount","name","phone"].forEach(id=>$(id).value="");
-setTodayDate();
+["date","datePicker","work","place","amount","name","phone"].forEach(id=>$(id).value="");
 }
 
 window.saveData=async()=>{
 let data={
-date:$("date").value.trim() || todayDate(),
+date:$("date").value.trim(),
 work:$("work").value.trim(),
 place:$("place").value.trim(),
 amount:$("amount").value.trim(),
@@ -162,10 +188,10 @@ let x=d.data();
 arr.push({id:d.id,...x});
 });
 
-// SORT
 arr.sort((a,b)=>{
 let d1=dateToNumber(a.date);
 let d2=dateToNumber(b.date);
+
 if(d1===d2){
 return (a.time||0)-(b.time||0);
 }
@@ -220,9 +246,16 @@ showMsg("Deleted");
 
 window.editData=async(id)=>{
 let snap = await getDoc(doc(db,"bakaya",id));
+
+if(!snap.exists()){
+alert("Data नहीं मिला");
+return;
+}
+
 let x=snap.data();
 
 $("e_date").value=x.date||"";
+$("e_datePicker").value=ddmmyyyyToISO(x.date||"");
 $("e_work").value=x.work||"";
 $("e_place").value=x.place||"";
 $("e_amount").value=x.amount||"";
@@ -254,9 +287,6 @@ editId=null;
 }
 
 window.printData=()=>window.print();
-
-// ✅ PAGE LOAD पर date auto fill
-setTodayDate();
 
 </script>
 
