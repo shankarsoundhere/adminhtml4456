@@ -79,7 +79,6 @@ max-width:450px;
 .redBtn{background:red;}
 .blueBtn{background:#007bff;}
 
-/* PRINT */
 @media print{
 @page{
 size:A4;
@@ -97,6 +96,7 @@ padding:0;
 }
 
 .box{
+width:100%;
 max-width:100%;
 margin:0;
 padding:0;
@@ -104,20 +104,17 @@ border-radius:0;
 }
 
 table{
-width:auto !important;
-max-width:100%;
+width:100% !important;
 border-collapse:collapse;
-table-layout:auto !important;
+table-layout:fixed;
 margin-top:0;
 }
 
 th,td{
 border:1px solid #000;
-padding:5px 8px;
-font-size:13px;
-white-space:normal;
+padding:6px 8px;
+font-size:14px;
 word-break:break-word;
-text-align:center;
 }
 
 th{
@@ -127,10 +124,9 @@ color:#000 !important;
 print-color-adjust:exact;
 }
 
-th:nth-child(1),td:nth-child(1),
-th:nth-child(2),td:nth-child(2),
-th:nth-child(3),td:nth-child(3){
-width:auto !important;
+td:nth-child(2),
+td:nth-child(3){
+text-align:left;
 }
 
 th:nth-child(4),
