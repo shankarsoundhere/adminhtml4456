@@ -21,6 +21,7 @@ margin:0;
 .box{
 width:210mm;
 min-height:297mm;
+max-width:100%;
 margin:auto;
 background:white;
 padding:12mm;
@@ -67,6 +68,7 @@ td,th{
 border:1px solid #000;
 padding:5px 3px;
 word-break:break-word;
+vertical-align:middle;
 }
 
 th{
@@ -74,31 +76,62 @@ background:#eee;
 }
 
 .actionBtn{
-width:26px !important;
-height:24px;
+width:24px !important;
+height:22px;
 padding:0 !important;
 margin:1px;
-font-size:11px;
+font-size:10px;
 }
 
-/* 🔥 Notes Table Fix */
-#noteBody td:nth-child(1),
-#noteBody th:nth-child(1){
-width:85%;
+/* Main table column */
+#tbody td:nth-child(1),
+#tbody th:nth-child(1){
+width:14%;
+}
+
+#tbody td:nth-child(8),
+#tbody th:nth-child(8){
+width:12%;
+white-space:nowrap;
+}
+
+/* Notes Table - Action छोटा, Note बड़ा */
+#noteBody td:nth-child(1){
+width:auto;
 text-align:left;
 }
 
-#noteBody td:nth-child(2),
-#noteBody th:nth-child(2){
-width:15%;
+#noteBody td:nth-child(2){
+width:1%;
 white-space:nowrap;
+padding:3px;
+}
+
+table thead th:nth-child(2):last-child{
+width:1%;
+white-space:nowrap;
+}
+
+.noteText{
+text-align:left;
+white-space:normal;
+}
+
+#noteBody .actionBtn{
+width:24px !important;
+height:22px;
+font-size:10px;
+padding:0 !important;
+margin:1px;
 }
 
 .popup{
 display:none;
 position:fixed;
-top:0;left:0;
-width:100%;height:100%;
+top:0;
+left:0;
+width:100%;
+height:100%;
 background:rgba(0,0,0,0.5);
 justify-content:center;
 align-items:center;
@@ -113,9 +146,34 @@ width:90%;
 max-width:400px;
 }
 
-/* 📄 PRINT */
-@media print{
+@media(max-width:700px){
+body{
+padding:5px;
+}
 
+.box{
+width:100%;
+min-height:auto;
+padding:10px;
+box-shadow:none;
+}
+
+table{
+font-size:10px;
+}
+
+td,th{
+padding:4px 2px;
+}
+
+.actionBtn{
+width:22px !important;
+height:20px;
+font-size:9px;
+}
+}
+
+@media print{
 @page{
 size:A4;
 margin:8mm;
@@ -129,8 +187,18 @@ margin:0;
 
 .box{
 width:100%;
+min-height:auto;
+max-width:100%;
+margin:0;
 padding:0;
 box-shadow:none;
+background:white;
+}
+
+h2{
+display:block;
+font-size:18px;
+margin-bottom:8px;
 }
 
 h3,
@@ -141,30 +209,38 @@ button,
 display:none !important;
 }
 
+.tableWrap{
+overflow:visible !important;
+margin:0 0 12px 0;
+}
+
+table{
+width:100% !important;
+border-collapse:collapse;
+table-layout:fixed;
+font-size:11px;
+}
+
 thead{
 display:table-header-group;
 }
 
 tr{
 page-break-inside:avoid;
+page-break-after:auto;
+}
+
+th,td{
+border:1px solid #000;
+padding:4px 2px;
+color:black;
+word-break:break-word;
 }
 
 th:last-child,
 td:last-child{
 display:none !important;
 }
-
-/* Notes print fix */
-#noteBody td:nth-child(1),
-#noteBody th:nth-child(1){
-width:90%;
-}
-
-#noteBody td:nth-child(2),
-#noteBody th:nth-child(2){
-width:10%;
-}
-
 }
 </style>
 </head>
@@ -214,7 +290,7 @@ width:10%;
 <thead>
 <tr>
 <th>नोट</th>
-<th>Action</th>
+<th style="width:1%;white-space:nowrap;">Action</th>
 </tr>
 </thead>
 <tbody id="noteBody"></tbody>
@@ -223,17 +299,16 @@ width:10%;
 
 </div>
 
-<!-- POPUPS SAME -->
 <div class="popup" id="editPopup">
 <div class="popup-box">
 <h3>Edit</h3>
-<input id="e_date">
-<input id="e1">
-<input id="e2">
-<input id="e3">
-<input id="e4">
-<input id="e5">
-<input id="e6">
+<input id="e_date" placeholder="दिनांक">
+<input id="e1" placeholder="नाम 1">
+<input id="e2" placeholder="नाम 2">
+<input id="e3" placeholder="नाम 3">
+<input id="e4" placeholder="नाम 4">
+<input id="e5" placeholder="नाम 5">
+<input id="e6" placeholder="नाम 6">
 <button onclick="updateData()">Update</button>
 <button onclick="closePopup()">Cancel</button>
 </div>
@@ -242,7 +317,7 @@ width:10%;
 <div class="popup" id="notePopup">
 <div class="popup-box">
 <h3>Edit Note</h3>
-<textarea id="editNote"></textarea>
+<textarea id="editNote" placeholder="नोट"></textarea>
 <button onclick="updateNote()">Update</button>
 <button onclick="closeNotePopup()">Cancel</button>
 </div>
@@ -363,10 +438,15 @@ let arr=[];
 
 snap.forEach(d=>{
 let n=d.data();
-arr.push({id:d.id,text:n.text||"",time:d.id});
+
+arr.push({
+id:d.id,
+text:n.text||"",
+time:d.id
+});
 });
 
-arr.sort((a,b)=> a.time.localeCompare(b.time));
+arr.sort((a,b)=>a.time.localeCompare(b.time));
 
 arr.forEach(n=>{
 noteBody.innerHTML+=`
@@ -394,6 +474,12 @@ await deleteDoc(doc(db,"jharkila_note",id));
 
 window.editData=async(id)=>{
 let snap=await getDoc(doc(db,"jharkila",id));
+
+if(!snap.exists()){
+alert("Data नहीं मिला");
+return;
+}
+
 let x=snap.data();
 
 e_date.value=x.date||"";
@@ -418,16 +504,24 @@ n4:e4.value,
 n5:e5.value,
 n6:e6.value
 });
+
 alert("Updated");
 closePopup();
 }
 
 window.closePopup=()=>{
 editPopup.style.display="none";
+editId=null;
 }
 
 window.editNoteData=async(id)=>{
 let snap=await getDoc(doc(db,"jharkila_note",id));
+
+if(!snap.exists()){
+alert("Note नहीं मिला");
+return;
+}
+
 let n=snap.data();
 
 editNote.value=n.text||"";
@@ -439,12 +533,14 @@ window.updateNote=async()=>{
 await updateDoc(doc(db,"jharkila_note",noteEditId),{
 text:editNote.value
 });
+
 alert("Note Updated");
 closeNotePopup();
 }
 
 window.closeNotePopup=()=>{
 notePopup.style.display="none";
+noteEditId=null;
 }
 
 window.printData=()=>window.print();
