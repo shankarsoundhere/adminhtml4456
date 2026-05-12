@@ -17,15 +17,24 @@ input,select,button{width:100%;padding:10px;margin:5px 0;box-sizing:border-box;}
 button{background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;}
 .printBtn{background:#007bff;}
 
+.dateWrap{position:relative;}
+.datePicker{
+position:absolute;
+left:0;
+top:5px;
+width:100%;
+height:40px;
+opacity:0;
+z-index:2;
+cursor:pointer;
+}
+
 table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
 td,th{border:1px solid #000;padding:6px;text-align:center;}
 th{background:#ddd;}
 .btn{padding:4px 6px;font-size:12px;width:auto;margin:2px;}
 
-.noteText{
-text-align:left !important;
-padding-left:8px;
-}
+.noteText{text-align:left !important;padding-left:8px;}
 
 .modal{
 display:none;
@@ -46,6 +55,13 @@ margin:100px auto;
 padding:15px;
 border-radius:10px;
 }
+
+.deleteBox{
+text-align:center;
+}
+
+.redBtn{background:red;}
+.blueBtn{background:#007bff;}
 </style>
 </head>
 
@@ -68,12 +84,16 @@ border-radius:10px;
 <option value="10">Slot 10</option>
 </select>
 
-<input id="date" placeholder="दिनांक">
+<div class="dateWrap">
+<input id="date" placeholder="दिनांक" readonly>
+<input id="datePicker" class="datePicker" type="date">
+</div>
+
 <input id="work" placeholder="काम">
 <input id="place" placeholder="जगह">
 <input id="note" placeholder="नोट">
 
-<button onclick="saveData()">💾 Save</button>
+<button id="saveBtn" onclick="saveData()">💾 Save</button>
 <button class="printBtn" onclick="printData()">🖨️ Print</button>
 
 <h3>📋 Main Data</h3>
@@ -107,12 +127,16 @@ border-radius:10px;
 
 <h3>✏️ Edit Main Data</h3>
 
-<input id="edit_date" placeholder="दिनांक">
+<div class="dateWrap">
+<input id="edit_date" placeholder="दिनांक" readonly>
+<input id="editDatePicker" class="datePicker" type="date">
+</div>
+
 <input id="edit_work" placeholder="काम">
 <input id="edit_place" placeholder="जगह">
 
-<button onclick="updateMainData()">Update</button>
-<button onclick="closeMainModal()" style="background:red;">Close</button>
+<button id="mainUpdateBtn" onclick="updateMainData()">Update</button>
+<button onclick="closeMainModal()" class="redBtn">Close</button>
 
 </div>
 </div>
@@ -124,8 +148,20 @@ border-radius:10px;
 
 <input id="edit_note" placeholder="नोट">
 
-<button onclick="updateNoteData()">Update</button>
-<button onclick="closeNoteModal()" style="background:red;">Close</button>
+<button id="noteUpdateBtn" onclick="updateNoteData()">Update</button>
+<button onclick="closeNoteModal()" class="redBtn">Close</button>
+
+</div>
+</div>
+
+<div class="modal" id="deleteModal">
+<div class="modal-content deleteBox">
+
+<h3>Delete करना है?</h3>
+<p>क्या आप इस data को delete करना चाहते हैं?</p>
+
+<button onclick="confirmDelete()" class="redBtn">🗑️ Delete</button>
+<button onclick="closeDeleteModal()" class="blueBtn">Cancel</button>
 
 </div>
 </div>
@@ -144,6 +180,7 @@ updateDoc
 } from "./firebase.js";
 
 let editId = null;
+let deleteId = null;
 let unsubscribe = null;
 
 const $ = (id)=>document.getElementById(id);
@@ -151,6 +188,27 @@ const $ = (id)=>document.getElementById(id);
 function colName(){
 return "light_slot_" + $("slot").value;
 }
+
+function isoToDDMMYYYY(iso){
+if(!iso) return "";
+let p = iso.split("-");
+return p[2] + "-" + p[1] + "-" + p[0];
+}
+
+function ddmmyyyyToISO(dateStr){
+if(!dateStr || dateStr === "-") return "";
+let p = dateStr.split("-");
+if(p.length !== 3) return "";
+return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+}
+
+$("datePicker").addEventListener("change",function(){
+$("date").value = isoToDDMMYYYY(this.value);
+});
+
+$("editDatePicker").addEventListener("change",function(){
+$("edit_date").value = isoToDDMMYYYY(this.value);
+});
 
 function dateToNumber(dateStr){
 if(!dateStr || dateStr === "-") return 99999999;
@@ -165,13 +223,20 @@ let year = parts[2];
 return Number(year + month + day);
 }
 
+function buttonText(btnId,newText,oldText){
+$(btnId).innerText = newText;
+setTimeout(()=>{
+$(btnId).innerText = oldText;
+},1200);
+}
+
 window.saveData = async function(){
 
 let hasMainData = $("date").value.trim() || $("work").value.trim() || $("place").value.trim();
 let hasNote = $("note").value.trim();
 
 if(!hasMainData && !hasNote){
-alert("कुछ तो लिखो");
+buttonText("saveBtn","कुछ तो लिखो","💾 Save");
 return;
 }
 
@@ -185,15 +250,16 @@ note: $("note").value.trim() || "",
 time: Date.now()
 });
 
-alert("Saved Successfully");
-
 $("date").value="";
+$("datePicker").value="";
 $("work").value="";
 $("place").value="";
 $("note").value="";
 
+buttonText("saveBtn","✅ Saved","💾 Save");
+
 }catch(e){
-alert("Error : " + e.message);
+buttonText("saveBtn","Error","💾 Save");
 }
 
 }
@@ -258,7 +324,7 @@ $("tbody").innerHTML += `
 <td>${x.place || ""}</td>
 <td>
 <button class="btn" onclick="openMainEdit('${x.id}')">✏️ Edit</button>
-<button class="btn" onclick="deleteData('${x.id}')">🗑️ Delete</button>
+<button class="btn" onclick="openDeleteModal('${x.id}')">🗑️ Delete</button>
 </td>
 </tr>
 `;
@@ -272,7 +338,7 @@ $("noteBody").innerHTML += `
 <td class="noteText">• ${n.note}</td>
 <td>
 <button class="btn" onclick="openNoteEdit('${n.id}')">✏️ Edit</button>
-<button class="btn" onclick="deleteData('${n.id}')">🗑️ Delete</button>
+<button class="btn" onclick="openDeleteModal('${n.id}')">🗑️ Delete</button>
 </td>
 </tr>
 `;
@@ -282,13 +348,23 @@ $("noteBody").innerHTML += `
 
 }
 
-window.deleteData = async function(id){
-
-if(confirm("Delete करना है?")){
-await deleteDoc(doc(db,colName(),id));
-alert("Deleted Successfully");
+window.openDeleteModal = function(id){
+deleteId = id;
+$("deleteModal").style.display="block";
 }
 
+window.closeDeleteModal = function(){
+deleteId = null;
+$("deleteModal").style.display="none";
+}
+
+window.confirmDelete = async function(){
+if(!deleteId) return;
+
+await deleteDoc(doc(db,colName(),deleteId));
+
+deleteId = null;
+$("deleteModal").style.display="none";
 }
 
 window.openMainEdit = async function(id){
@@ -296,7 +372,6 @@ window.openMainEdit = async function(id){
 let snap = await getDoc(doc(db,colName(),id));
 
 if(!snap.exists()){
-alert("Data नहीं मिला");
 return;
 }
 
@@ -305,6 +380,7 @@ let d = snap.data();
 editId = id;
 
 $("edit_date").value = d.date || "";
+$("editDatePicker").value = ddmmyyyyToISO(d.date || "");
 $("edit_work").value = d.work || "";
 $("edit_place").value = d.place || "";
 
@@ -319,7 +395,7 @@ editId = null;
 window.updateMainData = async function(){
 
 if(!editId){
-alert("पहले Edit select करो");
+buttonText("mainUpdateBtn","पहले Edit select करो","Update");
 return;
 }
 
@@ -329,10 +405,12 @@ work: $("edit_work").value.trim() || "",
 place: $("edit_place").value.trim() || ""
 });
 
+buttonText("mainUpdateBtn","Updated","Update");
+
+setTimeout(()=>{
 $("mainModal").style.display="none";
 editId = null;
-
-alert("Main Updated");
+},500);
 }
 
 window.openNoteEdit = async function(id){
@@ -340,16 +418,13 @@ window.openNoteEdit = async function(id){
 let snap = await getDoc(doc(db,colName(),id));
 
 if(!snap.exists()){
-alert("Data नहीं मिला");
 return;
 }
 
 let d = snap.data();
 
 editId = id;
-
 $("edit_note").value = d.note || "";
-
 $("noteModal").style.display="block";
 }
 
@@ -361,7 +436,7 @@ editId = null;
 window.updateNoteData = async function(){
 
 if(!editId){
-alert("पहले Edit select करो");
+buttonText("noteUpdateBtn","पहले Edit select करो","Update");
 return;
 }
 
@@ -369,10 +444,12 @@ await updateDoc(doc(db,colName(),editId),{
 note: $("edit_note").value.trim() || ""
 });
 
+buttonText("noteUpdateBtn","Updated","Update");
+
+setTimeout(()=>{
 $("noteModal").style.display="none";
 editId = null;
-
-alert("Note Updated");
+},500);
 }
 
 window.printData = function(){
