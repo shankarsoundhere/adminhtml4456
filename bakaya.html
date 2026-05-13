@@ -36,7 +36,24 @@ cursor:pointer;
 .person{font-size:14px;display:flex;align-items:center;gap:6px;}
 .phoneText{font-size:12px;color:#555;margin-top:2px;}
 .icon{font-size:18px;}
-.call{background:#28c34a;color:white;padding:5px 12px;border-radius:16px;font-size:13px;font-weight:bold;text-decoration:none;}
+
+.callBox{
+display:flex;
+gap:5px;
+flex-wrap:wrap;
+justify-content:flex-end;
+}
+
+.call{
+background:#28c34a;
+color:white;
+padding:5px 12px;
+border-radius:16px;
+font-size:13px;
+font-weight:bold;
+text-decoration:none;
+}
+
 .action{display:flex;gap:4px;margin-top:6px;}
 .action button{padding:5px 8px;font-size:12px;}
 
@@ -46,7 +63,7 @@ cursor:pointer;
 .blueBtn{background:#007bff;}
 
 @media print{
-input,button,.action,.popup,#datePicker,#e_datePicker{display:none !important;}
+input,button,.action,.popup,#datePicker,#e_datePicker,.callBox{display:none !important;}
 body{background:white;padding:0;}
 .box{max-width:100%;margin:0;padding:10px;box-shadow:none;}
 .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
@@ -70,7 +87,8 @@ h2{text-align:center;margin:0 0 10px 0;}
 <input id="place" placeholder="जगह">
 <input id="amount" placeholder="बकाया राशि">
 <input id="name" placeholder="नाम">
-<input id="phone" placeholder="मोबाइल नंबर">
+<input id="phone1" placeholder="मोबाइल नंबर 1">
+<input id="phone2" placeholder="मोबाइल नंबर 2">
 
 <button id="saveBtn" onclick="saveData()">💾 Save</button>
 <button onclick="printData()">🖨️ Print</button>
@@ -93,7 +111,8 @@ h2{text-align:center;margin:0 0 10px 0;}
 <input id="e_place" placeholder="जगह">
 <input id="e_amount" placeholder="बकाया राशि">
 <input id="e_name" placeholder="नाम">
-<input id="e_phone" placeholder="मोबाइल नंबर">
+<input id="e_phone1" placeholder="मोबाइल नंबर 1">
+<input id="e_phone2" placeholder="मोबाइल नंबर 2">
 
 <button id="updateBtn" onclick="updateData()">✅ Update</button>
 <button class="redBtn" onclick="closePopup()">❌ Cancel</button>
@@ -159,7 +178,7 @@ return Number(p[2]+p[1].padStart(2,"0")+p[0].padStart(2,"0"));
 }
 
 function clearForm(){
-["date","datePicker","work","place","amount","name","phone"].forEach(id=>$(id).value="");
+["date","datePicker","work","place","amount","name","phone1","phone2"].forEach(id=>$(id).value="");
 }
 
 function buttonText(btnId,newText,oldText){
@@ -176,7 +195,8 @@ work:$("work").value.trim(),
 place:$("place").value.trim(),
 amount:$("amount").value.trim(),
 name:$("name").value.trim(),
-phone:$("phone").value.trim(),
+phone1:$("phone1").value.trim(),
+phone2:$("phone2").value.trim(),
 time: Date.now()
 };
 
@@ -213,6 +233,20 @@ return d1-d2;
 let html="";
 
 arr.forEach(x=>{
+
+let phone1 = x.phone1 || x.phone || "";
+let phone2 = x.phone2 || "";
+
+let callButtons = "";
+
+if(phone1){
+callButtons += `<a class="call" href="tel:${phone1}">📞 Call 1</a>`;
+}
+
+if(phone2){
+callButtons += `<a class="call" href="tel:${phone2}">📞 Call 2</a>`;
+}
+
 html+=`
 <div class="card">
 
@@ -229,11 +263,14 @@ html+=`
 <span class="icon">👤</span>
 <div>
 <div>${x.name||"-"}</div>
-<div class="phoneText">${x.phone||"-"}</div>
+<div class="phoneText">${phone1 || "-"}</div>
+${phone2 ? `<div class="phoneText">${phone2}</div>` : ""}
 </div>
 </div>
 
-<a class="call" href="tel:${x.phone||""}">📞 Call</a>
+<div class="callBox">
+${callButtons}
+</div>
 </div>
 
 <div class="action">
@@ -282,7 +319,8 @@ $("e_work").value=x.work||"";
 $("e_place").value=x.place||"";
 $("e_amount").value=x.amount||"";
 $("e_name").value=x.name||"";
-$("e_phone").value=x.phone||"";
+$("e_phone1").value=x.phone1 || x.phone || "";
+$("e_phone2").value=x.phone2 || "";
 
 editId=id;
 $("editPopup").style.display="flex";
@@ -297,7 +335,8 @@ work:$("e_work").value.trim(),
 place:$("e_place").value.trim(),
 amount:$("e_amount").value.trim(),
 name:$("e_name").value.trim(),
-phone:$("e_phone").value.trim()
+phone1:$("e_phone1").value.trim(),
+phone2:$("e_phone2").value.trim()
 });
 
 buttonText("updateBtn","✅ Updated","✅ Update");
