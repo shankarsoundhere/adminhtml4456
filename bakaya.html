@@ -16,6 +16,10 @@ body{font-family:Arial;background:#f1f3f6;padding:10px;}
 input,button{width:100%;padding:10px;margin:5px 0;box-sizing:border-box;font-size:16px;}
 button{background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;}
 
+#phone2,#e_phone2{
+display:none;
+}
+
 .dateWrap{position:relative;}
 #datePicker,#e_datePicker{
 position:absolute;
@@ -37,22 +41,8 @@ cursor:pointer;
 .phoneText{font-size:12px;color:#555;margin-top:2px;}
 .icon{font-size:18px;}
 
-.callBox{
-display:flex;
-gap:5px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
-
-.call{
-background:#28c34a;
-color:white;
-padding:5px 12px;
-border-radius:16px;
-font-size:13px;
-font-weight:bold;
-text-decoration:none;
-}
+.callBox{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+.call{background:#28c34a;color:white;padding:5px 12px;border-radius:16px;font-size:13px;font-weight:bold;text-decoration:none;}
 
 .action{display:flex;gap:4px;margin-top:6px;}
 .action button{padding:5px 8px;font-size:12px;}
@@ -63,50 +53,13 @@ text-decoration:none;
 .blueBtn{background:#007bff;}
 
 @media print{
-input,button,.action,.popup,#datePicker,#e_datePicker{
-display:none !important;
-}
-
-body{
-background:white;
-padding:0;
-}
-
-.box{
-max-width:100%;
-margin:0;
-padding:10px;
-box-shadow:none;
-}
-
-.card{
-box-shadow:none;
-border:1px solid #ddd;
-page-break-inside:avoid;
-}
-
-h2{
-text-align:center;
-margin:0 0 10px 0;
-}
-
-.callBox{
-display:flex !important;
-gap:5px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
-
-.call{
-display:inline-block !important;
-background:#28c34a !important;
-color:white !important;
-padding:5px 12px;
-border-radius:16px;
-font-size:13px;
-font-weight:bold;
-text-decoration:none;
-}
+input,button,.action,.popup,#datePicker,#e_datePicker{display:none !important;}
+body{background:white;padding:0;}
+.box{max-width:100%;margin:0;padding:10px;box-shadow:none;}
+.card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
+h2{text-align:center;margin:0 0 10px 0;}
+.callBox{display:flex !important;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+.call{display:inline-block !important;background:#28c34a !important;color:white !important;padding:5px 12px;border-radius:16px;font-size:13px;font-weight:bold;text-decoration:none;}
 }
 </style>
 </head>
@@ -126,7 +79,7 @@ text-decoration:none;
 <input id="place" placeholder="जगह">
 <input id="amount" placeholder="बकाया राशि">
 <input id="name" placeholder="नाम">
-<input id="phone1" placeholder="मोबाइल नंबर 1">
+<input id="phone1" placeholder="मोबाइल नंबर 1 - दूसरा नंबर डालने के लिए double click करें">
 <input id="phone2" placeholder="मोबाइल नंबर 2">
 
 <button id="saveBtn" onclick="saveData()">💾 Save</button>
@@ -150,7 +103,7 @@ text-decoration:none;
 <input id="e_place" placeholder="जगह">
 <input id="e_amount" placeholder="बकाया राशि">
 <input id="e_name" placeholder="नाम">
-<input id="e_phone1" placeholder="मोबाइल नंबर 1">
+<input id="e_phone1" placeholder="मोबाइल नंबर 1 - दूसरा नंबर डालने के लिए double click करें">
 <input id="e_phone2" placeholder="मोबाइल नंबर 2">
 
 <button id="updateBtn" onclick="updateData()">✅ Update</button>
@@ -188,6 +141,16 @@ let deleteId=null;
 
 const $ = (id)=>document.getElementById(id);
 
+$("phone1").addEventListener("dblclick",()=>{
+$("phone2").style.display="block";
+$("phone2").focus();
+});
+
+$("e_phone1").addEventListener("dblclick",()=>{
+$("e_phone2").style.display="block";
+$("e_phone2").focus();
+});
+
 function isoToDDMMYYYY(iso){
 if(!iso) return "";
 let p=iso.split("-");
@@ -218,6 +181,7 @@ return Number(p[2]+p[1].padStart(2,"0")+p[0].padStart(2,"0"));
 
 function clearForm(){
 ["date","datePicker","work","place","amount","name","phone1","phone2"].forEach(id=>$(id).value="");
+$("phone2").style.display="none";
 }
 
 function buttonText(btnId,newText,oldText){
@@ -367,6 +331,12 @@ $("e_amount").value=x.amount||"";
 $("e_name").value=x.name||"";
 $("e_phone1").value=x.phone1 || x.phone || "";
 $("e_phone2").value=x.phone2 || "";
+
+if(x.phone2){
+$("e_phone2").style.display="block";
+}else{
+$("e_phone2").style.display="none";
+}
 
 editId=id;
 $("editPopup").style.display="flex";
