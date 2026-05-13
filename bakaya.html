@@ -63,11 +63,50 @@ text-decoration:none;
 .blueBtn{background:#007bff;}
 
 @media print{
-input,button,.action,.popup,#datePicker,#e_datePicker,.callBox{display:none !important;}
-body{background:white;padding:0;}
-.box{max-width:100%;margin:0;padding:10px;box-shadow:none;}
-.card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
-h2{text-align:center;margin:0 0 10px 0;}
+input,button,.action,.popup,#datePicker,#e_datePicker{
+display:none !important;
+}
+
+body{
+background:white;
+padding:0;
+}
+
+.box{
+max-width:100%;
+margin:0;
+padding:10px;
+box-shadow:none;
+}
+
+.card{
+box-shadow:none;
+border:1px solid #ddd;
+page-break-inside:avoid;
+}
+
+h2{
+text-align:center;
+margin:0 0 10px 0;
+}
+
+.callBox{
+display:flex !important;
+gap:5px;
+flex-wrap:wrap;
+justify-content:flex-end;
+}
+
+.call{
+display:inline-block !important;
+background:#28c34a !important;
+color:white !important;
+padding:5px 12px;
+border-radius:16px;
+font-size:13px;
+font-weight:bold;
+text-decoration:none;
+}
 }
 </style>
 </head>
