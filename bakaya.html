@@ -41,6 +41,7 @@ cursor:pointer;
 display:flex;
 gap:5px;
 flex-wrap:wrap;
+justify-content:flex-end;
 }
 
 .call{
@@ -56,7 +57,7 @@ text-decoration:none;
 .action{display:flex;gap:4px;margin-top:6px;}
 .action button{padding:5px 8px;font-size:12px;}
 
-.popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;}
+.popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:999;}
 .popup-box{background:white;padding:15px;border-radius:10px;width:90%;max-width:400px;}
 .redBtn{background:red;}
 .blueBtn{background:#007bff;}
@@ -64,8 +65,9 @@ text-decoration:none;
 @media print{
 input,button,.action,.popup,#datePicker,#e_datePicker,.callBox{display:none !important;}
 body{background:white;padding:0;}
-.box{max-width:100%;margin:0;padding:10px;}
-.card{border:1px solid #ddd;}
+.box{max-width:100%;margin:0;padding:10px;box-shadow:none;}
+.card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
+h2{text-align:center;margin:0 0 10px 0;}
 }
 </style>
 </head>
@@ -95,27 +97,36 @@ body{background:white;padding:0;}
 
 </div>
 
-<!-- EDIT -->
 <div class="popup" id="editPopup">
 <div class="popup-box">
 
 <h3>Edit Data</h3>
 
 <div class="dateWrap">
-<input id="e_date" readonly>
+<input id="e_date" placeholder="दिनांक" readonly>
 <input id="e_datePicker" type="date">
 </div>
 
-<input id="e_work">
-<input id="e_place">
-<input id="e_amount">
-<input id="e_name">
-<input id="e_phone1">
-<input id="e_phone2">
+<input id="e_work" placeholder="काम">
+<input id="e_place" placeholder="जगह">
+<input id="e_amount" placeholder="बकाया राशि">
+<input id="e_name" placeholder="नाम">
+<input id="e_phone1" placeholder="मोबाइल नंबर 1">
+<input id="e_phone2" placeholder="मोबाइल नंबर 2">
 
 <button id="updateBtn" onclick="updateData()">✅ Update</button>
 <button class="redBtn" onclick="closePopup()">❌ Cancel</button>
 
+</div>
+</div>
+
+<div class="popup" id="deletePopup">
+<div class="popup-box">
+<h3>Delete करना है?</h3>
+<p>क्या आप इस data को delete करना चाहते हैं?</p>
+
+<button class="redBtn" onclick="confirmDelete()">🗑️ Delete</button>
+<button class="blueBtn" onclick="closeDeletePopup()">Cancel</button>
 </div>
 </div>
 
@@ -134,6 +145,7 @@ getDoc
 
 const colRef = collection(db,"bakaya");
 let editId=null;
+let deleteId=null;
 
 const $ = (id)=>document.getElementById(id);
 
@@ -146,59 +158,105 @@ return p[2]+"-"+p[1]+"-"+p[0];
 function ddmmyyyyToISO(dateStr){
 if(!dateStr) return "";
 let p=dateStr.split("-");
-return p[2]+"-"+p[1]+"-"+p[0];
+if(p.length!==3) return "";
+return p[2]+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0");
 }
 
-$("datePicker").onchange=function(){
-$("date").value=isoToDDMMYYYY(this.value);
-};
+$("datePicker").addEventListener("change",function(){
+$("date").value = isoToDDMMYYYY(this.value);
+});
 
-$("e_datePicker").onchange=function(){
-$("e_date").value=isoToDDMMYYYY(this.value);
-};
+$("e_datePicker").addEventListener("change",function(){
+$("e_date").value = isoToDDMMYYYY(this.value);
+});
 
-function dateToNumber(d){
-if(!d) return 99999999;
-let p=d.split("-");
-return Number(p[2]+p[1]+p[0]);
+function dateToNumber(dateStr){
+if(!dateStr) return 99999999;
+let p = dateStr.split("-");
+if(p.length !== 3) return 99999999;
+return Number(p[2]+p[1].padStart(2,"0")+p[0].padStart(2,"0"));
 }
 
 function clearForm(){
 ["date","datePicker","work","place","amount","name","phone1","phone2"].forEach(id=>$(id).value="");
 }
 
+function buttonText(btnId,newText,oldText){
+$(btnId).innerText=newText;
+setTimeout(()=>{
+$(btnId).innerText=oldText;
+},1200);
+}
+
+function cleanPhone(phone){
+return String(phone || "").replace(/\s+/g,"").trim();
+}
+
 window.saveData=async()=>{
 let data={
-date:$("date").value,
-work:$("work").value,
-place:$("place").value,
-amount:$("amount").value,
-name:$("name").value,
-phone1:$("phone1").value,
-phone2:$("phone2").value,
-time:Date.now()
+date:$("date").value.trim(),
+work:$("work").value.trim(),
+place:$("place").value.trim(),
+amount:$("amount").value.trim(),
+name:$("name").value.trim(),
+phone1:$("phone1").value.trim(),
+phone2:$("phone2").value.trim(),
+time: Date.now()
 };
+
+if(!data.name && !data.amount){
+$("saveBtn").innerText="नाम या राशि डालो";
+setTimeout(()=>{$("saveBtn").innerText="💾 Save"},1200);
+return;
+}
 
 await addDoc(colRef,data);
 clearForm();
+buttonText("saveBtn","✅ Saved","💾 Save");
 }
 
 onSnapshot(colRef,snap=>{
-let arr=[];
-snap.forEach(d=>arr.push({id:d.id,...d.data()}));
 
-arr.sort((a,b)=>dateToNumber(a.date)-dateToNumber(b.date));
+let arr=[];
+
+snap.forEach(d=>{
+let x=d.data();
+arr.push({id:d.id,...x});
+});
+
+arr.sort((a,b)=>{
+let d1=dateToNumber(a.date);
+let d2=dateToNumber(b.date);
+
+if(d1===d2){
+return (a.time||0)-(b.time||0);
+}
+return d1-d2;
+});
 
 let html="";
 
 arr.forEach(x=>{
 
-let callBtn="";
-if(x.phone1) callBtn+=`<a class="call" href="tel:${x.phone1}">📞 Call</a>`;
-if(x.phone2) callBtn+=`<a class="call" href="tel:${x.phone2}">📞 Call</a>`;
+let phone1 = x.phone1 || x.phone || "";
+let phone2 = x.phone2 || "";
+
+let phone1Call = cleanPhone(phone1);
+let phone2Call = cleanPhone(phone2);
+
+let callButtons = "";
+
+if(phone1Call){
+callButtons += `<a class="call" href="tel:${phone1Call}">📞 Call</a>`;
+}
+
+if(phone2Call){
+callButtons += `<a class="call" href="tel:${phone2Call}">📞 Call</a>`;
+}
 
 html+=`
 <div class="card">
+
 <div class="top">
 <span class="tag">${x.date||"-"}</span>
 <span class="tag">${x.work||"-"}</span>
@@ -209,68 +267,103 @@ html+=`
 
 <div class="row">
 <div class="person">
-👤 ${x.name||"-"}
+<span class="icon">👤</span>
+<div>
+<div>${x.name||"-"}</div>
+<div class="phoneText">${phone1 || "-"}</div>
+${phone2 ? `<div class="phoneText">${phone2}</div>` : ""}
+</div>
 </div>
 
 <div class="callBox">
-${callBtn}
+${callButtons}
 </div>
 </div>
-
-<div class="phoneText">${x.phone1||""}</div>
-${x.phone2 ? `<div class="phoneText">${x.phone2}</div>` : ""}
 
 <div class="action">
 <button onclick="editData('${x.id}')">✏️</button>
-<button onclick="deleteData('${x.id}')">🗑️</button>
+<button onclick="openDeletePopup('${x.id}')">🗑️</button>
 </div>
-</div>`;
+
+</div>
+`;
 });
 
 $("list").innerHTML=html;
+
 });
 
-window.deleteData=async(id)=>{
-await deleteDoc(doc(db,"bakaya",id));
+window.openDeletePopup=(id)=>{
+deleteId=id;
+$("deletePopup").style.display="flex";
+}
+
+window.closeDeletePopup=()=>{
+deleteId=null;
+$("deletePopup").style.display="none";
+}
+
+window.confirmDelete=async()=>{
+if(!deleteId) return;
+
+await deleteDoc(doc(db,"bakaya",deleteId));
+deleteId=null;
+$("deletePopup").style.display="none";
 }
 
 window.editData=async(id)=>{
-let snap=await getDoc(doc(db,"bakaya",id));
+let snap = await getDoc(doc(db,"bakaya",id));
+
+if(!snap.exists()){
+return;
+}
+
 let x=snap.data();
 
-$("e_date").value=x.date;
-$("e_work").value=x.work;
-$("e_place").value=x.place;
-$("e_amount").value=x.amount;
-$("e_name").value=x.name;
-$("e_phone1").value=x.phone1;
-$("e_phone2").value=x.phone2;
+$("e_date").value=x.date||"";
+$("e_datePicker").value=ddmmyyyyToISO(x.date||"");
+$("e_work").value=x.work||"";
+$("e_place").value=x.place||"";
+$("e_amount").value=x.amount||"";
+$("e_name").value=x.name||"";
+$("e_phone1").value=x.phone1 || x.phone || "";
+$("e_phone2").value=x.phone2 || "";
 
 editId=id;
 $("editPopup").style.display="flex";
 }
 
 window.updateData=async()=>{
+if(!editId) return;
+
 await updateDoc(doc(db,"bakaya",editId),{
-date:$("e_date").value,
-work:$("e_work").value,
-place:$("e_place").value,
-amount:$("e_amount").value,
-name:$("e_name").value,
-phone1:$("e_phone1").value,
-phone2:$("e_phone2").value
+date:$("e_date").value.trim(),
+work:$("e_work").value.trim(),
+place:$("e_place").value.trim(),
+amount:$("e_amount").value.trim(),
+name:$("e_name").value.trim(),
+phone1:$("e_phone1").value.trim(),
+phone2:$("e_phone2").value.trim()
 });
 
+buttonText("updateBtn","✅ Updated","✅ Update");
+
+setTimeout(()=>{
 $("editPopup").style.display="none";
+editId=null;
+},700);
 }
 
 window.closePopup=()=>{
 $("editPopup").style.display="none";
+editId=null;
 }
 
 window.printData=()=>window.print();
 
 </script>
+
+<script src="pwa.js"></script>
 
 </body>
 </html>
