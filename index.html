@@ -92,7 +92,6 @@ button:active{
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
 
-<!-- Custom Error -->
 <p id="errorMsg" class="errorMsg">
   ❌ Wrong Username or Password
 </p>
@@ -104,7 +103,7 @@ button:active{
 <script>
 
 // already login check
-if(localStorage.getItem("login")==="true"){
+if(sessionStorage.getItem("login")==="true"){
   location.href="dashboard.html";
 }
 
@@ -122,7 +121,7 @@ let p = document.getElementById("pass").value.trim();
 let error = document.getElementById("errorMsg");
 
 if(u==="admin" && p==="@1234"){
-  localStorage.setItem("login","true");
+  sessionStorage.setItem("login","true");
   location.href="dashboard.html";
 }else{
   error.style.display = "block";
