@@ -16,12 +16,20 @@ body{font-family:Arial;background:#f1f3f6;padding:10px;}
 input,button{width:100%;padding:10px;margin:5px 0;box-sizing:border-box;font-size:16px;}
 button{background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;}
 
-#phone2,#e_phone2{display:none;}
+#phone2,#e_phone2{
+display:none;
+}
 
 .dateWrap{position:relative;}
 #datePicker,#e_datePicker{
-position:absolute;left:0;top:5px;width:100%;height:42px;
-opacity:0;z-index:2;cursor:pointer;
+position:absolute;
+left:0;
+top:5px;
+width:100%;
+height:42px;
+opacity:0;
+z-index:2;
+cursor:pointer;
 }
 
 .card{background:#f1f2f6;padding:8px 10px;border-radius:12px;margin-top:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
@@ -51,19 +59,12 @@ body{background:white;padding:0;}
 .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
 h2{text-align:center;margin:0 0 10px 0;}
 .callBox{display:flex !important;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
-.call{display:inline-block !important;}
+.call{display:inline-block !important;background:#28c34a !important;color:white !important;padding:5px 12px;border-radius:16px;font-size:13px;font-weight:bold;text-decoration:none;}
 }
 </style>
 </head>
 
 <body>
-
-<!-- LOGIN PROTECTION -->
-<script>
-if(sessionStorage.getItem("login") !== "true"){
-  location.replace("index.html");
-}
-</script>
 
 <div class="box">
 
@@ -88,9 +89,9 @@ if(sessionStorage.getItem("login") !== "true"){
 
 </div>
 
-<!-- POPUPS SAME -->
 <div class="popup" id="editPopup">
 <div class="popup-box">
+
 <h3>Edit Data</h3>
 
 <div class="dateWrap">
@@ -98,12 +99,12 @@ if(sessionStorage.getItem("login") !== "true"){
 <input id="e_datePicker" type="date">
 </div>
 
-<input id="e_work">
-<input id="e_place">
-<input id="e_amount">
-<input id="e_name">
-<input id="e_phone1">
-<input id="e_phone2">
+<input id="e_work" placeholder="काम">
+<input id="e_place" placeholder="जगह">
+<input id="e_amount" placeholder="बकाया राशि">
+<input id="e_name" placeholder="नाम">
+<input id="e_phone1" placeholder="मोबाइल नंबर 1 - दूसरा नंबर डालने के लिए double click करें">
+<input id="e_phone2" placeholder="मोबाइल नंबर 2">
 
 <button id="updateBtn" onclick="updateData()">✅ Update</button>
 <button class="redBtn" onclick="closePopup()">❌ Cancel</button>
@@ -114,48 +115,275 @@ if(sessionStorage.getItem("login") !== "true"){
 <div class="popup" id="deletePopup">
 <div class="popup-box">
 <h3>Delete करना है?</h3>
+<p>क्या आप इस data को delete करना चाहते हैं?</p>
+
 <button class="redBtn" onclick="confirmDelete()">🗑️ Delete</button>
 <button class="blueBtn" onclick="closeDeletePopup()">Cancel</button>
 </div>
 </div>
 
 <script type="module">
-import {db,collection,addDoc,onSnapshot,deleteDoc,doc,updateDoc,getDoc} from "./firebase.js";
+
+import {
+db,
+collection,
+addDoc,
+onSnapshot,
+deleteDoc,
+doc,
+updateDoc,
+getDoc
+} from "./firebase.js";
 
 const colRef = collection(db,"bakaya");
-let editId=null,deleteId=null;
-const $=(id)=>document.getElementById(id);
+let editId=null;
+let deleteId=null;
+
+const $ = (id)=>document.getElementById(id);
+
+$("phone1").addEventListener("dblclick",()=>{
+$("phone2").style.display="block";
+$("phone2").focus();
+});
+
+$("e_phone1").addEventListener("dblclick",()=>{
+$("e_phone2").style.display="block";
+$("e_phone2").focus();
+});
+
+function isoToDDMMYYYY(iso){
+if(!iso) return "";
+let p=iso.split("-");
+return p[2]+"-"+p[1]+"-"+p[0];
+}
+
+function ddmmyyyyToISO(dateStr){
+if(!dateStr) return "";
+let p=dateStr.split("-");
+if(p.length!==3) return "";
+return p[2]+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0");
+}
+
+$("datePicker").addEventListener("change",function(){
+$("date").value = isoToDDMMYYYY(this.value);
+});
+
+$("e_datePicker").addEventListener("change",function(){
+$("e_date").value = isoToDDMMYYYY(this.value);
+});
+
+function dateToNumber(dateStr){
+if(!dateStr) return 99999999;
+let p = dateStr.split("-");
+if(p.length !== 3) return 99999999;
+return Number(p[2]+p[1].padStart(2,"0")+p[0].padStart(2,"0"));
+}
+
+function clearForm(){
+["date","datePicker","work","place","amount","name","phone1","phone2"].forEach(id=>$(id).value="");
+$("phone2").style.display="none";
+}
+
+function buttonText(btnId,newText,oldText){
+$(btnId).innerText=newText;
+setTimeout(()=>{
+$(btnId).innerText=oldText;
+},1200);
+}
+
+function cleanPhone(phone){
+return String(phone || "").replace(/\s+/g,"").trim();
+}
 
 window.saveData=async()=>{
 let data={
-date:$("date").value,work:$("work").value,place:$("place").value,
-amount:$("amount").value,name:$("name").value,
-phone1:$("phone1").value,phone2:$("phone2").value,time:Date.now()
-};
-await addDoc(colRef,data);
+date:$("date").value.trim(),
+work:$("work").value.trim(),
+place:$("place").value.trim(),
+amount:$("amount").value.trim(),
+name:$("name").value.trim(),
+phone1:$("phone1").value.trim(),
+phone2:$("phone2").value.trim(),
+time: Date.now()
 };
 
+if(!data.name && !data.amount){
+$("saveBtn").innerText="नाम या राशि डालो";
+setTimeout(()=>{$("saveBtn").innerText="💾 Save"},1200);
+return;
+}
+
+await addDoc(colRef,data);
+clearForm();
+buttonText("saveBtn","✅ Saved","💾 Save");
+}
+
 onSnapshot(colRef,snap=>{
-let html="";
+
+let arr=[];
+
 snap.forEach(d=>{
 let x=d.data();
-html+=`<div class="card">
-<div>${x.name||"-"} - ${x.amount||"-"}</div>
-</div>`;
+arr.push({id:d.id,...x});
 });
+
+arr.sort((a,b)=>{
+let d1=dateToNumber(a.date);
+let d2=dateToNumber(b.date);
+
+if(d1===d2){
+return (a.time||0)-(b.time||0);
+}
+return d1-d2;
+});
+
+let html="";
+
+arr.forEach(x=>{
+
+let phone1 = x.phone1 || x.phone || "";
+let phone2 = x.phone2 || "";
+
+let phone1Call = cleanPhone(phone1);
+let phone2Call = cleanPhone(phone2);
+
+let callButtons = "";
+
+if(phone1Call){
+callButtons += `<a class="call" href="tel:${phone1Call}">📞 Call</a>`;
+}
+
+if(phone2Call){
+callButtons += `<a class="call" href="tel:${phone2Call}">📞 Call</a>`;
+}
+
+html+=`
+<div class="card">
+
+<div class="top">
+<span class="tag">${x.date||"-"}</span>
+<span class="tag">${x.work||"-"}</span>
+<span class="tag">${x.place||"-"}</span>
+</div>
+
+<div class="amount">${x.amount||"-"}</div>
+
+<div class="row">
+<div class="person">
+<span class="icon">👤</span>
+<div>
+<div>${x.name||"-"}</div>
+<div class="phoneText">${phone1 || "-"}</div>
+${phone2 ? `<div class="phoneText">${phone2}</div>` : ""}
+</div>
+</div>
+
+<div class="callBox">
+${callButtons}
+</div>
+</div>
+
+<div class="action">
+<button onclick="editData('${x.id}')">✏️</button>
+<button onclick="openDeletePopup('${x.id}')">🗑️</button>
+</div>
+
+</div>
+`;
+});
+
 $("list").innerHTML=html;
+
 });
+
+window.openDeletePopup=(id)=>{
+deleteId=id;
+$("deletePopup").style.display="flex";
+}
+
+window.closeDeletePopup=()=>{
+deleteId=null;
+$("deletePopup").style.display="none";
+}
+
+window.confirmDelete=async()=>{
+if(!deleteId) return;
+
+await deleteDoc(doc(db,"bakaya",deleteId));
+deleteId=null;
+$("deletePopup").style.display="none";
+}
+
+window.editData=async(id)=>{
+let snap = await getDoc(doc(db,"bakaya",id));
+
+if(!snap.exists()){
+return;
+}
+
+let x=snap.data();
+
+$("e_date").value=x.date||"";
+$("e_datePicker").value=ddmmyyyyToISO(x.date||"");
+$("e_work").value=x.work||"";
+$("e_place").value=x.place||"";
+$("e_amount").value=x.amount||"";
+$("e_name").value=x.name||"";
+$("e_phone1").value=x.phone1 || x.phone || "";
+$("e_phone2").value=x.phone2 || "";
+
+if(x.phone2){
+$("e_phone2").style.display="block";
+}else{
+$("e_phone2").style.display="none";
+}
+
+editId=id;
+$("editPopup").style.display="flex";
+}
+
+window.updateData=async()=>{
+if(!editId) return;
+
+await updateDoc(doc(db,"bakaya",editId),{
+date:$("e_date").value.trim(),
+work:$("e_work").value.trim(),
+place:$("e_place").value.trim(),
+amount:$("e_amount").value.trim(),
+name:$("e_name").value.trim(),
+phone1:$("e_phone1").value.trim(),
+phone2:$("e_phone2").value.trim()
+});
+
+buttonText("updateBtn","✅ Updated","✅ Update");
+
+setTimeout(()=>{
+$("editPopup").style.display="none";
+editId=null;
+},700);
+}
+
+window.closePopup=()=>{
+$("editPopup").style.display="none";
+editId=null;
+}
+
+window.printData=()=>window.print();
+
 </script>
 
 <script src="pwa.js"></script>
 
-<!-- BACK BUTTON CONTROL -->
 <script>
-history.pushState(null,"",location.href);
-window.addEventListener("popstate",function(){
-sessionStorage.removeItem("login");
-location.replace("index.html");
-});
+/* AUTO BACK TO ADMIN PASSWORD */
+(function(){
+  history.pushState(null, "", location.href);
+
+  window.addEventListener("popstate", function(){
+    localStorage.removeItem("login");
+    location.replace("index.html"); 
+  });
+})();
 </script>
 
 </body>
