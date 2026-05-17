@@ -11,9 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{ box-sizing:border-box; }
 
 body{
   margin:0;
@@ -25,7 +23,6 @@ body{
   height:100vh;
 }
 
-/* Box */
 .box{
   background:white;
   width:90%;
@@ -36,13 +33,11 @@ body{
   text-align:center;
 }
 
-/* Title */
 h2{
   margin-bottom:15px;
   font-size:20px;
 }
 
-/* Input */
 input{
   width:100%;
   padding:12px;
@@ -52,7 +47,6 @@ input{
   font-size:15px;
 }
 
-/* Button */
 button{
   width:100%;
   padding:12px;
@@ -70,7 +64,6 @@ button:active{
   background:#0b5ed7;
 }
 
-/* Error Message */
 .errorMsg{
   display:none;
   color:#dc3545;
@@ -87,13 +80,13 @@ button:active{
 
 <div class="box">
 
-<h2>Login</h2>
+<h2>Admin Login</h2>
 
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
 
 <p id="errorMsg" class="errorMsg">
-  ❌ Wrong Username or Password
+❌ Wrong Username or Password
 </p>
 
 <button onclick="login()">Login</button>
@@ -102,12 +95,7 @@ button:active{
 
 <script>
 
-// already login check
-if(sessionStorage.getItem("login")==="true"){
-  location.href="dashboard.html";
-}
-
-// enter key login
+// Enter key login
 document.addEventListener("keypress",function(e){
   if(e.key==="Enter"){
     login();
@@ -129,7 +117,7 @@ if(u==="admin" && p==="@1234"){
 
 }
 
-// hide error when typing
+// Hide error when typing
 document.getElementById("user").addEventListener("input", hideError);
 document.getElementById("pass").addEventListener("input", hideError);
 
