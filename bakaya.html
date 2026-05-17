@@ -374,5 +374,17 @@ window.printData=()=>window.print();
 
 <script src="pwa.js"></script>
 
+<script>
+/* AUTO BACK TO ADMIN PASSWORD */
+(function(){
+  history.pushState(null, "", location.href);
+
+  window.addEventListener("popstate", function(){
+    localStorage.removeItem("login");
+    location.replace("index.html"); 
+  });
+})();
+</script>
+
 </body>
 </html>
