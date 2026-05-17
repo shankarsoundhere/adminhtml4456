@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title></title>
+<title>Dashboard</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffffff">
@@ -11,9 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box;}
 
 body{
   margin:0;
@@ -22,7 +20,6 @@ body{
   color:#212529;
 }
 
-/* Container */
 .box{
   width:100%;
   max-width:480px;
@@ -30,7 +27,6 @@ body{
   padding:12px;
 }
 
-/* Card */
 .card{
   width:100%;
   background:#ffffff;
@@ -51,14 +47,12 @@ body{
   background:#f1f3f6;
 }
 
-/* Icon */
 .icon{
   font-size:26px;
   width:35px;
   text-align:center;
 }
 
-/* Logout small */
 .logout{
   text-align:center;
   margin-top:20px;
@@ -68,11 +62,8 @@ body{
   font-weight:bold;
 }
 
-.logout:active{
-  opacity:0.6;
-}
+.logout:active{opacity:0.6;}
 
-/* Mobile */
 @media(max-width:480px){
   .card{
     font-size:16px;
@@ -85,8 +76,8 @@ body{
 <body>
 
 <script>
-if(localStorage.getItem("login") !== "true"){
-  location.href = "index.html";
+if(sessionStorage.getItem("login") !== "true"){
+  location.replace("index.html");
 }
 </script>
 
@@ -117,7 +108,6 @@ if(localStorage.getItem("login") !== "true"){
   <span>साटा बुकिंग</span>
 </div>
 
-<!-- Small Logout -->
 <div class="logout" onclick="logout()">
   Logout
 </div>
@@ -130,24 +120,19 @@ function go(page){
 }
 
 function logout(){
-  localStorage.removeItem("login");
-  location.href = "index.html";
+  sessionStorage.removeItem("login");
+  location.replace("index.html");
 }
+
+/* Back button दबाने पर login page */
+history.pushState(null, "", location.href);
+window.addEventListener("popstate", function(){
+  sessionStorage.removeItem("login");
+  location.replace("index.html");
+});
 </script>
 
 <script src="pwa.js"></script>
-
-<script>
-/* AUTO BACK TO ADMIN PASSWORD */
-(function(){
-  history.pushState(null, "", location.href);
-
-  window.addEventListener("popstate", function(){
-    localStorage.removeItem("login");
-    location.replace("index.html"); 
-  });
-})();
-</script>
 
 </body>
 </html>
