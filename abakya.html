@@ -1,170 +1,204 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>बकाया Admin Panel</title>
+<script type="module">
 
-<style>
-body {
-  font-family: Arial;
-  background: #dcdde1;
-  padding: 10px;
-  margin: 0
-}
+import { db } from "./firebase.js";
 
-.container {
-  max-width: 500px;
-  margin: auto
-}
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-h2 {
-  text-align: center
-}
+const colRef = collection(db, "tdm");
 
-.formBox,.box {
-  background: #f1f2f6;
-  padding: 12px;
-  margin: 12px 0;
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1)
-}
+let allData = [];
+let editId = null;
 
-input,textarea,button {
-  width: 100%;
-  padding: 12px;
-  margin: 6px 0;
-  font-size: 15px;
-  box-sizing: border-box;
-  border-radius: 8px;
-  border: 1px solid #aaa
-}
-
-textarea {
-  min-height: 75px;
-  resize: vertical
-}
-
-button {
-  border: none;
-  background: #28a745;
-  color: white;
-  font-weight: bold;
-  cursor: pointer
-}
-
-.updateBtn { background:#0984e3; display:none }
-.cancelBtn { background:#636e72; display:none }
-
-#phone2 { display:none }
-
-.topList{
-  background:#ffffff;
-  padding:10px;
-  margin:12px 0;
-  border-radius:15px;
-  box-shadow:0 4px 8px rgba(0,0,0,0.08);
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-
-.topList a{
-  padding:6px 10px;
-  background:#ffffff;
-  color:#000;
-  border-radius:20px;
-  text-decoration:none;
-  font-size:12px;
-  font-weight:bold;
-  border:1px solid #ddd;
-}
-
-.box { margin-top:10px }
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-<h2>डायरी हिसाब</h2>
-
-<div class="formBox">
-  <input type="text" id="name" placeholder="नाम">
-  <input type="tel" id="phone1" placeholder="मोबाइल नंबर">
-  <input type="tel" id="phone2" placeholder="मोबाइल नंबर">
-
-  <div id="noteContainer">
-    <textarea class="noteBox" placeholder="बकाया नोट 1"></textarea>
-  </div>
-
-  <button onclick="saveData()">Save</button>
-</div>
-
-<div id="list"></div>
-
-</div>
-
-<script>
-
-// 🔥 DOUBLE CLICK → NEW NOTE BOX
-document.getElementById("noteContainer").addEventListener("dblclick", function(e){
+/* 🔥 DOUBLE CLICK ADD NOTE */
+document.addEventListener("dblclick", function(e){
   if(e.target.classList.contains("noteBox")){
     let newBox = document.createElement("textarea");
     newBox.className = "noteBox";
     newBox.placeholder = "नया बकाया नोट";
-    
+
     document.getElementById("noteContainer").appendChild(newBox);
-    
+
     newBox.focus();
   }
 });
 
-function saveData(){
-  let name = document.getElementById("name").value;
+function cleanPhone(phone){
+  return String(phone || "").replace(/\s+/g,"").trim();
+}
+
+function escapeHTML(text){
+  return String(text || "")
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+}
+
+/* NOTES */
+function noteToHTML(note){
+  let lines = String(note)
+  .split("\n")
+  .map(t=>t.trim())
+  .filter(t=>t);
+
+  if(lines.length <= 1){
+    return `
+    <div class="noteItem">
+      <span class="bullet">•</span>
+      <span class="noteText">${escapeHTML(note)}</span>
+    </div>`;
+  }
+
+  return `
+  <div class="noteItem">
+    <span class="bullet">•</span>
+    <div class="innerGrid">
+      ${lines.map(t=>`<span>${escapeHTML(t)}</span>`).join("")}
+    </div>
+  </div>`;
+}
+
+/* SAVE */
+window.saveData = async function(){
+  let name = document.getElementById("name").value.trim();
+  let phone1 = document.getElementById("phone1").value.trim();
+  let phone2 = document.getElementById("phone2").value.trim();
+
   let notes = [...document.querySelectorAll(".noteBox")]
-    .map(x=>x.value)
-    .filter(Boolean);
+  .map(x=>x.value.trim())
+  .filter(Boolean);
 
   if(!name){
-    alert("नाम डालो");
+    alert("नाम लिखें");
     return;
   }
 
-  let data = {
-    name,
-    notes
-  };
-
-  let old = JSON.parse(localStorage.getItem("data") || "[]");
-  old.push(data);
-  localStorage.setItem("data", JSON.stringify(old));
+  await addDoc(colRef,{
+    name, phone1, phone2,
+    notes,
+    amount: notes.join("\n\n"),
+    time: Date.now()
+  });
 
   location.reload();
 }
 
-function load(){
-  let data = JSON.parse(localStorage.getItem("data") || "[]");
-  let html = "";
+/* LIST */
+onSnapshot(colRef,(snap)=>{
 
-  data.forEach(x=>{
+  allData = [];
+
+  snap.forEach(d=>{
+    allData.push({id:d.id,...d.data()});
+  });
+
+  allData.sort((a,b)=>(a.time||0)-(b.time||0));
+
+  render();
+});
+
+function render(){
+
+  let html = "";
+  let topHTML = "";
+
+  allData.forEach((x,i)=>{
+
+    let id = "card"+i;
+
+    topHTML += `<a href="#${id}">${escapeHTML(x.name || "-")}</a>`;
+
+    let phone1 = cleanPhone(x.phone1);
+    let phone2 = cleanPhone(x.phone2);
+
+    let notes = Array.isArray(x.notes) ? x.notes : (x.amount||"").split("\n\n");
+
     html += `
-      <div class="box">
-        <b>${x.name}</b>
-        <ul>
-          ${x.notes.map(n=>`<li>${n}</li>`).join("")}
-        </ul>
+    <div class="box" id="${id}">
+
+      <div class="bottom">
+
+        <div class="nameBox">
+          👤 ${escapeHTML(x.name || "-")}
+          <span class="toggle" onclick="toggleNumber(${i})">Show</span>
+
+          <div class="number" id="num${i}">
+            ${phone1 ? "📞 "+escapeHTML(phone1) : ""}
+            ${phone2 ? "<br>📞 "+escapeHTML(phone2) : ""}
+          </div>
+        </div>
+
+        <div class="action">
+          ${phone1 ? `<a class="call" href="tel:${phone1}">Call</a>` : ""}
+          ${phone2 ? `<a class="call" href="tel:${phone2}">Call</a>` : ""}
+          <button class="smallBtn edit" onclick="editData(${i})">Edit</button>
+          <button class="smallBtn del" onclick="deleteData('${x.id}')">Delete</button>
+        </div>
+
       </div>
-    `;
+
+      <div class="detail">
+        ${(notes||[]).map(noteToHTML).join("")}
+      </div>
+
+    </div>`;
   });
 
   document.getElementById("list").innerHTML = html;
+  document.getElementById("topList").innerHTML = topHTML;
 }
 
-load();
+/* TOGGLE */
+window.toggleNumber = function(i){
+  let el = document.getElementById("num"+i);
+  el.style.display = el.style.display === "block" ? "none":"block";
+}
+
+/* EDIT */
+window.editData = function(i){
+  let x = allData[i];
+  editId = x.id;
+
+  document.getElementById("name").value = x.name;
+  document.getElementById("phone1").value = x.phone1;
+  document.getElementById("phone2").value = x.phone2;
+
+  document.getElementById("saveBtn").style.display="none";
+  document.getElementById("updateBtn").style.display="block";
+  document.getElementById("cancelBtn").style.display="block";
+}
+
+/* UPDATE */
+window.updateData = async function(){
+  if(!editId) return;
+
+  await updateDoc(doc(db,"tdm",editId),{
+    name: name.value,
+    phone1: phone1.value,
+    phone2: phone2.value
+  });
+
+  location.reload();
+}
+
+/* DELETE */
+window.deleteData = async function(id){
+  let pass = prompt("Password डालें");
+  if(pass !== "1234") return;
+
+  await deleteDoc(doc(db,"tdm",id));
+}
+
+window.cancelEdit = function(){
+  location.reload();
+}
 
 </script>
-
-</body>
-</html>
