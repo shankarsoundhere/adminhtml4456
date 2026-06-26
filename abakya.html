@@ -22,7 +22,6 @@ h2 {
   text-align: center
 }
 
-/* FORM */
 .formBox,.box {
   background: #f1f2f6;
   padding: 12px;
@@ -59,7 +58,6 @@ button {
 
 #phone2 { display:none }
 
-/* 🔥 TOP NAME LIST */
 .topList{
   background:#ffffff;
   padding:10px;
@@ -80,14 +78,8 @@ button {
   font-size:12px;
   font-weight:bold;
   border:1px solid #ddd;
-  white-space:nowrap;
 }
 
-.topList a:hover{
-  background:#f2f2f2;
-}
-
-/* CARD */
 .bottom {
   display:flex;
   justify-content:space-between;
@@ -98,63 +90,35 @@ button {
 .nameBox {
   font-size:14px;
   font-weight:bold;
-  line-height:1.2
 }
 
 .toggle {
   font-size:12px;
   color:blue;
   cursor:pointer;
-  margin-left:5px
 }
 
 .number {
   display:none;
   font-size:13px;
   color:blue;
-  font-weight:normal;
-  line-height:1.3;
-  margin-top:3px
 }
 
 .detail {
   margin-top:8px;
   font-size:13px;
-  word-break:break-word
-}
-
-.noteItem {
-  display:flex;
-  align-items:flex-start;
-  margin:4px 0
-}
-
-.bullet {
-  margin-right:6px;
-  font-weight:bold
-}
-
-.noteText {
-  white-space:pre-wrap
 }
 
 .innerGrid {
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:4px;
-  width:100%
-}
-
-.innerGrid span {
-  font-size:12px;
-  line-height:1.4
 }
 
 .action {
   display:flex;
   gap:5px;
   flex-wrap:wrap;
-  justify-content:flex-end
 }
 
 .smallBtn {
@@ -163,7 +127,6 @@ button {
   border-radius:20px;
   color:white;
   border:none;
-  width:auto;
 }
 
 .edit { background:#0984e3 }
@@ -178,7 +141,6 @@ button {
   border-radius:20px
 }
 
-/* smooth scroll */
 html{ scroll-behavior:smooth; }
 </style>
 </head>
@@ -195,7 +157,7 @@ html{ scroll-behavior:smooth; }
   <input type="tel" id="phone2" placeholder="मोबाइल नंबर">
 
   <div id="noteContainer">
-    <textarea class="noteBox" placeholder="बकाया नोट 1"></textarea>
+    <textarea class="noteBox" placeholder="बकाया नोट 1" ondblclick="addNoteBox(this)"></textarea>
   </div>
 
   <button id="saveBtn" onclick="saveData()">Save</button>
@@ -203,9 +165,7 @@ html{ scroll-behavior:smooth; }
   <button id="cancelBtn" class="cancelBtn" onclick="cancelEdit()">Cancel</button>
 </div>
 
-<!-- 🔥 TOP NAME LIST -->
 <div id="topList" class="topList"></div>
-
 <div id="list"></div>
 
 </div>
@@ -228,48 +188,29 @@ const colRef = collection(db, "tdm");
 let allData = [];
 let editId = null;
 
-function cleanPhone(phone){
-  return String(phone || "").replace(/\s+/g,"").trim();
-}
+/* 🔥 ADD NEW NOTE BOX */
+window.addNoteBox = function(el){
+  let container = document.getElementById("noteContainer");
+  let allNotes = document.querySelectorAll(".noteBox");
 
-function escapeHTML(text){
-  return String(text || "")
-  .replace(/&/g,"&amp;")
-  .replace(/</g,"&lt;")
-  .replace(/>/g,"&gt;")
-  .replace(/"/g,"&quot;")
-  .replace(/'/g,"&#039;");
-}
+  if(el !== allNotes[allNotes.length - 1]) return;
 
-/* NOTES */
-function noteToHTML(note){
-  let lines = String(note)
-  .split("\n")
-  .map(t=>t.trim())
-  .filter(t=>t);
+  let newBox = document.createElement("textarea");
+  newBox.className = "noteBox";
+  newBox.placeholder = "बकाया नोट " + (allNotes.length + 1);
 
-  if(lines.length <= 1){
-    return `
-    <div class="noteItem">
-      <span class="bullet">•</span>
-      <span class="noteText">${escapeHTML(note)}</span>
-    </div>`;
-  }
+  newBox.ondblclick = function(){
+    addNoteBox(newBox);
+  };
 
-  return `
-  <div class="noteItem">
-    <span class="bullet">•</span>
-    <div class="innerGrid">
-      ${lines.map(t=>`<span>${escapeHTML(t)}</span>`).join("")}
-    </div>
-  </div>`;
+  container.appendChild(newBox);
 }
 
 /* SAVE */
 window.saveData = async function(){
-  let name = document.getElementById("name").value.trim();
-  let phone1 = document.getElementById("phone1").value.trim();
-  let phone2 = document.getElementById("phone2").value.trim();
+  let name = nameInput.value.trim();
+  let phone1 = phone1Input.value.trim();
+  let phone2 = phone2Input.value.trim();
 
   let notes = [...document.querySelectorAll(".noteBox")]
   .map(x=>x.value.trim())
@@ -290,110 +231,49 @@ window.saveData = async function(){
   location.reload();
 }
 
-/* LIST */
 onSnapshot(colRef,(snap)=>{
-
   allData = [];
-
   snap.forEach(d=>{
     allData.push({id:d.id,...d.data()});
   });
-
   allData.sort((a,b)=>(a.time||0)-(b.time||0));
-
   render();
 });
 
 function render(){
-
   let html = "";
   let topHTML = "";
 
   allData.forEach((x,i)=>{
-
     let id = "card"+i;
 
-    /* 🔥 TOP LIST */
-    topHTML += `<a href="#${id}">${escapeHTML(x.name || "-")}</a>`;
-
-    let phone1 = cleanPhone(x.phone1);
-    let phone2 = cleanPhone(x.phone2);
-
-    let notes = Array.isArray(x.notes) ? x.notes : (x.amount||"").split("\n\n");
+    topHTML += `<a href="#${id}">${x.name}</a>`;
 
     html += `
     <div class="box" id="${id}">
-
       <div class="bottom">
-
         <div class="nameBox">
-          👤 ${escapeHTML(x.name || "-")}
-          <span class="toggle" onclick="toggleNumber(${i})">Show</span>
-
-          <div class="number" id="num${i}">
-            ${phone1 ? "📞 "+escapeHTML(phone1) : ""}
-            ${phone2 ? "<br>📞 "+escapeHTML(phone2) : ""}
-          </div>
+          👤 ${x.name}
         </div>
-
         <div class="action">
-          ${phone1 ? `<a class="call" href="tel:${phone1}">Call</a>` : ""}
-          ${phone2 ? `<a class="call" href="tel:${phone2}">Call</a>` : ""}
-          <button class="smallBtn edit" onclick="editData(${i})">Edit</button>
           <button class="smallBtn del" onclick="deleteData('${x.id}')">Delete</button>
         </div>
-
       </div>
 
       <div class="detail">
-        ${(notes||[]).map(noteToHTML).join("")}
+        ${(x.notes||[]).map(n=>`<div>• ${n}</div>`).join("")}
       </div>
-
     </div>`;
   });
 
-  document.getElementById("list").innerHTML = html;
-  document.getElementById("topList").innerHTML = topHTML;
-}
-
-/* TOGGLE */
-window.toggleNumber = function(i){
-  let el = document.getElementById("num"+i);
-  el.style.display = el.style.display === "block" ? "none":"block";
-}
-
-/* EDIT */
-window.editData = function(i){
-  let x = allData[i];
-  editId = x.id;
-
-  document.getElementById("name").value = x.name;
-  document.getElementById("phone1").value = x.phone1;
-  document.getElementById("phone2").value = x.phone2;
-
-  document.getElementById("saveBtn").style.display="none";
-  document.getElementById("updateBtn").style.display="block";
-  document.getElementById("cancelBtn").style.display="block";
-}
-
-/* UPDATE */
-window.updateData = async function(){
-  if(!editId) return;
-
-  await updateDoc(doc(db,"tdm",editId),{
-    name: name.value,
-    phone1: phone1.value,
-    phone2: phone2.value
-  });
-
-  location.reload();
+  list.innerHTML = html;
+  topList.innerHTML = topHTML;
 }
 
 /* DELETE */
 window.deleteData = async function(id){
   let pass = prompt("Password डालें");
   if(pass !== "1234") return;
-
   await deleteDoc(doc(db,"tdm",id));
 }
 
