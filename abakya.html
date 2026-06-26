@@ -80,68 +80,7 @@ button {
   border:1px solid #ddd;
 }
 
-.bottom {
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  align-items:flex-start
-}
-
-.nameBox {
-  font-size:14px;
-  font-weight:bold;
-}
-
-.toggle {
-  font-size:12px;
-  color:blue;
-  cursor:pointer;
-}
-
-.number {
-  display:none;
-  font-size:13px;
-  color:blue;
-}
-
-.detail {
-  margin-top:8px;
-  font-size:13px;
-}
-
-.innerGrid {
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:4px;
-}
-
-.action {
-  display:flex;
-  gap:5px;
-  flex-wrap:wrap;
-}
-
-.smallBtn {
-  padding:7px 10px;
-  font-size:12px;
-  border-radius:20px;
-  color:white;
-  border:none;
-}
-
-.edit { background:#0984e3 }
-.del { background:#d63031 }
-
-.call {
-  background:#28a745;
-  text-decoration:none;
-  color:white;
-  padding:7px 10px;
-  font-size:12px;
-  border-radius:20px
-}
-
-html{ scroll-behavior:smooth; }
+.box { margin-top:10px }
 </style>
 </head>
 
@@ -157,129 +96,73 @@ html{ scroll-behavior:smooth; }
   <input type="tel" id="phone2" placeholder="मोबाइल नंबर">
 
   <div id="noteContainer">
-    <textarea class="noteBox" placeholder="बकाया नोट 1" ondblclick="addNoteBox(this)"></textarea>
+    <textarea class="noteBox" placeholder="बकाया नोट 1"></textarea>
   </div>
 
-  <button id="saveBtn" onclick="saveData()">Save</button>
-  <button id="updateBtn" class="updateBtn" onclick="updateData()">Update</button>
-  <button id="cancelBtn" class="cancelBtn" onclick="cancelEdit()">Cancel</button>
+  <button onclick="saveData()">Save</button>
 </div>
 
-<div id="topList" class="topList"></div>
 <div id="list"></div>
 
 </div>
 
-<script type="module">
+<script>
 
-import { db } from "./firebase.js";
+// 🔥 DOUBLE CLICK → NEW NOTE BOX
+document.getElementById("noteContainer").addEventListener("dblclick", function(e){
+  if(e.target.classList.contains("noteBox")){
+    let newBox = document.createElement("textarea");
+    newBox.className = "noteBox";
+    newBox.placeholder = "नया बकाया नोट";
+    
+    document.getElementById("noteContainer").appendChild(newBox);
+    
+    newBox.focus();
+  }
+});
 
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  doc,
-  updateDoc,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
-const colRef = collection(db, "tdm");
-
-let allData = [];
-let editId = null;
-
-/* 🔥 ADD NEW NOTE BOX */
-window.addNoteBox = function(el){
-  let container = document.getElementById("noteContainer");
-  let allNotes = document.querySelectorAll(".noteBox");
-
-  if(el !== allNotes[allNotes.length - 1]) return;
-
-  let newBox = document.createElement("textarea");
-  newBox.className = "noteBox";
-  newBox.placeholder = "बकाया नोट " + (allNotes.length + 1);
-
-  newBox.ondblclick = function(){
-    addNoteBox(newBox);
-  };
-
-  container.appendChild(newBox);
-}
-
-/* SAVE */
-window.saveData = async function(){
-  let name = nameInput.value.trim();
-  let phone1 = phone1Input.value.trim();
-  let phone2 = phone2Input.value.trim();
-
+function saveData(){
+  let name = document.getElementById("name").value;
   let notes = [...document.querySelectorAll(".noteBox")]
-  .map(x=>x.value.trim())
-  .filter(Boolean);
+    .map(x=>x.value)
+    .filter(Boolean);
 
   if(!name){
-    alert("नाम लिखें");
+    alert("नाम डालो");
     return;
   }
 
-  await addDoc(colRef,{
-    name, phone1, phone2,
-    notes,
-    amount: notes.join("\n\n"),
-    time: Date.now()
-  });
+  let data = {
+    name,
+    notes
+  };
+
+  let old = JSON.parse(localStorage.getItem("data") || "[]");
+  old.push(data);
+  localStorage.setItem("data", JSON.stringify(old));
 
   location.reload();
 }
 
-onSnapshot(colRef,(snap)=>{
-  allData = [];
-  snap.forEach(d=>{
-    allData.push({id:d.id,...d.data()});
-  });
-  allData.sort((a,b)=>(a.time||0)-(b.time||0));
-  render();
-});
-
-function render(){
+function load(){
+  let data = JSON.parse(localStorage.getItem("data") || "[]");
   let html = "";
-  let topHTML = "";
 
-  allData.forEach((x,i)=>{
-    let id = "card"+i;
-
-    topHTML += `<a href="#${id}">${x.name}</a>`;
-
+  data.forEach(x=>{
     html += `
-    <div class="box" id="${id}">
-      <div class="bottom">
-        <div class="nameBox">
-          👤 ${x.name}
-        </div>
-        <div class="action">
-          <button class="smallBtn del" onclick="deleteData('${x.id}')">Delete</button>
-        </div>
+      <div class="box">
+        <b>${x.name}</b>
+        <ul>
+          ${x.notes.map(n=>`<li>${n}</li>`).join("")}
+        </ul>
       </div>
-
-      <div class="detail">
-        ${(x.notes||[]).map(n=>`<div>• ${n}</div>`).join("")}
-      </div>
-    </div>`;
+    `;
   });
 
-  list.innerHTML = html;
-  topList.innerHTML = topHTML;
+  document.getElementById("list").innerHTML = html;
 }
 
-/* DELETE */
-window.deleteData = async function(id){
-  let pass = prompt("Password डालें");
-  if(pass !== "1234") return;
-  await deleteDoc(doc(db,"tdm",id));
-}
-
-window.cancelEdit = function(){
-  location.reload();
-}
+load();
 
 </script>
 
