@@ -148,17 +148,6 @@ background:#007bff;
 
 <select id="slot" onchange="loadData()">
 
-<option value="1">राकेश मिस्त्री</option>
-<option value="2">नुनु</option>
-<option value="3">लक्की</option>
-<option value="4">गुल्ला</option>
-<option value="5">बब्लू ड्राइवर</option>
-<option value="6">गोपी मिस्त्री</option>
-<option value="7">सूरज जी</option>
-<option value="8">बैला</option>
-<option value="9">Slot 9</option>
-<option value="10">Slot 10</option>
-
 </select>
 
 
@@ -422,33 +411,159 @@ const $ = (id) =>
 document.getElementById(id);
 
 
-/* =========================
-   DEFAULT NAMES
-========================= */
+/* ==================================================
+   FIREBASE NAME SYNC
+   light_names COLLECTION
+================================================== */
 
-const defaultNames = {
+const nameCollection =
+collection(db,"light_names");
 
-1:"राकेश मिस्त्री",
 
-2:"नुनु",
+onSnapshot(
 
-3:"लक्की",
+nameCollection,
 
-4:"गुल्ला",
+(snapshot)=>{
 
-5:"बब्लू ड्राइवर",
+    const names = {};
 
-6:"गोपी मिस्त्री",
 
-7:"सूरज जी",
+    /*
+       Firebase से केवल वास्तविक नाम पढ़ें
+    */
 
-8:"बैला",
+    snapshot.forEach(item=>{
 
-9:"Slot 9",
+        const slot =
+            Number(item.id);
 
-10:"Slot 10"
+        if(slot < 1 || slot > 10)
+            return;
 
-};
+
+        const data =
+            item.data();
+
+
+        if(
+            data.name &&
+            data.name.trim() !== ""
+        ){
+
+            names[slot] =
+                data.name.trim();
+
+        }
+
+    });
+
+
+    const select =
+        $("slot");
+
+
+    const oldValue =
+        select.value;
+
+
+    /*
+       Dropdown खाली करें
+    */
+
+    select.innerHTML = "";
+
+
+    /*
+       केवल Firebase में मौजूद नाम दिखाएं
+    */
+
+    for(let i = 1; i <= 10; i++){
+
+        if(!names[i])
+            continue;
+
+
+        const option =
+            document.createElement("option");
+
+
+        option.value =
+            String(i);
+
+
+        option.textContent =
+            names[i];
+
+
+        select.appendChild(option);
+
+    }
+
+
+    /*
+       पहले selected slot को वापस रखें
+    */
+
+    if(
+        oldValue &&
+        names[Number(oldValue)]
+    ){
+
+        select.value =
+            oldValue;
+
+    }
+
+
+    /*
+       अगर selected slot मौजूद नहीं है,
+       तो पहला उपलब्ध नाम select करें
+    */
+
+    if(!select.value){
+
+        const firstOption =
+            select.querySelector("option");
+
+        if(firstOption){
+
+            select.value =
+                firstOption.value;
+
+        }
+
+    }
+
+
+    /*
+       Data load करें
+    */
+
+    if(select.value){
+
+        loadData();
+
+    }else{
+
+        $("tbody").innerHTML = "";
+
+        $("noteBody").innerHTML = "";
+
+    }
+
+},
+
+(error)=>{
+
+    console.error(
+        "Firebase Name Error:",
+        error
+    );
+
+}
+
+);
 
 
 /* =========================
@@ -573,144 +688,6 @@ oldText;
 }
 
 
-/* ==================================================
-   FIREBASE NAME SYNC
-   light_names COLLECTION
-================================================== */
-
-const nameCollection =
-collection(db,"light_names");
-
-
-onSnapshot(
-
-nameCollection,
-
-(snapshot)=>{
-
-/*
-   पहले default names रखें
-*/
-
-const names =
-{...defaultNames};
-
-
-/*
-   Firebase से names पढ़ें
-*/
-
-snapshot.forEach(item=>{
-
-const slot =
-Number(item.id);
-
-if(slot < 1 || slot > 10)
-return;
-
-
-const data =
-item.data();
-
-
-if(
-data.name &&
-data.name.trim() !== ""
-){
-
-names[slot] =
-data.name.trim();
-
-}
-
-});
-
-
-/*
-   Current selected slot बचाएं
-*/
-
-const select =
-$("slot");
-
-const oldValue =
-select.value;
-
-
-/*
-   Dropdown खाली करें
-*/
-
-select.innerHTML = "";
-
-
-/*
-   Firebase names से dropdown बनाएं
-*/
-
-for(let i = 1; i <= 10; i++){
-
-const option =
-document.createElement("option");
-
-option.value =
-String(i);
-
-option.textContent =
-names[i];
-
-select.appendChild(option);
-
-}
-
-
-/*
-   पहले selected Slot को वापस रखें
-*/
-
-if(
-oldValue >= "1" &&
-oldValue <= "10"
-){
-
-select.value =
-oldValue;
-
-}
-
-
-/*
-   अगर value नहीं मिली
-   तो Slot 1 रखें
-*/
-
-if(!select.value){
-
-select.value = "1";
-
-}
-
-
-/*
-   Current slot का data load करें
-*/
-
-loadData();
-
-},
-
-(error)=>{
-
-console.error(
-"Firebase Name Error:",
-error
-);
-
-}
-
-);
-
-
 /* =========================
    SAVE DATA
 ========================= */
@@ -733,6 +710,19 @@ if(!hasMainData && !hasNote){
 buttonText(
 "saveBtn",
 "कुछ तो लिखो",
+"💾 Save"
+);
+
+return;
+
+}
+
+
+if(!$("slot").value){
+
+buttonText(
+"saveBtn",
+"पहले नाम जोड़ें",
 "💾 Save"
 );
 
@@ -812,6 +802,17 @@ buttonText(
 
 window.loadData =
 function(){
+
+if(!$("slot").value){
+
+$("tbody").innerHTML = "";
+
+$("noteBody").innerHTML = "";
+
+return;
+
+}
+
 
 if(unsubscribe){
 
@@ -1510,7 +1511,7 @@ page-break-after:auto;
 $("slot")
 .options[
 $("slot").selectedIndex
-].text
+]?.text || "लाइट मिस्त्री"
 }
 </h2>
 
