@@ -1,0 +1,486 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>लाइट मिस्त्री नाम</title><style>
+
+body{
+    margin:0;
+    padding:10px;
+    font-family:Arial,sans-serif;
+    background:#f1f3f6;
+}
+
+.box{
+    max-width:700px;
+    margin:auto;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+h2{
+    text-align:center;
+    margin-top:5px;
+    margin-bottom:20px;
+}
+
+.section-title{
+    background:#28a745;
+    color:white;
+    padding:12px;
+    border-radius:7px;
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+    margin:10px 0 12px;
+}
+
+.row{
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:10px;
+    background:#fafafa;
+}
+
+.slot{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    box-sizing:border-box;
+    border:1px solid #ccc;
+    border-radius:5px;
+    font-size:16px;
+    margin-bottom:8px;
+}
+
+button{
+    padding:9px 12px;
+    margin-right:5px;
+    border:none;
+    border-radius:5px;
+    color:white;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.editBtn{
+    background:#007bff;
+}
+
+.saveBtn{
+    background:#28a745;
+}
+
+.deleteBtn{
+    background:#dc3545;
+}
+
+button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+}
+
+#status{
+    text-align:center;
+    margin-bottom:15px;
+    font-weight:bold;
+}
+
+</style></head><body><div class="box"><h2>✏️ लाइट मिस्त्री नाम</h2><div id="status">
+Firebase से नाम लोड हो रहे हैं...
+</div><div class="section-title">
+💡 लाइट मिस्त्री
+</div><div id="lightList"></div></div><script type="module">
+
+import {
+    db,
+    collection,
+    onSnapshot,
+    doc,
+    updateDoc,
+    deleteDoc,
+    getDoc,
+    setDoc
+} from "./firebase.js";
+
+
+const status =
+    document.getElementById("status");
+
+
+/* =========================
+   DEFAULT NAMES
+========================= */
+
+const defaultNames = {
+
+    1:"राकेश मिस्त्री",
+    2:"नुनु",
+    3:"लक्की",
+    4:"गुल्ला",
+    5:"बब्लू ड्राइवर",
+    6:"गोपी मिस्त्री",
+    7:"सूरज जी",
+    8:"बैला",
+    9:"Slot 9",
+    10:"Slot 10"
+
+};
+
+
+/* =========================
+   HTML SAFE
+========================= */
+
+function escapeHTML(text){
+
+    return String(text)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================
+   CREATE ROWS
+========================= */
+
+function createRows(firebaseData){
+
+    const container =
+        document.getElementById("lightList");
+
+    container.innerHTML = "";
+
+
+    for(let slot=1; slot<=10; slot++){
+
+        let firebaseName = "";
+
+
+        if(
+            firebaseData[slot] &&
+            firebaseData[slot].name
+        ){
+
+            firebaseName =
+                firebaseData[slot].name;
+
+        }else{
+
+            firebaseName =
+                defaultNames[slot];
+
+        }
+
+
+        const row =
+            document.createElement("div");
+
+        row.className = "row";
+
+
+        row.innerHTML = `
+
+        <div class="slot">
+            💡 Slot ${slot}
+        </div>
+
+        <input
+            id="light-name-${slot}"
+            type="text"
+            value="${escapeHTML(firebaseName)}"
+            disabled
+        >
+
+        <button
+            class="editBtn"
+            id="light-edit-${slot}"
+            onclick="editName(${slot})"
+        >
+            ✏️ Edit
+        </button>
+
+        <button
+            class="saveBtn"
+            id="light-save-${slot}"
+            onclick="saveName(${slot})"
+            disabled
+        >
+            💾 Save
+        </button>
+
+        <button
+            class="deleteBtn"
+            onclick="deleteName(${slot})"
+        >
+            🗑️ Delete
+        </button>
+
+        `;
+
+
+        container.appendChild(row);
+
+    }
+
+}
+
+
+/* =========================
+   LOAD FIREBASE
+========================= */
+
+onSnapshot(
+
+    collection(db,"light_names"),
+
+    (snapshot)=>{
+
+        const data = {};
+
+
+        snapshot.forEach(item=>{
+
+            const slot =
+                Number(item.id);
+
+
+            if(slot>=1 && slot<=10){
+
+                data[slot] =
+                    item.data();
+
+            }
+
+        });
+
+
+        createRows(data);
+
+
+        status.innerText =
+            "नाम Firebase से लोड हो गए";
+
+        status.style.color =
+            "green";
+
+    },
+
+    (error)=>{
+
+        console.error(
+            "Firebase Error:",
+            error
+        );
+
+        status.innerText =
+            "Firebase Error: Light Names";
+
+        status.style.color =
+            "red";
+
+    }
+
+);
+
+
+/* =========================
+   EDIT
+========================= */
+
+window.editName =
+function(slot){
+
+    const input =
+        document.getElementById(
+            "light-name-"+slot
+        );
+
+
+    const editBtn =
+        document.getElementById(
+            "light-edit-"+slot
+        );
+
+
+    const saveBtn =
+        document.getElementById(
+            "light-save-"+slot
+        );
+
+
+    input.disabled = false;
+
+    input.focus();
+
+    editBtn.disabled = true;
+
+    saveBtn.disabled = false;
+
+};
+
+
+/* =========================
+   SAVE
+========================= */
+
+window.saveName =
+async function(slot){
+
+    const input =
+        document.getElementById(
+            "light-name-"+slot
+        );
+
+
+    const name =
+        input.value.trim();
+
+
+    if(name===""){
+
+        alert(
+            "नाम खाली नहीं हो सकता।"
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        const nameRef =
+            doc(
+                db,
+                "light_names",
+                String(slot)
+            );
+
+
+        const oldData =
+            await getDoc(nameRef);
+
+
+        if(oldData.exists()){
+
+            await updateDoc(
+                nameRef,
+                {
+                    name:name,
+                    slot:slot,
+                    time:Date.now()
+                }
+            );
+
+        }else{
+
+            await setDoc(
+                nameRef,
+                {
+                    name:name,
+                    slot:slot,
+                    time:Date.now()
+                }
+            );
+
+        }
+
+
+        input.disabled = true;
+
+
+        document.getElementById(
+            "light-edit-"+slot
+        ).disabled = false;
+
+
+        document.getElementById(
+            "light-save-"+slot
+        ).disabled = true;
+
+
+        status.innerText =
+            "✅ Slot "+slot+
+            " का नाम Save हो गया";
+
+        status.style.color =
+            "green";
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "नाम Save नहीं हुआ। Firebase Error देखें।"
+        );
+
+    }
+
+};
+
+
+/* =========================
+   DELETE
+========================= */
+
+window.deleteName =
+async function(slot){
+
+    const yes =
+        confirm(
+            "लाइट मिस्त्री Slot "+
+            slot+
+            " का नाम Delete करना है?"
+        );
+
+
+    if(!yes)
+        return;
+
+
+    try{
+
+        await deleteDoc(
+            doc(
+                db,
+                "light_names",
+                String(slot)
+            )
+        );
+
+
+        status.innerText =
+            "🗑️ Slot "+slot+
+            " का नाम Delete हो गया";
+
+        status.style.color =
+            "red";
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "नाम Delete नहीं हुआ।"
+        );
+
+    }
+
+};
+
+</script>
+</body>
+</html>
