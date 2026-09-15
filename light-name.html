@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="hi">
+
 <head>
 
 <meta charset="UTF-8">
@@ -8,6 +9,15 @@
 content="width=device-width, initial-scale=1.0">
 
 <title>लाइट मिस्त्री नाम</title>
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#28a745">
+
+<link rel="icon" href="icon-192.png">
+
+<link rel="apple-touch-icon"
+href="icon-192.png">
 
 <style>
 
@@ -94,31 +104,448 @@ button:disabled{
     cursor:not-allowed;
 }
 
-#status{
-    text-align:center;
-    margin-bottom:15px;
-    font-weight:bold;
-}
-
 </style>
 
 </head>
 
+
 <body>
+
 
 <div class="box">
 
 <h2>✏️ लाइट मिस्त्री नाम</h2>
 
-<div id="status">
-नाम तैयार हैं
-</div>
 
 <div class="section-title">
 💡 लाइट मिस्त्री
 </div>
 
-<div id="lightList"></div>
+
+<div id="lightList">
+
+
+<!-- SLOT 1 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 1
+</div>
+
+<input
+id="light-name-1"
+type="text"
+value="राकेश मिस्त्री"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-1"
+onclick="editName(1)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-1"
+onclick="saveName(1)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(1)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 2 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 2
+</div>
+
+<input
+id="light-name-2"
+type="text"
+value="नुनु"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-2"
+onclick="editName(2)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-2"
+onclick="saveName(2)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(2)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 3 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 3
+</div>
+
+<input
+id="light-name-3"
+type="text"
+value="लक्की"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-3"
+onclick="editName(3)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-3"
+onclick="saveName(3)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(3)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 4 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 4
+</div>
+
+<input
+id="light-name-4"
+type="text"
+value="गुल्ला"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-4"
+onclick="editName(4)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-4"
+onclick="saveName(4)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(4)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 5 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 5
+</div>
+
+<input
+id="light-name-5"
+type="text"
+value="बब्लू ड्राइवर"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-5"
+onclick="editName(5)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-5"
+onclick="saveName(5)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(5)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 6 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 6
+</div>
+
+<input
+id="light-name-6"
+type="text"
+value="गोपी मिस्त्री"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-6"
+onclick="editName(6)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-6"
+onclick="saveName(6)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(6)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 7 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 7
+</div>
+
+<input
+id="light-name-7"
+type="text"
+value="सूरज जी"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-7"
+onclick="editName(7)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-7"
+onclick="saveName(7)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(7)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 8 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 8
+</div>
+
+<input
+id="light-name-8"
+type="text"
+value="बैला"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-8"
+onclick="editName(8)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-8"
+onclick="saveName(8)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(8)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 9 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 9
+</div>
+
+<input
+id="light-name-9"
+type="text"
+value="Slot 9"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-9"
+onclick="editName(9)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-9"
+onclick="saveName(9)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(9)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 10 -->
+
+<div class="row">
+
+<div class="slot">
+💡 Slot 10
+</div>
+
+<input
+id="light-name-10"
+type="text"
+value="Slot 10"
+disabled
+>
+
+<button
+class="editBtn"
+id="light-edit-10"
+onclick="editName(10)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="light-save-10"
+onclick="saveName(10)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(10)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+</div>
 
 </div>
 
@@ -126,258 +553,88 @@ button:disabled{
 <script type="module">
 
 import {
-    db,
-    collection,
-    onSnapshot,
-    doc,
-    updateDoc,
-    deleteDoc,
-    getDoc,
-    setDoc
+
+db,
+collection,
+onSnapshot,
+doc,
+updateDoc,
+deleteDoc,
+getDoc,
+setDoc
+
 } from "./firebase.js";
 
 
-const status =
-    document.getElementById("status");
-
-
 /* =========================
-   DEFAULT NAMES
+   FIREBASE COLLECTION
 ========================= */
 
-const defaultNames = {
-
-    1:"राकेश मिस्त्री",
-    2:"नुनु",
-    3:"लक्की",
-    4:"गुल्ला",
-    5:"बब्लू ड्राइवर",
-    6:"गोपी मिस्त्री",
-    7:"सूरज जी",
-    8:"बैला",
-    9:"Slot 9",
-    10:"Slot 10"
-
-};
+const colRef =
+collection(db,"light_names");
 
 
 /* =========================
-   HTML SAFE
-========================= */
-
-function escapeHTML(text){
-
-    return String(text)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
-
-
-/* =========================
-   CREATE ROWS
-========================= */
-
-function createRows(firebaseData = {}){
-
-    const container =
-        document.getElementById("lightList");
-
-    container.innerHTML = "";
-
-
-    for(let slot=1; slot<=10; slot++){
-
-        let name = defaultNames[slot];
-
-
-        /* Firebase में नाम है तो वही दिखेगा */
-
-        if(
-            firebaseData[slot] &&
-            firebaseData[slot].name
-        ){
-
-            name =
-                firebaseData[slot].name;
-
-        }
-
-
-        const row =
-            document.createElement("div");
-
-        row.className = "row";
-
-
-        row.innerHTML = `
-
-        <div class="slot">
-            💡 Slot ${slot}
-        </div>
-
-        <input
-            id="light-name-${slot}"
-            type="text"
-            value="${escapeHTML(name)}"
-            disabled
-        >
-
-        <button
-            class="editBtn"
-            id="light-edit-${slot}"
-            onclick="editName(${slot})"
-        >
-            ✏️ Edit
-        </button>
-
-        <button
-            class="saveBtn"
-            id="light-save-${slot}"
-            onclick="saveName(${slot})"
-            disabled
-        >
-            💾 Save
-        </button>
-
-        <button
-            class="deleteBtn"
-            onclick="deleteName(${slot})"
-        >
-            🗑️ Delete
-        </button>
-
-        `;
-
-
-        container.appendChild(row);
-
-    }
-
-}
-
-
-/* =========================
-   IMPORTANT
-   DEFAULT NAMES IMMEDIATELY SHOW
-========================= */
-
-createRows({});
-
-status.innerText =
-    "नाम तैयार हैं";
-
-status.style.color =
-    "green";
-
-
-/* =========================
-   FIREBASE LOAD
-   BACKGROUND में चलेगा
+   FIREBASE BACKGROUND UPDATE
 ========================= */
 
 onSnapshot(
 
-    collection(db,"light_names"),
+colRef,
 
-    (snapshot)=>{
+(snapshot)=>{
 
-        const data = {};
+    snapshot.forEach(item=>{
+
+        const slot =
+            Number(item.id);
+
+        if(slot < 1 || slot > 10)
+            return;
 
 
-        snapshot.forEach(item=>{
-
-            const slot =
-                Number(item.id);
+        const data =
+            item.data();
 
 
-            if(slot>=1 && slot<=10){
+        const input =
+            document.getElementById(
+                "light-name-"+slot
+            );
 
-                data[slot] =
-                    item.data();
 
-            }
-
-        });
+        if(!input)
+            return;
 
 
         /*
-           Firebase से नाम आने के बाद
-           सिर्फ तभी update करें जब user
-           उस slot को edit नहीं कर रहा हो
+           अगर user अभी Edit नहीं कर रहा है,
+           तभी Firebase का नाम लगाएं
         */
 
-        for(let slot=1; slot<=10; slot++){
+        if(input.disabled){
 
-            const input =
-                document.getElementById(
-                    "light-name-"+slot
-                );
+            if(data.name){
 
-
-            if(!input)
-                continue;
-
-
-            /*
-               अगर input disabled है,
-               तो Firebase वाला नाम दिखाएं
-            */
-
-            if(input.disabled){
-
-                if(
-                    data[slot] &&
-                    data[slot].name
-                ){
-
-                    input.value =
-                        data[slot].name;
-
-                }else{
-
-                    input.value =
-                        defaultNames[slot];
-
-                }
+                input.value =
+                    data.name;
 
             }
 
         }
 
+    });
 
-        status.innerText =
-            "✅ Firebase से नाम अपडेट हो गए";
+},
 
-        status.style.color =
-            "green";
+(error)=>{
 
-    },
+    console.error(
+        "Firebase Error:",
+        error
+    );
 
-    (error)=>{
-
-        console.error(
-            "Firebase Error:",
-            error
-        );
-
-        /*
-           Firebase में समस्या होने पर भी
-           default names पहले से दिखाई देंगे
-        */
-
-        status.innerText =
-            "⚠️ Firebase Connect नहीं हुआ";
-
-        status.style.color =
-            "red";
-
-    }
-
-);
+});
 
 
 /* =========================
@@ -433,7 +690,7 @@ async function(slot){
         input.value.trim();
 
 
-    if(name===""){
+    if(name === ""){
 
         alert(
             "नाम खाली नहीं हो सकता।"
@@ -461,23 +718,29 @@ async function(slot){
         if(oldData.exists()){
 
             await updateDoc(
+
                 nameRef,
+
                 {
                     name:name,
                     slot:slot,
                     time:Date.now()
                 }
+
             );
 
         }else{
 
             await setDoc(
+
                 nameRef,
+
                 {
                     name:name,
                     slot:slot,
                     time:Date.now()
                 }
+
             );
 
         }
@@ -494,14 +757,6 @@ async function(slot){
         document.getElementById(
             "light-save-"+slot
         ).disabled = true;
-
-
-        status.innerText =
-            "✅ Slot "+slot+
-            " का नाम Save हो गया";
-
-        status.style.color =
-            "green";
 
 
     }catch(error){
@@ -539,20 +794,41 @@ async function(slot){
     try{
 
         await deleteDoc(
+
             doc(
                 db,
                 "light_names",
                 String(slot)
             )
+
         );
 
 
-        status.innerText =
-            "🗑️ Slot "+slot+
-            " का नाम Delete हो गया";
+        /*
+           Delete के बाद default नाम
+           वापस दिखाएं
+        */
 
-        status.style.color =
-            "red";
+        const defaultNames = {
+
+            1:"राकेश मिस्त्री",
+            2:"नुनु",
+            3:"लक्की",
+            4:"गुल्ला",
+            5:"बब्लू ड्राइवर",
+            6:"गोपी मिस्त्री",
+            7:"सूरज जी",
+            8:"बैला",
+            9:"Slot 9",
+            10:"Slot 10"
+
+        };
+
+
+        document.getElementById(
+            "light-name-"+slot
+        ).value =
+            defaultNames[slot];
 
 
     }catch(error){
@@ -569,5 +845,9 @@ async function(slot){
 
 </script>
 
+
+<script src="pwa.js"></script>
+
 </body>
+
 </html>
