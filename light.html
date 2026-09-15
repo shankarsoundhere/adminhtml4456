@@ -1,179 +1,282 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Light Mistri</title>
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Light Mistri</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#28a745"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><style>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#28a745">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-
-<style>
-body{font-family:Arial;background:#f1f3f6;padding:10px;}
-.box{max-width:700px;margin:auto;background:white;padding:15px;border-radius:10px;}
-input,select,button{width:100%;padding:10px;margin:5px 0;box-sizing:border-box;}
-button{background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;}
-.printBtn{background:#007bff;}
-
-.dateWrap{position:relative;}
-.datePicker{
-position:absolute;
-left:0;
-top:5px;
-width:100%;
-height:40px;
-opacity:0;
-z-index:2;
-cursor:pointer;
+body{
+    font-family:Arial;
+    background:#f1f3f6;
+    padding:10px;
 }
 
-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
-td,th{border:1px solid #000;padding:6px;text-align:center;}
-th{background:#ddd;}
-.btn{padding:4px 6px;font-size:12px;width:auto;margin:2px;}
+.box{
+    max-width:700px;
+    margin:auto;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+}
 
-.noteText{text-align:left !important;padding-left:8px;}
+input,select,button{
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    box-sizing:border-box;
+}
+
+button{
+    background:#28a745;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.printBtn{
+    background:#007bff;
+}
+
+.dateWrap{
+    position:relative;
+}
+
+.datePicker{
+    position:absolute;
+    left:0;
+    top:5px;
+    width:100%;
+    height:40px;
+    opacity:0;
+    z-index:2;
+    cursor:pointer;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+    font-size:13px;
+}
+
+td,th{
+    border:1px solid #000;
+    padding:6px;
+    text-align:center;
+}
+
+th{
+    background:#ddd;
+}
+
+.btn{
+    padding:4px 6px;
+    font-size:12px;
+    width:auto;
+    margin:2px;
+}
+
+.noteText{
+    text-align:left !important;
+    padding-left:8px;
+}
 
 .modal{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-z-index:999;
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    z-index:999;
 }
 
 .modal-content{
-background:white;
-width:90%;
-max-width:400px;
-margin:100px auto;
-padding:15px;
-border-radius:10px;
+    background:white;
+    width:90%;
+    max-width:400px;
+    margin:100px auto;
+    padding:15px;
+    border-radius:10px;
 }
 
 .deleteBox{
-text-align:center;
+    text-align:center;
 }
 
-.redBtn{background:red;}
-.blueBtn{background:#007bff;}
-</style>
-</head>
+.redBtn{
+    background:red;
+}
 
-<body>
+.blueBtn{
+    background:#007bff;
+}
 
-<div class="box">
+</style></head><body><div class="box"><h2>💡 लाइट मिस्त्री</h2><!--
+==================================================
+LIGHT MISTRI NAME
+Firebase से नाम अपने-आप आएगा
+==================================================
+--><select id="slot" onchange="loadData()"><option value="1">राकेश मिस्त्री</option><option value="2">नुनु</option><option value="3">लक्की</option><option value="4">गुल्ला</option><option value="5">बब्लू ड्राइवर</option><option value="6">गोपी मिस्त्री</option><option value="7">सूरज जी</option><option value="8">बैला</option><option value="9">Slot 9</option><option value="10">Slot 10</option></select><div class="dateWrap"><input
+id="date"
+placeholder="दिनांक"
+readonly
 
-<h2>💡 लाइट मिस्त्री</h2>
+«»
 
-<!-- नाम अब Firebase से आएंगे -->
-<select id="slot" onchange="loadData()">
-<option value="1">लाइट मिस्त्री 1</option>
-<option value="2">लाइट मिस्त्री 2</option>
-<option value="3">लाइट मिस्त्री 3</option>
-<option value="4">लाइट मिस्त्री 4</option>
-<option value="5">लाइट मिस्त्री 5</option>
-<option value="6">लाइट मिस्त्री 6</option>
-<option value="7">लाइट मिस्त्री 7</option>
-<option value="8">लाइट मिस्त्री 8</option>
-<option value="9">लाइट मिस्त्री 9</option>
-<option value="10">लाइट मिस्त्री 10</option>
-</select>
+<input
+id="datePicker"
+class="datePicker"
+type="date"
 
-<div class="dateWrap">
-<input id="date" placeholder="दिनांक" readonly>
-<input id="datePicker" class="datePicker" type="date">
-</div>
+«»
 
-<input id="work" placeholder="काम">
-<input id="place" placeholder="जगह">
-<input id="note" placeholder="नोट">
+</div><input
+id="work"
+placeholder="काम"
 
-<button id="saveBtn" onclick="saveData()">💾 Save</button>
-<button class="printBtn" onclick="printData()">🖨️ Print</button>
+«»
 
-<h3>📋 Main Data</h3>
-<table>
-<thead>
-<tr>
-<th>दिनांक</th>
-<th>काम</th>
-<th>जगह</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
+<input
+id="place"
+placeholder="जगह"
 
-<h3>📝 Notes Table</h3>
-<table>
-<thead>
-<tr>
-<th>नोट</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody id="noteBody"></tbody>
-</table>
+«»
 
-</div>
+<input
+id="note"
+placeholder="नोट"
 
+«»
 
-<div class="modal" id="mainModal">
-<div class="modal-content">
+<button
+id="saveBtn"
+onclick="saveData()"
 
-<h3>✏️ Edit Main Data</h3>
+«»
 
-<div class="dateWrap">
-<input id="edit_date" placeholder="दिनांक" readonly>
-<input id="editDatePicker" class="datePicker" type="date">
-</div>
+💾 Save
+</button>
 
-<input id="edit_work" placeholder="काम">
-<input id="edit_place" placeholder="जगह">
+<button
+class="printBtn"
+onclick="printData()"
 
-<button id="mainUpdateBtn" onclick="updateMainData()">Update</button>
-<button onclick="closeMainModal()" class="redBtn">Close</button>
+«»
 
-</div>
-</div>
+🖨️ Print
+</button>
 
+<h3>📋 Main Data</h3><table><thead><tr><th>दिनांक</th><th>काम</th><th>जगह</th><th>Action</th></tr></thead><tbody id="tbody"></tbody></table><h3>📝 Notes Table</h3><table><thead><tr><th>नोट</th><th>Action</th></tr></thead><tbody id="noteBody"></tbody></table></div><!--
+==================================================
+EDIT MAIN MODAL
+==================================================
+--><div
+class="modal"
+id="mainModal"
+><div class="modal-content"><h3>✏️ Edit Main Data</h3><div class="dateWrap"><input
+id="edit_date"
+placeholder="दिनांक"
+readonly
 
-<div class="modal" id="noteModal">
-<div class="modal-content">
+«»
 
-<h3>✏️ Edit Note</h3>
+<input
+id="editDatePicker"
+class="datePicker"
+type="date"
 
-<input id="edit_note" placeholder="नोट">
+«»
 
-<button id="noteUpdateBtn" onclick="updateNoteData()">Update</button>
-<button onclick="closeNoteModal()" class="redBtn">Close</button>
+</div><input
+id="edit_work"
+placeholder="काम"
 
-</div>
-</div>
+«»
 
+<input
+id="edit_place"
+placeholder="जगह"
 
-<div class="modal" id="deleteModal">
-<div class="modal-content deleteBox">
+«»
 
-<h3>Delete करना है?</h3>
-<p>क्या आप इस data को delete करना चाहते हैं?</p>
+<button
+id="mainUpdateBtn"
+onclick="updateMainData()"
 
-<button onclick="confirmDelete()" class="redBtn">🗑️ Delete</button>
-<button onclick="closeDeleteModal()" class="blueBtn">Cancel</button>
+«»
 
-</div>
-</div>
+Update
+</button>
 
+<button
+onclick="closeMainModal()"
+class="redBtn"
 
-<script type="module">
+«»
+
+Close
+</button>
+
+</div></div><!--
+==================================================
+EDIT NOTE MODAL
+==================================================
+--><div
+class="modal"
+id="noteModal"
+><div class="modal-content"><h3>✏️ Edit Note</h3><input
+id="edit_note"
+placeholder="नोट"
+
+«»
+
+<button
+id="noteUpdateBtn"
+onclick="updateNoteData()"
+
+«»
+
+Update
+</button>
+
+<button
+onclick="closeNoteModal()"
+class="redBtn"
+
+«»
+
+Close
+</button>
+
+</div></div><!--
+==================================================
+DELETE MODAL
+==================================================
+--><div
+class="modal"
+id="deleteModal"
+><div class="modal-content deleteBox"><h3>Delete करना है?</h3><p>
+क्या आप इस data को delete करना चाहते हैं?
+</p><button
+onclick="confirmDelete()"
+class="redBtn"
+
+«»
+
+🗑️ Delete
+</button>
+
+<button
+onclick="closeDeleteModal()"
+class="blueBtn"
+
+«»
+
+Cancel
+</button>
+
+</div></div><script type="module">
 
 import {
+
 db,
 collection,
 addDoc,
@@ -182,144 +285,211 @@ deleteDoc,
 doc,
 getDoc,
 updateDoc
+
 } from "./firebase.js";
 
 
+/* ==================================================
+   GLOBAL VARIABLES
+================================================== */
+
 let editId = null;
+
 let deleteId = null;
+
 let unsubscribe = null;
-let unsubscribeNames = null;
 
 
-const $ = (id) => document.getElementById(id);
+/* ==================================================
+   SHORT ID FUNCTION
+================================================== */
+
+const $ = (id) =>
+    document.getElementById(id);
 
 
-/* ==========================================
-   LIGHT NAMES FIREBASE से LOAD
-   ========================================== */
+/* ==================================================
+   DEFAULT LIGHT NAMES
+================================================== */
+
+const defaultNames = {
+
+    1:"राकेश मिस्त्री",
+
+    2:"नुनु",
+
+    3:"लक्की",
+
+    4:"गुल्ला",
+
+    5:"बब्लू ड्राइवर",
+
+    6:"गोपी मिस्त्री",
+
+    7:"सूरज जी",
+
+    8:"बैला",
+
+    9:"Slot 9",
+
+    10:"Slot 10"
+
+};
+
+
+/* ==================================================
+   FIREBASE से LIGHT NAMES LOAD
+================================================== */
 
 function loadLightNames(){
 
-    const nameCollection =
-        collection(db, "light_names");
+    const select = $("slot");
 
-    unsubscribeNames =
-        onSnapshot(
-            nameCollection,
-            (snap) => {
 
-                const select =
-                    $("slot");
+    onSnapshot(
 
-                /*
-                 * पहले से selected slot याद रखें
-                 */
-                const currentSlot =
-                    select.value;
+        collection(
+            db,
+            "light_names"
+        ),
 
-                const names = {};
+        (snapshot) => {
 
-                snap.forEach((d) => {
 
-                    const data =
-                        d.data();
+            /*
+             * Firebase के नाम यहां रखेंगे
+             */
+
+            const names = {};
+
+
+            snapshot.forEach(
+
+                (item) => {
+
+                    /*
+                     * IMPORTANT:
+                     * Document ID ही Slot Number है
+                     *
+                     * light_names/1
+                     * light_names/2
+                     * ...
+                     */
 
                     const slot =
-                        Number(d.id);
+                        Number(item.id);
+
 
                     if(
-                        slot >= 1 &&
-                        slot <= 10 &&
-                        data.name
+                        slot < 1 ||
+                        slot > 10
                     ){
-                        names[slot] =
-                            data.name;
+                        return;
                     }
 
-                });
+
+                    const data =
+                        item.data();
 
 
-                /*
-                 * 1 से 10 तक नाम लगाना
-                 */
+                    if(
+                        data &&
+                        typeof data.name === "string" &&
+                        data.name.trim() !== ""
+                    ){
 
-                for(
-                    let slot = 1;
-                    slot <= 10;
-                    slot++
-                ){
-
-                    const option =
-                        select.querySelector(
-                            `option[value="${slot}"]`
-                        );
-
-                    if(!option) continue;
-
-
-                    if(names[slot]){
-
-                        option.textContent =
-                            names[slot];
-
-                    }else{
-
-                        option.textContent =
-                            "लाइट मिस्त्री " +
-                            slot;
+                        names[slot] =
+                            data.name.trim();
 
                     }
 
                 }
 
+            );
+
+
+            /*
+             * 1 से 10 तक सभी नाम लगाएं
+             */
+
+            for(
+                let slot = 1;
+                slot <= 10;
+                slot++
+            ){
+
+                const option =
+                    select.querySelector(
+                        `option[value="${slot}"]`
+                    );
+
+
+                if(!option)
+                    continue;
+
 
                 /*
-                 * पहले वाला selected slot
-                 * वापस select करें
+                 * Firebase में नाम है
+                 * तो Firebase वाला नाम।
+                 *
+                 * Firebase में नाम नहीं है
+                 * तो Default नाम।
                  */
 
-                select.value =
-                    currentSlot || "1";
-
-            },
-            (error) => {
-
-                console.error(
-                    "Name Firebase Error:",
-                    error
-                );
+                option.textContent =
+                    names[slot] ||
+                    defaultNames[slot];
 
             }
-        );
+
+        },
+
+        (error) => {
+
+            console.error(
+                "Light Names Firebase Error:",
+                error
+            );
+
+        }
+
+    );
+
 }
 
 
-/* ==========================================
-   Collection Name
-   ========================================== */
+/* ==================================================
+   COLLECTION NAME
+================================================== */
 
 function colName(){
+
     return "light_slot_" +
         $("slot").value;
+
 }
 
 
-/* ==========================================
+/* ==================================================
    DATE FUNCTIONS
-   ========================================== */
+================================================== */
 
 function isoToDDMMYYYY(iso){
 
-    if(!iso) return "";
+    if(!iso)
+        return "";
+
 
     let p =
         iso.split("-");
+
 
     return p[2] +
         "-" +
         p[1] +
         "-" +
         p[0];
+
 }
 
 
@@ -328,25 +498,30 @@ function ddmmyyyyToISO(dateStr){
     if(
         !dateStr ||
         dateStr === "-"
-    ) return "";
+    )
+        return "";
+
 
     let p =
         dateStr.split("-");
 
+
     if(p.length !== 3)
         return "";
+
 
     return p[2] +
         "-" +
         p[1].padStart(2,"0") +
         "-" +
         p[0].padStart(2,"0");
+
 }
 
 
-/* ==========================================
+/* ==================================================
    DATE PICKER
-   ========================================== */
+================================================== */
 
 $("datePicker")
 .addEventListener(
@@ -376,9 +551,9 @@ $("editDatePicker")
 );
 
 
-/* ==========================================
+/* ==================================================
    DATE SORT
-   ========================================== */
+================================================== */
 
 function dateToNumber(dateStr){
 
@@ -388,32 +563,39 @@ function dateToNumber(dateStr){
     )
         return 99999999;
 
+
     let parts =
         dateStr.split("-");
+
 
     if(parts.length !== 3)
         return 99999999;
 
+
     let day =
         parts[0].padStart(2,"0");
+
 
     let month =
         parts[1].padStart(2,"0");
 
+
     let year =
         parts[2];
+
 
     return Number(
         year +
         month +
         day
     );
+
 }
 
 
-/* ==========================================
+/* ==================================================
    BUTTON TEXT
-   ========================================== */
+================================================== */
 
 function buttonText(
     btnId,
@@ -424,18 +606,23 @@ function buttonText(
     $(btnId).innerText =
         newText;
 
-    setTimeout(() => {
 
-        $(btnId).innerText =
-            oldText;
+    setTimeout(
+        () => {
 
-    },1200);
+            $(btnId).innerText =
+                oldText;
+
+        },
+        1200
+    );
+
 }
 
 
-/* ==========================================
+/* ==================================================
    SAVE DATA
-   ========================================== */
+================================================== */
 
 window.saveData =
 async function(){
@@ -444,6 +631,7 @@ async function(){
         $("date").value.trim() ||
         $("work").value.trim() ||
         $("place").value.trim();
+
 
     let hasNote =
         $("note").value.trim();
@@ -461,17 +649,21 @@ async function(){
         );
 
         return;
+
     }
 
 
     try{
 
         await addDoc(
+
             collection(
                 db,
                 colName()
             ),
+
             {
+
                 date:
                     $("date").value.trim()
                     || "-",
@@ -490,14 +682,20 @@ async function(){
 
                 time:
                     Date.now()
+
             }
+
         );
 
 
         $("date").value = "";
+
         $("datePicker").value = "";
+
         $("work").value = "";
+
         $("place").value = "";
+
         $("note").value = "";
 
 
@@ -512,6 +710,7 @@ async function(){
 
         console.error(e);
 
+
         buttonText(
             "saveBtn",
             "Error",
@@ -520,15 +719,16 @@ async function(){
 
     }
 
-}
+};
 
 
-/* ==========================================
-   LOAD DATA
-   ========================================== */
+/* ==================================================
+   LOAD MAIN DATA
+================================================== */
 
 window.loadData =
 function(){
+
 
     if(unsubscribe){
 
@@ -538,12 +738,16 @@ function(){
 
 
     unsubscribe =
+
         onSnapshot(
+
             collection(
                 db,
                 colName()
             ),
+
             (snap) => {
+
 
                 $("tbody").innerHTML =
                     "";
@@ -553,77 +757,105 @@ function(){
 
 
                 let mainData = [];
+
                 let notes = [];
 
 
-                snap.forEach(d => {
+                snap.forEach(
 
-                    let x =
-                        d.data();
+                    d => {
+
+                        let x =
+                            d.data();
 
 
-                    if(
-                        (x.date &&
-                         x.date !== "-") ||
+                        /*
+                         * MAIN DATA
+                         */
 
-                        (x.work &&
-                         x.work.trim() !== "") ||
+                        if(
 
-                        (x.place &&
-                         x.place.trim() !== "")
-                    ){
+                            (x.date &&
+                             x.date !== "-")
 
-                        mainData.push({
+                            ||
 
-                            id: d.id,
+                            (x.work &&
+                             x.work.trim() !== "")
 
-                            date:
-                                x.date || "",
+                            ||
 
-                            work:
-                                x.work || "",
+                            (x.place &&
+                             x.place.trim() !== "")
 
-                            place:
-                                x.place || "",
+                        ){
 
-                            time:
-                                x.time || 0
+                            mainData.push({
 
-                        });
+                                id:
+                                    d.id,
+
+                                date:
+                                    x.date || "",
+
+                                work:
+                                    x.work || "",
+
+                                place:
+                                    x.place || "",
+
+                                time:
+                                    x.time || 0
+
+                            });
+
+                        }
+
+
+                        /*
+                         * NOTES
+                         */
+
+                        if(
+
+                            (x.note || "")
+                            .trim() !== ""
+
+                        ){
+
+                            notes.push({
+
+                                id:
+                                    d.id,
+
+                                note:
+                                    x.note,
+
+                                time:
+                                    x.time || 0
+
+                            });
+
+                        }
 
                     }
 
-
-                    if(
-                        (x.note || "")
-                        .trim() !== ""
-                    ){
-
-                        notes.push({
-
-                            id: d.id,
-
-                            note: x.note,
-
-                            time:
-                                x.time || 0
-
-                        });
-
-                    }
-
-                });
+                );
 
 
-                /* MAIN DATA SORT */
+                /*
+                 * MAIN DATA SORT
+                 */
 
                 mainData.sort(
+
                     (a,b) => {
 
                         let dateA =
                             dateToNumber(
                                 a.date
                             );
+
 
                         let dateB =
                             dateToNumber(
@@ -640,107 +872,139 @@ function(){
 
                         }
 
+
                         return dateA -
                             dateB;
 
                     }
+
                 );
 
 
-                /* MAIN TABLE */
+                /*
+                 * MAIN TABLE
+                 */
 
-                mainData.forEach(x => {
+                mainData.forEach(
 
-                    $("tbody").innerHTML += `
+                    x => {
 
-                    <tr>
+                        $("tbody").innerHTML += `
 
-                    <td>
-                        ${x.date || ""}
-                    </td>
+                        <tr>
 
-                    <td>
-                        ${x.work || ""}
-                    </td>
+                        <td>
+                            ${x.date || ""}
+                        </td>
 
-                    <td>
-                        ${x.place || ""}
-                    </td>
+                        <td>
+                            ${x.work || ""}
+                        </td>
 
-                    <td>
+                        <td>
+                            ${x.place || ""}
+                        </td>
 
-                    <button
-                    class="btn"
-                    onclick="openMainEdit('${x.id}')">
-                    ✏️ Edit
-                    </button>
+                        <td>
 
-                    <button
-                    class="btn"
-                    onclick="openDeleteModal('${x.id}')">
-                    🗑️ Delete
-                    </button>
+                        <button
+                        class="btn"
+                        onclick="openMainEdit('${x.id}')"
+                        >
+                        ✏️ Edit
+                        </button>
 
-                    </td>
+                        <button
+                        class="btn"
+                        onclick="openDeleteModal('${x.id}')"
+                        >
+                        🗑️ Delete
+                        </button>
 
-                    </tr>
+                        </td>
 
-                    `;
+                        </tr>
 
-                });
+                        `;
+
+                    }
+
+                );
 
 
-                /* NOTES SORT */
+                /*
+                 * NOTES SORT
+                 */
 
                 notes.sort(
+
                     (a,b) =>
                         a.time - b.time
+
                 );
 
 
-                /* NOTES TABLE */
+                /*
+                 * NOTES TABLE
+                 */
 
-                notes.forEach(n => {
+                notes.forEach(
 
-                    $("noteBody").innerHTML += `
+                    n => {
 
-                    <tr>
+                        $("noteBody").innerHTML += `
 
-                    <td class="noteText">
-                        • ${n.note}
-                    </td>
+                        <tr>
 
-                    <td>
+                        <td class="noteText">
+                            • ${n.note}
+                        </td>
 
-                    <button
-                    class="btn"
-                    onclick="openNoteEdit('${n.id}')">
-                    ✏️ Edit
-                    </button>
+                        <td>
 
-                    <button
-                    class="btn"
-                    onclick="openDeleteModal('${n.id}')">
-                    🗑️ Delete
-                    </button>
+                        <button
+                        class="btn"
+                        onclick="openNoteEdit('${n.id}')"
+                        >
+                        ✏️ Edit
+                        </button>
 
-                    </td>
+                        <button
+                        class="btn"
+                        onclick="openDeleteModal('${n.id}')"
+                        >
+                        🗑️ Delete
+                        </button>
 
-                    </tr>
+                        </td>
 
-                    `;
+                        </tr>
 
-                });
+                        `;
+
+                    }
+
+                );
+
+            },
+
+            (error) => {
+
+                console.error(
+                    "Data Firebase Error:",
+                    error
+                );
 
             }
+
         );
 
-}
+};
 
 
-/* ==========================================
+/* ==================================================
    DELETE MODAL
-   ========================================== */
+================================================== */
 
 window.openDeleteModal =
 function(id){
@@ -751,7 +1015,7 @@ function(id){
         .style.display =
         "block";
 
-}
+};
 
 
 window.closeDeleteModal =
@@ -763,7 +1027,7 @@ function(){
         .style.display =
         "none";
 
-}
+};
 
 
 window.confirmDelete =
@@ -774,37 +1038,42 @@ async function(){
 
 
     await deleteDoc(
+
         doc(
             db,
             colName(),
             deleteId
         )
+
     );
 
 
     deleteId = null;
 
+
     $("deleteModal")
         .style.display =
         "none";
 
-}
+};
 
 
-/* ==========================================
+/* ==================================================
    EDIT MAIN DATA
-   ========================================== */
+================================================== */
 
 window.openMainEdit =
 async function(id){
 
     let snap =
         await getDoc(
+
             doc(
                 db,
                 colName(),
                 id
             )
+
         );
 
 
@@ -841,7 +1110,7 @@ async function(id){
         .style.display =
         "block";
 
-}
+};
 
 
 window.closeMainModal =
@@ -851,9 +1120,10 @@ function(){
         .style.display =
         "none";
 
+
     editId = null;
 
-}
+};
 
 
 window.updateMainData =
@@ -873,12 +1143,15 @@ async function(){
 
 
     await updateDoc(
+
         doc(
             db,
             colName(),
             editId
         ),
+
         {
+
             date:
                 $("edit_date")
                 .value.trim()
@@ -893,7 +1166,9 @@ async function(){
                 $("edit_place")
                 .value.trim()
                 || ""
+
         }
+
     );
 
 
@@ -904,33 +1179,42 @@ async function(){
     );
 
 
-    setTimeout(() => {
+    setTimeout(
 
-        $("mainModal")
-            .style.display =
-            "none";
+        () => {
 
-        editId = null;
-
-    },500);
-
-}
+            $("mainModal")
+                .style.display =
+                "none";
 
 
-/* ==========================================
+            editId = null;
+
+        },
+
+        500
+
+    );
+
+};
+
+
+/* ==================================================
    EDIT NOTE
-   ========================================== */
+================================================== */
 
 window.openNoteEdit =
 async function(id){
 
     let snap =
         await getDoc(
+
             doc(
                 db,
                 colName(),
                 id
             )
+
         );
 
 
@@ -944,6 +1228,7 @@ async function(id){
 
     editId = id;
 
+
     $("edit_note").value =
         d.note || "";
 
@@ -952,7 +1237,7 @@ async function(id){
         .style.display =
         "block";
 
-}
+};
 
 
 window.closeNoteModal =
@@ -962,9 +1247,10 @@ function(){
         .style.display =
         "none";
 
+
     editId = null;
 
-}
+};
 
 
 window.updateNoteData =
@@ -984,17 +1270,22 @@ async function(){
 
 
     await updateDoc(
+
         doc(
             db,
             colName(),
             editId
         ),
+
         {
+
             note:
                 $("edit_note")
                 .value.trim()
                 || ""
+
         }
+
     );
 
 
@@ -1005,22 +1296,29 @@ async function(){
     );
 
 
-    setTimeout(() => {
+    setTimeout(
 
-        $("noteModal")
-            .style.display =
-            "none";
+        () => {
 
-        editId = null;
-
-    },500);
-
-}
+            $("noteModal")
+                .style.display =
+                "none";
 
 
-/* ==========================================
+            editId = null;
+
+        },
+
+        500
+
+    );
+
+};
+
+
+/* ==================================================
    PRINT
-   ========================================== */
+================================================== */
 
 window.printData =
 function(){
@@ -1030,33 +1328,37 @@ function(){
 
     document
     .querySelectorAll("#tbody tr")
-    .forEach(tr => {
+    .forEach(
 
-        let tds =
-            tr.querySelectorAll("td");
+        tr => {
+
+            let tds =
+                tr.querySelectorAll("td");
 
 
-        mainRows += `
+            mainRows += `
 
-        <tr>
+            <tr>
 
-        <td>
-            ${tds[0]?.innerText || ""}
-        </td>
+            <td>
+                ${tds[0]?.innerText || ""}
+            </td>
 
-        <td>
-            ${tds[1]?.innerText || ""}
-        </td>
+            <td>
+                ${tds[1]?.innerText || ""}
+            </td>
 
-        <td>
-            ${tds[2]?.innerText || ""}
-        </td>
+            <td>
+                ${tds[2]?.innerText || ""}
+            </td>
 
-        </tr>
+            </tr>
 
-        `;
+            `;
 
-    });
+        }
+
+    );
 
 
     let noteRows = "";
@@ -1064,25 +1366,29 @@ function(){
 
     document
     .querySelectorAll("#noteBody tr")
-    .forEach(tr => {
+    .forEach(
 
-        let tds =
-            tr.querySelectorAll("td");
+        tr => {
+
+            let tds =
+                tr.querySelectorAll("td");
 
 
-        noteRows += `
+            noteRows += `
 
-        <tr>
+            <tr>
 
-        <td class="printNote">
-            ${tds[0]?.innerText || ""}
-        </td>
+            <td class="printNote">
+                ${tds[0]?.innerText || ""}
+            </td>
 
-        </tr>
+            </tr>
 
-        `;
+            `;
 
-    });
+        }
+
+    );
 
 
     let win =
@@ -1152,87 +1458,92 @@ function(){
 
     }
 
-    </style>
+    </style></head>
 
-    </head>
+<body>
 
-    <body>
-
-    <h2>
-        💡 ${
+<h2>
+    💡 ${
+        $("slot")
+        .options[
             $("slot")
-            .options[
-                $("slot")
-                .selectedIndex
-            ].text
-        }
-    </h2>
+            .selectedIndex
+        ].text
+    }
+</h2>
 
 
-    <table>
+<table>
 
-    <tr>
+<tr>
 
-    <th>दिनांक</th>
-    <th>काम</th>
-    <th>जगह</th>
+<th>दिनांक</th>
 
-    </tr>
+<th>काम</th>
 
-    ${mainRows}
+<th>जगह</th>
 
-    </table>
+</tr>
 
+${mainRows}
 
-    <br>
-
-
-    <table>
-
-    <tr>
-
-    <th>नोट</th>
-
-    </tr>
-
-    ${noteRows}
-
-    </table>
+</table>
 
 
-    </body>
-
-    </html>
-
-    `);
+<br>
 
 
-    win.document.close();
+<table>
 
-    win.focus();
+<tr>
 
-    win.print();
+<th>नोट</th>
 
-}
+</tr>
+
+${noteRows}
+
+</table>
 
 
-/* ==========================================
-   START
-   ========================================== */
+</body>
+
+</html>
+
+`);
+
+
+win.document.close();
+
+win.focus();
+
+win.print();
+
+};
+
+/* ==================================================
+START
+================================================== */
+
+/*
+
+* पहले Firebase से नाम सुनना शुरू करें
+  */
 
 loadLightNames();
 
+/*
+
+* फिर Data load करें
+  */
+
 loadData();
 
-</script>
+</script><script src="pwa.js"></script><script>
 
-
-<script src="pwa.js"></script>
-
-
-<script>
-
-/* AUTO BACK TO ADMIN PASSWORD */
+/* ==================================================
+   AUTO BACK TO ADMIN PASSWORD
+================================================== */
 
 (function(){
 
@@ -1251,6 +1562,7 @@ loadData();
                 "login"
             );
 
+
             location.replace(
                 "index.html"
             );
@@ -1261,6 +1573,5 @@ loadData();
 })();
 
 </script>
-
 </body>
 </html>
