@@ -1,7 +1,15 @@
-<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport"
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>लाइट मिस्त्री नाम</title><style>
+<title>लाइट मिस्त्री नाम</title>
+
+<style>
 
 body{
     margin:0;
@@ -92,11 +100,30 @@ button:disabled{
     font-weight:bold;
 }
 
-</style></head><body><div class="box"><h2>✏️ लाइट मिस्त्री नाम</h2><div id="status">
-Firebase से नाम लोड हो रहे हैं...
-</div><div class="section-title">
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>✏️ लाइट मिस्त्री नाम</h2>
+
+<div id="status">
+नाम तैयार हैं
+</div>
+
+<div class="section-title">
 💡 लाइट मिस्त्री
-</div><div id="lightList"></div></div><script type="module">
+</div>
+
+<div id="lightList"></div>
+
+</div>
+
+
+<script type="module">
 
 import {
     db,
@@ -154,7 +181,7 @@ function escapeHTML(text){
    CREATE ROWS
 ========================= */
 
-function createRows(firebaseData){
+function createRows(firebaseData = {}){
 
     const container =
         document.getElementById("lightList");
@@ -164,21 +191,18 @@ function createRows(firebaseData){
 
     for(let slot=1; slot<=10; slot++){
 
-        let firebaseName = "";
+        let name = defaultNames[slot];
 
+
+        /* Firebase में नाम है तो वही दिखेगा */
 
         if(
             firebaseData[slot] &&
             firebaseData[slot].name
         ){
 
-            firebaseName =
+            name =
                 firebaseData[slot].name;
-
-        }else{
-
-            firebaseName =
-                defaultNames[slot];
 
         }
 
@@ -198,7 +222,7 @@ function createRows(firebaseData){
         <input
             id="light-name-${slot}"
             type="text"
-            value="${escapeHTML(firebaseName)}"
+            value="${escapeHTML(name)}"
             disabled
         >
 
@@ -237,7 +261,22 @@ function createRows(firebaseData){
 
 
 /* =========================
-   LOAD FIREBASE
+   IMPORTANT
+   DEFAULT NAMES IMMEDIATELY SHOW
+========================= */
+
+createRows({});
+
+status.innerText =
+    "नाम तैयार हैं";
+
+status.style.color =
+    "green";
+
+
+/* =========================
+   FIREBASE LOAD
+   BACKGROUND में चलेगा
 ========================= */
 
 onSnapshot(
@@ -265,11 +304,53 @@ onSnapshot(
         });
 
 
-        createRows(data);
+        /*
+           Firebase से नाम आने के बाद
+           सिर्फ तभी update करें जब user
+           उस slot को edit नहीं कर रहा हो
+        */
+
+        for(let slot=1; slot<=10; slot++){
+
+            const input =
+                document.getElementById(
+                    "light-name-"+slot
+                );
+
+
+            if(!input)
+                continue;
+
+
+            /*
+               अगर input disabled है,
+               तो Firebase वाला नाम दिखाएं
+            */
+
+            if(input.disabled){
+
+                if(
+                    data[slot] &&
+                    data[slot].name
+                ){
+
+                    input.value =
+                        data[slot].name;
+
+                }else{
+
+                    input.value =
+                        defaultNames[slot];
+
+                }
+
+            }
+
+        }
 
 
         status.innerText =
-            "नाम Firebase से लोड हो गए";
+            "✅ Firebase से नाम अपडेट हो गए";
 
         status.style.color =
             "green";
@@ -283,8 +364,13 @@ onSnapshot(
             error
         );
 
+        /*
+           Firebase में समस्या होने पर भी
+           default names पहले से दिखाई देंगे
+        */
+
         status.innerText =
-            "Firebase Error: Light Names";
+            "⚠️ Firebase Connect नहीं हुआ";
 
         status.style.color =
             "red";
@@ -482,5 +568,6 @@ async function(slot){
 };
 
 </script>
+
 </body>
 </html>
