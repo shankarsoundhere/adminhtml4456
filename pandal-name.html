@@ -136,7 +136,6 @@ button:disabled{
 <input
 id="pandal-name-1"
 type="text"
-value="पंडाल Slot 1"
 disabled
 >
 
@@ -178,7 +177,6 @@ onclick="deleteName(1)"
 <input
 id="pandal-name-2"
 type="text"
-value="पंडाल Slot 2"
 disabled
 >
 
@@ -220,7 +218,6 @@ onclick="deleteName(2)"
 <input
 id="pandal-name-3"
 type="text"
-value="पंडाल Slot 3"
 disabled
 >
 
@@ -262,7 +259,6 @@ onclick="deleteName(3)"
 <input
 id="pandal-name-4"
 type="text"
-value="पंडाल Slot 4"
 disabled
 >
 
@@ -304,7 +300,6 @@ onclick="deleteName(4)"
 <input
 id="pandal-name-5"
 type="text"
-value="पंडाल Slot 5"
 disabled
 >
 
@@ -346,7 +341,6 @@ onclick="deleteName(5)"
 <input
 id="pandal-name-6"
 type="text"
-value="पंडाल Slot 6"
 disabled
 >
 
@@ -388,7 +382,6 @@ onclick="deleteName(6)"
 <input
 id="pandal-name-7"
 type="text"
-value="पंडाल Slot 7"
 disabled
 >
 
@@ -430,7 +423,6 @@ onclick="deleteName(7)"
 <input
 id="pandal-name-8"
 type="text"
-value="पंडाल Slot 8"
 disabled
 >
 
@@ -472,7 +464,6 @@ onclick="deleteName(8)"
 <input
 id="pandal-name-9"
 type="text"
-value="पंडाल Slot 9"
 disabled
 >
 
@@ -514,7 +505,6 @@ onclick="deleteName(9)"
 <input
 id="pandal-name-10"
 type="text"
-value="पंडाल Slot 10"
 disabled
 >
 
@@ -575,7 +565,7 @@ collection(db,"pandal_names");
 
 
 /* =========================
-   FIREBASE BACKGROUND UPDATE
+   FIREBASE REALTIME UPDATE
 ========================= */
 
 onSnapshot(
@@ -583,6 +573,32 @@ onSnapshot(
 colRef,
 
 (snapshot)=>{
+
+    /*
+       पहले सभी नाम खाली करें
+       ताकि Delete होने पर पुराना नाम
+       वापस न आए
+    */
+
+    for(let i = 1; i <= 10; i++){
+
+        const input =
+            document.getElementById(
+                "pandal-name-"+i
+            );
+
+        if(input && input.disabled){
+
+            input.value = "";
+
+        }
+
+    }
+
+
+    /*
+       Firebase से नाम पढ़ें
+    */
 
     snapshot.forEach(item=>{
 
@@ -608,18 +624,14 @@ colRef,
 
 
         /*
-           अगर user अभी Edit नहीं कर रहा है,
-           तभी Firebase का नाम लगाएं
+           अगर user Edit नहीं कर रहा है,
+           तभी Firebase का नाम दिखाएं
         */
 
         if(input.disabled){
 
-            if(data.name){
-
-                input.value =
-                    data.name;
-
-            }
+            input.value =
+                data.name || "";
 
         }
 
@@ -805,30 +817,18 @@ async function(slot){
 
 
         /*
-           Delete के बाद default नाम
-           वापस दिखाएं
+           Delete के बाद नाम खाली रहेगा
+           कोई default नाम नहीं आएगा
         */
 
-        const defaultNames = {
+        const input =
+            document.getElementById(
+                "pandal-name-"+slot
+            );
 
-            1:"पंडाल Slot 1",
-            2:"पंडाल Slot 2",
-            3:"पंडाल Slot 3",
-            4:"पंडाल Slot 4",
-            5:"पंडाल Slot 5",
-            6:"पंडाल Slot 6",
-            7:"पंडाल Slot 7",
-            8:"पंडाल Slot 8",
-            9:"पंडाल Slot 9",
-            10:"पंडाल Slot 10"
+        input.value = "";
 
-        };
-
-
-        document.getElementById(
-            "pandal-name-"+slot
-        ).value =
-            defaultNames[slot];
+        input.disabled = true;
 
 
     }catch(error){
