@@ -1,7 +1,25 @@
-<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport"
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>पंडाल मिस्त्री नाम</title><style>
+<title>पंडाल मिस्त्री नाम</title>
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#007bff">
+
+<link rel="icon" href="icon-192.png">
+
+<link rel="apple-touch-icon"
+href="icon-192.png">
+
+<style>
 
 body{
     margin:0;
@@ -86,212 +104,537 @@ button:disabled{
     cursor:not-allowed;
 }
 
-#status{
-    text-align:center;
-    margin-bottom:15px;
-    font-weight:bold;
-}
+</style>
 
-</style></head><body><div class="box"><h2>✏️ पंडाल मिस्त्री नाम</h2><div id="status">
-Firebase से नाम लोड हो रहे हैं...
-</div><div class="section-title">
+</head>
+
+
+<body>
+
+
+<div class="box">
+
+<h2>✏️ पंडाल मिस्त्री नाम</h2>
+
+
+<div class="section-title">
 🏠 पंडाल मिस्त्री
-</div><div id="pandalList"></div></div><script type="module">
+</div>
+
+
+<div id="pandalList">
+
+
+<!-- SLOT 1 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 1
+</div>
+
+<input
+id="pandal-name-1"
+type="text"
+value="पंडाल Slot 1"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-1"
+onclick="editName(1)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-1"
+onclick="saveName(1)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(1)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 2 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 2
+</div>
+
+<input
+id="pandal-name-2"
+type="text"
+value="पंडाल Slot 2"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-2"
+onclick="editName(2)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-2"
+onclick="saveName(2)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(2)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 3 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 3
+</div>
+
+<input
+id="pandal-name-3"
+type="text"
+value="पंडाल Slot 3"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-3"
+onclick="editName(3)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-3"
+onclick="saveName(3)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(3)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 4 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 4
+</div>
+
+<input
+id="pandal-name-4"
+type="text"
+value="पंडाल Slot 4"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-4"
+onclick="editName(4)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-4"
+onclick="saveName(4)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(4)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 5 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 5
+</div>
+
+<input
+id="pandal-name-5"
+type="text"
+value="पंडाल Slot 5"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-5"
+onclick="editName(5)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-5"
+onclick="saveName(5)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(5)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 6 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 6
+</div>
+
+<input
+id="pandal-name-6"
+type="text"
+value="पंडाल Slot 6"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-6"
+onclick="editName(6)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-6"
+onclick="saveName(6)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(6)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 7 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 7
+</div>
+
+<input
+id="pandal-name-7"
+type="text"
+value="पंडाल Slot 7"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-7"
+onclick="editName(7)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-7"
+onclick="saveName(7)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(7)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 8 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 8
+</div>
+
+<input
+id="pandal-name-8"
+type="text"
+value="पंडाल Slot 8"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-8"
+onclick="editName(8)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-8"
+onclick="saveName(8)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(8)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 9 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 9
+</div>
+
+<input
+id="pandal-name-9"
+type="text"
+value="पंडाल Slot 9"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-9"
+onclick="editName(9)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-9"
+onclick="saveName(9)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(9)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+<!-- SLOT 10 -->
+
+<div class="row">
+
+<div class="slot">
+🏠 Slot 10
+</div>
+
+<input
+id="pandal-name-10"
+type="text"
+value="पंडाल Slot 10"
+disabled
+>
+
+<button
+class="editBtn"
+id="pandal-edit-10"
+onclick="editName(10)"
+>
+✏️ Edit
+</button>
+
+<button
+class="saveBtn"
+id="pandal-save-10"
+onclick="saveName(10)"
+disabled
+>
+💾 Save
+</button>
+
+<button
+class="deleteBtn"
+onclick="deleteName(10)"
+>
+🗑️ Delete
+</button>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<script type="module">
 
 import {
-    db,
-    collection,
-    onSnapshot,
-    doc,
-    updateDoc,
-    deleteDoc,
-    getDoc,
-    setDoc
+
+db,
+collection,
+onSnapshot,
+doc,
+updateDoc,
+deleteDoc,
+getDoc,
+setDoc
+
 } from "./firebase.js";
 
 
-const status =
-    document.getElementById("status");
-
-
 /* =========================
-   DEFAULT NAMES
+   FIREBASE COLLECTION
 ========================= */
 
-const defaultNames = {
-
-    1:"पंडाल Slot 1",
-    2:"पंडाल Slot 2",
-    3:"पंडाल Slot 3",
-    4:"पंडाल Slot 4",
-    5:"पंडाल Slot 5",
-    6:"पंडाल Slot 6",
-    7:"पंडाल Slot 7",
-    8:"पंडाल Slot 8",
-    9:"पंडाल Slot 9",
-    10:"पंडाल Slot 10"
-
-};
+const colRef =
+collection(db,"pandal_names");
 
 
 /* =========================
-   HTML SAFE
-========================= */
-
-function escapeHTML(text){
-
-    return String(text)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
-
-
-/* =========================
-   CREATE ROWS
-========================= */
-
-function createRows(firebaseData){
-
-    const container =
-        document.getElementById("pandalList");
-
-    container.innerHTML = "";
-
-
-    for(let slot=1; slot<=10; slot++){
-
-        let firebaseName = "";
-
-
-        if(
-            firebaseData[slot] &&
-            firebaseData[slot].name
-        ){
-
-            firebaseName =
-                firebaseData[slot].name;
-
-        }else{
-
-            firebaseName =
-                defaultNames[slot];
-
-        }
-
-
-        const row =
-            document.createElement("div");
-
-        row.className = "row";
-
-
-        row.innerHTML = `
-
-        <div class="slot">
-            🏠 Slot ${slot}
-        </div>
-
-        <input
-            id="pandal-name-${slot}"
-            type="text"
-            value="${escapeHTML(firebaseName)}"
-            disabled
-        >
-
-        <button
-            class="editBtn"
-            id="pandal-edit-${slot}"
-            onclick="editName(${slot})"
-        >
-            ✏️ Edit
-        </button>
-
-        <button
-            class="saveBtn"
-            id="pandal-save-${slot}"
-            onclick="saveName(${slot})"
-            disabled
-        >
-            💾 Save
-        </button>
-
-        <button
-            class="deleteBtn"
-            onclick="deleteName(${slot})"
-        >
-            🗑️ Delete
-        </button>
-
-        `;
-
-
-        container.appendChild(row);
-
-    }
-
-}
-
-
-/* =========================
-   LOAD FIREBASE
+   FIREBASE BACKGROUND UPDATE
 ========================= */
 
 onSnapshot(
 
-    collection(db,"pandal_names"),
+colRef,
 
-    (snapshot)=>{
+(snapshot)=>{
 
-        const data = {};
+    snapshot.forEach(item=>{
+
+        const slot =
+            Number(item.id);
+
+        if(slot < 1 || slot > 10)
+            return;
 
 
-        snapshot.forEach(item=>{
-
-            const slot =
-                Number(item.id);
+        const data =
+            item.data();
 
 
-            if(slot>=1 && slot<=10){
+        const input =
+            document.getElementById(
+                "pandal-name-"+slot
+            );
 
-                data[slot] =
-                    item.data();
+
+        if(!input)
+            return;
+
+
+        /*
+           अगर user अभी Edit नहीं कर रहा है,
+           तभी Firebase का नाम लगाएं
+        */
+
+        if(input.disabled){
+
+            if(data.name){
+
+                input.value =
+                    data.name;
 
             }
 
-        });
+        }
 
+    });
 
-        createRows(data);
+},
 
+(error)=>{
 
-        status.innerText =
-            "नाम Firebase से लोड हो गए";
+    console.error(
+        "Firebase Error:",
+        error
+    );
 
-        status.style.color =
-            "green";
-
-    },
-
-    (error)=>{
-
-        console.error(
-            "Firebase Error:",
-            error
-        );
-
-        status.innerText =
-            "Firebase Error: Pandal Names";
-
-        status.style.color =
-            "red";
-
-    }
-
-);
+});
 
 
 /* =========================
@@ -347,7 +690,7 @@ async function(slot){
         input.value.trim();
 
 
-    if(name===""){
+    if(name === ""){
 
         alert(
             "नाम खाली नहीं हो सकता।"
@@ -375,23 +718,29 @@ async function(slot){
         if(oldData.exists()){
 
             await updateDoc(
+
                 nameRef,
+
                 {
                     name:name,
                     slot:slot,
                     time:Date.now()
                 }
+
             );
 
         }else{
 
             await setDoc(
+
                 nameRef,
+
                 {
                     name:name,
                     slot:slot,
                     time:Date.now()
                 }
+
             );
 
         }
@@ -408,14 +757,6 @@ async function(slot){
         document.getElementById(
             "pandal-save-"+slot
         ).disabled = true;
-
-
-        status.innerText =
-            "✅ Slot "+slot+
-            " का नाम Save हो गया";
-
-        status.style.color =
-            "green";
 
 
     }catch(error){
@@ -453,20 +794,41 @@ async function(slot){
     try{
 
         await deleteDoc(
+
             doc(
                 db,
                 "pandal_names",
                 String(slot)
             )
+
         );
 
 
-        status.innerText =
-            "🗑️ Slot "+slot+
-            " का नाम Delete हो गया";
+        /*
+           Delete के बाद default नाम
+           वापस दिखाएं
+        */
 
-        status.style.color =
-            "red";
+        const defaultNames = {
+
+            1:"पंडाल Slot 1",
+            2:"पंडाल Slot 2",
+            3:"पंडाल Slot 3",
+            4:"पंडाल Slot 4",
+            5:"पंडाल Slot 5",
+            6:"पंडाल Slot 6",
+            7:"पंडाल Slot 7",
+            8:"पंडाल Slot 8",
+            9:"पंडाल Slot 9",
+            10:"पंडाल Slot 10"
+
+        };
+
+
+        document.getElementById(
+            "pandal-name-"+slot
+        ).value =
+            defaultNames[slot];
 
 
     }catch(error){
@@ -482,5 +844,10 @@ async function(slot){
 };
 
 </script>
+
+
+<script src="pwa.js"></script>
+
 </body>
+
 </html>
