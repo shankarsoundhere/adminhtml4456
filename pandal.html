@@ -113,20 +113,7 @@ text-align:center;
 ==================================================
 -->
 
-<select id="slot" onchange="loadData()">
-
-<option value="1">पंडाल मिस्त्री 1</option>
-<option value="2">पंडाल मिस्त्री 2</option>
-<option value="3">पंडाल मिस्त्री 3</option>
-<option value="4">पंडाल मिस्त्री 4</option>
-<option value="5">पंडाल मिस्त्री 5</option>
-<option value="6">पंडाल मिस्त्री 6</option>
-<option value="7">पंडाल मिस्त्री 7</option>
-<option value="8">पंडाल मिस्त्री 8</option>
-<option value="9">पंडाल मिस्त्री 9</option>
-<option value="10">पंडाल मिस्त्री 10</option>
-
-</select>
+<select id="slot" onchange="loadData()"></select>
 
 
 <div class="dateWrap">
@@ -422,96 +409,85 @@ function loadPandalNames(){
             "pandal_names"
         );
 
-
     unsubscribeNames =
         onSnapshot(
             nameCollection,
             (snap) => {
 
-                const select =
-                    $("slot");
+                const select = $("slot");
+                const currentSlot = select.value;
 
+                select.innerHTML = "";
 
-                /*
-                पहले selected slot याद रखें
-                */
-
-                const currentSlot =
-                    select.value;
-
-
-                const names = {};
-
+                const names = [];
 
                 snap.forEach((d) => {
 
-                    const data =
-                        d.data();
-
-
-                    const slot =
-                        Number(d.id);
-
+                    const slot = Number(d.id);
+                    const data = d.data();
 
                     if(
                         slot >= 1 &&
                         slot <= 10 &&
-                        data.name
+                        data.name &&
+                        data.name.trim() !== ""
                     ){
 
-                        names[slot] =
-                            data.name;
+                        names.push({
+                            slot: slot,
+                            name: data.name.trim()
+                        });
 
                     }
 
                 });
 
+                names.sort((a,b) => a.slot - b.slot);
 
-                /*
-                1 से 10 तक नाम लगाएं
-                */
-
-                for(
-                    let slot = 1;
-                    slot <= 10;
-                    slot++
-                ){
+                names.forEach((item) => {
 
                     const option =
-                        select.querySelector(
-                            `option[value="${slot}"]`
-                        );
+                        document.createElement("option");
 
+                    option.value =
+                        String(item.slot);
 
-                    if(!option)
-                        continue;
+                    option.textContent =
+                        item.name;
 
+                    select.appendChild(option);
 
-                    if(names[slot]){
+                });
 
-                        option.textContent =
-                            names[slot];
+                if(
+                    currentSlot &&
+                    names.some(
+                        item =>
+                        String(item.slot) === String(currentSlot)
+                    )
+                ){
 
-                    }else{
+                    select.value = currentSlot;
 
-                        option.textContent =
-                            "पंडाल मिस्त्री " +
-                            slot;
+                }else if(names.length){
 
-                    }
+                    select.value =
+                        String(names[0].slot);
 
                 }
 
+                if(names.length){
 
-                /*
-                Selected slot वापस रखें
-                */
+                    loadData();
 
-                select.value =
-                    currentSlot || "1";
+                }else{
+
+                    $("tbody").innerHTML = "";
+                    $("noteBody").innerHTML = "";
+
+                }
 
             },
-
 
             (error) => {
 
