@@ -136,7 +136,7 @@ button:disabled{
 <input
 id="light-name-1"
 type="text"
-value="राकेश मिस्त्री"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -178,7 +178,7 @@ onclick="deleteName(1)"
 <input
 id="light-name-2"
 type="text"
-value="नुनु"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -220,7 +220,7 @@ onclick="deleteName(2)"
 <input
 id="light-name-3"
 type="text"
-value="लक्की"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -262,7 +262,7 @@ onclick="deleteName(3)"
 <input
 id="light-name-4"
 type="text"
-value="गुल्ला"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -304,7 +304,7 @@ onclick="deleteName(4)"
 <input
 id="light-name-5"
 type="text"
-value="बब्लू ड्राइवर"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -346,7 +346,7 @@ onclick="deleteName(5)"
 <input
 id="light-name-6"
 type="text"
-value="गोपी मिस्त्री"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -388,7 +388,7 @@ onclick="deleteName(6)"
 <input
 id="light-name-7"
 type="text"
-value="सूरज जी"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -430,7 +430,7 @@ onclick="deleteName(7)"
 <input
 id="light-name-8"
 type="text"
-value="बैला"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -472,7 +472,7 @@ onclick="deleteName(8)"
 <input
 id="light-name-9"
 type="text"
-value="Slot 9"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -514,7 +514,7 @@ onclick="deleteName(9)"
 <input
 id="light-name-10"
 type="text"
-value="Slot 10"
+placeholder="नाम दर्ज करें"
 disabled
 >
 
@@ -575,7 +575,7 @@ collection(db,"light_names");
 
 
 /* =========================
-   FIREBASE BACKGROUND UPDATE
+   FIREBASE REALTIME UPDATE
 ========================= */
 
 onSnapshot(
@@ -583,6 +583,28 @@ onSnapshot(
 colRef,
 
 (snapshot)=>{
+
+    /*
+       पहले सभी input खाली करें
+       ताकि deleted documents का पुराना
+       नाम दिखाई न दे
+    */
+
+    for(let i = 1; i <= 10; i++){
+
+        const input =
+            document.getElementById(
+                "light-name-"+i
+            );
+
+        if(input && input.disabled){
+
+            input.value = "";
+
+        }
+
+    }
+
 
     snapshot.forEach(item=>{
 
@@ -608,18 +630,14 @@ colRef,
 
 
         /*
-           अगर user अभी Edit नहीं कर रहा है,
-           तभी Firebase का नाम लगाएं
+           अगर user Edit नहीं कर रहा है,
+           तभी Firebase का नाम दिखाएं
         */
 
         if(input.disabled){
 
-            if(data.name){
-
-                input.value =
-                    data.name;
-
-            }
+            input.value =
+                data.name || "";
 
         }
 
@@ -805,30 +823,13 @@ async function(slot){
 
 
         /*
-           Delete के बाद default नाम
-           वापस दिखाएं
+           Delete के बाद input खाली रहेगा
+           कोई default नाम वापस नहीं आएगा
         */
-
-        const defaultNames = {
-
-            1:"राकेश मिस्त्री",
-            2:"नुनु",
-            3:"लक्की",
-            4:"गुल्ला",
-            5:"बब्लू ड्राइवर",
-            6:"गोपी मिस्त्री",
-            7:"सूरज जी",
-            8:"बैला",
-            9:"Slot 9",
-            10:"Slot 10"
-
-        };
-
 
         document.getElementById(
             "light-name-"+slot
-        ).value =
-            defaultNames[slot];
+        ).value = "";
 
 
     }catch(error){
