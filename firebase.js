@@ -1,4 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
 import {
 getFirestore,
 collection,
@@ -8,6 +9,7 @@ deleteDoc,
 doc,
 updateDoc,
 getDoc,
+setDoc,
 query,
 orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -22,6 +24,7 @@ appId: "1:628575895406:web:cb75494ad2364515f50b7f"
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
 export {
@@ -33,6 +36,7 @@ deleteDoc,
 doc,
 updateDoc,
 getDoc,
+setDoc,
 query,
 orderBy
 };
