@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Change</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:20px;
+    font-family:Arial,sans-serif;
+    background:#f1f3f6;
+}
+
+
+/* Button */
+
+.changeBtn{
+
+    width:100%;
+
+    max-width:700px;
+
+    margin:20px auto;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:30px;
+
+    padding:25px 30px;
+
+    box-sizing:border-box;
+
+    background:white;
+
+    border:1px solid #ddd;
+
+    border-radius:20px;
+
+    font-size:24px;
+
+    color:#222;
+
+    cursor:pointer;
+
+    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+
+}
+
+
+/* Icon */
+
+.icon{
+
+    font-size:42px;
+
+}
+
+
+/* Text */
+
+.text{
+
+    font-size:24px;
+
+}
+
+
+/* Mobile */
+
+@media(max-width:500px){
+
+    .changeBtn{
+
+        padding:25px 25px;
+
+        gap:25px;
+
+        border-radius:18px;
+
+    }
+
+    .icon{
+
+        font-size:38px;
+
+    }
+
+    .text{
+
+        font-size:22px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<button
+class="changeBtn"
+onclick="changeName()"
+>
+
+    <span class="icon">✏️</span>
+
+    <span class="text">
+        नाम बदलें
+    </span>
+
+</button>
+
+
+<script>
+
+function changeName(){
+
+    window.location.href =
+        "name.html";
+
+}
+
+</script>
+
+
+</body>
+
+</html>
