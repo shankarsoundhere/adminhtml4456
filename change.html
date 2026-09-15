@@ -1,26 +1,19 @@
-<!DOCTYPE html>
-<html lang="hi">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>नाम बदलें</title>
-
-<style>
+<title>नाम बदलें</title><style>
 
 body{
     margin:0;
-    padding:20px 10px;
+    padding:12px;
     font-family:Arial,sans-serif;
-    background:#f1f3f6;
+    background:#f8f9fa;
+    color:#212529;
 }
 
 .box{
-    max-width:700px;
+    width:100%;
+    max-width:480px;
     margin:auto;
 }
 
@@ -32,94 +25,74 @@ body{
 
     align-items:center;
 
-    gap:30px;
+    gap:14px;
 
-    padding:25px;
+    padding:16px;
 
-    margin-bottom:18px;
+    margin:12px 0;
 
     box-sizing:border-box;
 
     background:white;
 
-    border:1px solid #ddd;
+    border:1px solid #dee2e6;
 
-    border-radius:20px;
+    border-radius:12px;
 
-    font-size:22px;
+    font-size:17px;
 
-    color:#222;
+    color:#212529;
 
     cursor:pointer;
 
     text-align:left;
 
-    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    box-shadow:none;
+
+    transition:0.15s;
 
 }
 
 .icon{
-    font-size:42px;
+    font-size:26px;
+    width:35px;
+    text-align:center;
 }
 
 .text{
-    font-size:24px;
+    font-size:17px;
 }
 
 .changeBtn:active{
     transform:scale(0.98);
+    background:#f1f3f6;
 }
 
-</style>
-
-</head>
-
-
-<body>
-
-<div class="box">
-
-
-<!-- =========================
+</style></head><body><div class="box"><!-- =========================
      LIGHT MISTRY
-========================= -->
-
-<button
+========================= --><button
 class="changeBtn"
 onclick="openLight()"
->
+
+«»
 
 <span class="icon">💡</span>
 
 <span class="text">
 लाइट मिस्त्री
-</span>
-
-</button>
-
-
-<!-- =========================
+</span></button><!-- =========================
      PANDAL MISTRY
-========================= -->
-
-<button
+========================= --><button
 class="changeBtn"
 onclick="openPandal()"
->
+
+«»
 
 <span class="icon">🏠</span>
 
 <span class="text">
 पंडाल मिस्त्री
-</span>
-
-</button>
-
-
-</div>
-
-
-<script>
+</span></button></div><script>
 
 function openLight(){
 
@@ -137,7 +110,5 @@ function openPandal(){
 }
 
 </script>
-
 </body>
-
 </html>
