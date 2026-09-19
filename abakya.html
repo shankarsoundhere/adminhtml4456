@@ -141,28 +141,32 @@ button{
     overflow-wrap:break-word;
 }
 
+/* DETAIL - MINIMUM 2 COLUMNS */
+
 .detail{
     margin-top:8px;
     font-size:13px;
     width:100%;
     max-width:100%;
-    overflow:hidden;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    align-items:start;
 }
 
-/* BULLET AND TEXT FIX */
+/* BULLET + TEXT */
 
 .noteItem{
     display:flex;
     align-items:flex-start;
-    margin:4px 0;
     width:100%;
-    max-width:100%;
+    min-width:0;
+    margin:0;
 }
 
 .bullet{
-    flex:0 0 auto;
-    width:16px;
-    margin-right:4px;
+    flex:0 0 18px;
+    width:18px;
     font-weight:bold;
     line-height:1.5;
 }
@@ -171,32 +175,14 @@ button{
     flex:1;
     min-width:0;
     display:block;
-    white-space:pre-wrap;
     font-size:13px;
     line-height:1.5;
-    word-break:normal;
+    white-space:pre-wrap;
     overflow-wrap:break-word;
-}
-
-/* MULTILINE NOTES */
-
-.innerGrid{
-    flex:1;
-    min-width:0;
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:4px;
-    width:100%;
-}
-
-.innerGrid span{
-    min-width:0;
-    font-size:12px;
-    line-height:1.4;
-    white-space:normal;
     word-break:normal;
-    overflow-wrap:break-word;
 }
+
+/* BUTTONS */
 
 .action{
     display:flex;
@@ -260,8 +246,9 @@ button{
         font-size:11px;
     }
 
-    .innerGrid{
+    .detail{
         grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:6px;
     }
 
 }
@@ -276,23 +263,11 @@ button{
 
     <div class="formBox">
 
-        <input
-            type="text"
-            id="name"
-            placeholder="नाम"
-        >
+        <input type="text" id="name" placeholder="नाम">
 
-        <input
-            type="tel"
-            id="phone1"
-            placeholder="मोबाइल नंबर"
-        >
+        <input type="tel" id="phone1" placeholder="मोबाइल नंबर">
 
-        <input
-            type="tel"
-            id="phone2"
-            placeholder="मोबाइल नंबर"
-        >
+        <input type="tel" id="phone2" placeholder="मोबाइल नंबर">
 
         <div id="noteContainer">
 
@@ -303,36 +278,23 @@ button{
 
         </div>
 
-        <button
-            id="saveBtn"
-            onclick="saveData()"
-        >
+        <button id="saveBtn" onclick="saveData()">
             Save
         </button>
 
-        <button
-            id="updateBtn"
-            class="updateBtn"
-            onclick="updateData()"
-        >
+        <button id="updateBtn" class="updateBtn"
+            onclick="updateData()">
             Update
         </button>
 
-        <button
-            id="cancelBtn"
-            class="cancelBtn"
-            onclick="cancelEdit()"
-        >
+        <button id="cancelBtn" class="cancelBtn"
+            onclick="cancelEdit()">
             Cancel
         </button>
 
     </div>
 
-    <!-- TOP NAME LIST -->
-
     <div id="topList" class="topList"></div>
-
-    <!-- FULL DATA LIST -->
 
     <div id="list"></div>
 
@@ -470,38 +432,14 @@ document.getElementById("noteContainer").addEventListener(
 
 function noteToHTML(note){
 
-    let lines = String(note || "")
-        .split("\n")
-        .map(t => t.trim())
-        .filter(t => t);
-
-    if(lines.length <= 1){
-
-        return `
-        <div class="noteItem">
-
-            <span class="bullet">•</span>
-
-            <span class="noteText">
-                ${escapeHTML(note)}
-            </span>
-
-        </div>`;
-
-    }
-
     return `
     <div class="noteItem">
 
         <span class="bullet">•</span>
 
-        <div class="innerGrid">
-
-            ${lines.map(t => `
-                <span>${escapeHTML(t)}</span>
-            `).join("")}
-
-        </div>
+        <span class="noteText">
+            ${escapeHTML(note)}
+        </span>
 
     </div>`;
 
@@ -535,15 +473,10 @@ window.saveData = async function(){
         await addDoc(colRef,{
 
             name:name,
-
             phone1:phone1,
-
             phone2:phone2,
-
             notes:notes,
-
             amount:notes.join("\n\n"),
-
             time:Date.now()
 
         });
@@ -571,7 +504,6 @@ onSnapshot(colRef,(snap)=>{
         allData.push({
 
             id:d.id,
-
             ...d.data()
 
         });
@@ -598,14 +530,10 @@ function render(){
 
         let cardId = "card" + i;
 
-        /* TOP NAME LIST */
-
         topHTML += `
 
         <a href="#${cardId}">
-
             ${escapeHTML(x.name || "-")}
-
         </a>`;
 
         let phone1Call =
@@ -647,9 +575,7 @@ function render(){
                 class="toggle"
                 onclick="toggleNumber(${i})"
             >
-
                 Show
-
             </span>`;
 
         }
@@ -741,12 +667,8 @@ function render(){
 
     });
 
-    /* SHOW TOP NAME LIST */
-
     document.getElementById("topList").innerHTML =
         topHTML;
-
-    /* SHOW FULL DATA */
 
     document.getElementById("list").innerHTML =
         html;
@@ -834,7 +756,6 @@ window.editData = function(i){
     window.scrollTo({
 
         top:0,
-
         behavior:"smooth"
 
     });
@@ -873,13 +794,9 @@ window.updateData = async function(){
             {
 
                 name:name,
-
                 phone1:phone1,
-
                 phone2:phone2,
-
                 notes:notes,
-
                 amount:notes.join("\n\n")
 
             }
