@@ -1,450 +1,940 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>बकाया Admin Panel</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            font-family: Arial;
-            background: #dcdde1;
-            padding: 10px;
-            margin: 0
-        }
-        .container {
-            max-width: 500px;
-            margin: auto
-        }
-        h2 {
-            text-align: center
-        }
-        .formBox,.box {
-            background: #f1f2f6;
-            padding: 12px;
-            margin: 12px 0;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1)
-        }
-        input,textarea,button {
-            width: 100%;
-            padding: 12px;
-            margin: 6px 0;
-            font-size: 15px;
-            box-sizing: border-box;
-            border-radius: 8px;
-            border: 1px solid #aaa
-        }
-        textarea {
-            min-height: 75px;
-            resize: vertical
-        }
-        button {
-            border: none;
-            background: #28a745;
-            color: white;
-            font-weight: bold;
-            cursor: pointer
-        }
-        .updateBtn {
-            background: #0984e3;
-            display: none
-        }
-        .cancelBtn {
-            background: #636e72;
-            display: none
-        }
-        #phone2 {
-            display: none
-        }
-        .bottom {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            align-items: flex-start
-        }
-        .nameBox {
-            font-size: 14px;
-            font-weight: bold;
-            line-height: 1.2
-        }
-        .toggle {
-            font-size: 12px;
-            color: blue;
-            cursor: pointer;
-            margin-left: 5px
-        }
-        .number {
-            display: none;
-            font-size: 13px;
-            color: blue;
-            font-weight: normal;
-            line-height: 1.3;
-            margin-top: 3px
-        }
-        .detail {
-            margin-top: 8px;
-            font-size: 13px;
-            word-break: break-word
-        }
-        .noteItem {
-            display: flex;
-            align-items: flex-start;
-            margin: 4px 0
-        }
-        .bullet {
-            margin-right: 6px;
-            font-weight: bold
-        }
-        .noteText {
-            white-space: pre-wrap
-        }
-        .innerGrid {
-            display: grid;
-            grid-template-columns: repeat(4,1fr);
-            gap: 4px;
-            width: 100%
-        }
-        .innerGrid span {
-            font-size: 12px;
-            line-height: 1.4
-        }
-        .action {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            justify-content: flex-end
-        }
-        .smallBtn {
-            padding: 7px 10px;
-            font-size: 12px;
-            border-radius: 20px;
-            color: white;
-            border: none;
-            width: auto;
-            margin: 0
-        }
-        .edit {
-            background: #0984e3
-        }
-        .del {
-            background: #d63031
-        }
-        .call {
-            background: #28a745;
-            text-decoration: none;
-            color: white;
-            padding: 7px 10px;
-            font-size: 12px;
-            border-radius: 20px
-        }
-    </style>
+<title>बकाया Admin Panel</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#dcdde1;
+    padding:10px;
+    margin:0;
+}
+
+.container{
+    max-width:500px;
+    margin:auto;
+}
+
+h2{
+    text-align:center;
+}
+
+.formBox,.box{
+    background:#f1f2f6;
+    padding:12px;
+    margin:12px 0;
+    border-radius:15px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.1);
+}
+
+input,textarea,button{
+    width:100%;
+    padding:12px;
+    margin:6px 0;
+    font-size:15px;
+    box-sizing:border-box;
+    border-radius:8px;
+    border:1px solid #aaa;
+}
+
+textarea{
+    min-height:75px;
+    resize:vertical;
+}
+
+button{
+    border:none;
+    background:#28a745;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.updateBtn{
+    background:#0984e3;
+    display:none;
+}
+
+.cancelBtn{
+    background:#636e72;
+    display:none;
+}
+
+#phone2{
+    display:none;
+}
+
+/* TOP NAME LIST */
+
+.topList{
+    background:#ffffff;
+    padding:10px;
+    margin:12px 0;
+    border-radius:15px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.1);
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.topList a{
+    padding:6px 10px;
+    background:#d6d6d6;
+    color:#000000;
+    border-radius:20px;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:bold;
+    white-space:nowrap;
+    transition:0.2s;
+}
+
+.topList a:hover{
+    background:#f2f2f2;
+}
+
+/* CARD */
+
+.bottom{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+}
+
+.nameBox{
+    flex:1;
+    min-width:0;
+    font-size:14px;
+    font-weight:bold;
+    line-height:1.3;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+}
+
+.toggle{
+    font-size:12px;
+    color:blue;
+    cursor:pointer;
+    margin-left:5px;
+}
+
+.number{
+    display:none;
+    font-size:13px;
+    color:blue;
+    font-weight:normal;
+    line-height:1.3;
+    margin-top:3px;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+}
+
+.detail{
+    margin-top:8px;
+    font-size:13px;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+}
+
+.noteItem{
+    display:flex;
+    align-items:flex-start;
+    margin:4px 0;
+}
+
+.bullet{
+    margin-right:6px;
+    font-weight:bold;
+    flex-shrink:0;
+}
+
+.noteText{
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.innerGrid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:4px;
+    width:100%;
+}
+
+.innerGrid span{
+    font-size:12px;
+    line-height:1.4;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+}
+
+.action{
+    display:flex;
+    gap:5px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    flex-shrink:0;
+    max-width:150px;
+}
+
+.smallBtn{
+    padding:7px 10px;
+    font-size:12px;
+    border-radius:20px;
+    color:white;
+    border:none;
+    width:auto;
+    margin:0;
+}
+
+.edit{
+    background:#0984e3;
+}
+
+.del{
+    background:#d63031;
+}
+
+.call{
+    background:#28a745;
+    text-decoration:none;
+    color:white;
+    padding:7px 10px;
+    font-size:12px;
+    border-radius:20px;
+    white-space:nowrap;
+}
+
+/* MOBILE */
+
+@media(max-width:480px){
+
+    body{
+        padding:8px;
+    }
+
+    .formBox,.box{
+        padding:12px;
+    }
+
+    .bottom{
+        gap:8px;
+    }
+
+    .action{
+        max-width:120px;
+    }
+
+    .smallBtn,.call{
+        padding:6px 8px;
+        font-size:11px;
+    }
+
+    .innerGrid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+</style>
 </head>
 
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <h2>डायरी हिसाब</h2>
+    <h2>डायरी हिसाब</h2>
 
-        <div class="formBox">
-            <input type="text" id="name" placeholder="नाम">
-            <input type="tel" id="phone1" placeholder="मोबाइल नंबर">
-            <input type="tel" id="phone2" placeholder="मोबाइल नंबर">
+    <div class="formBox">
 
-            <div id="noteContainer">
-                <textarea class="noteBox" placeholder="बकाया नोट 1"></textarea>
-            </div>
+        <input
+            type="text"
+            id="name"
+            placeholder="नाम"
+        >
 
-            <button id="saveBtn" onclick="saveData()">Save</button>
-            <button id="updateBtn" class="updateBtn" onclick="updateData()">Update</button>
-            <button id="cancelBtn" class="cancelBtn" onclick="cancelEdit()">Cancel</button>
+        <input
+            type="tel"
+            id="phone1"
+            placeholder="मोबाइल नंबर"
+        >
+
+        <input
+            type="tel"
+            id="phone2"
+            placeholder="मोबाइल नंबर"
+        >
+
+        <div id="noteContainer">
+
+            <textarea
+                class="noteBox"
+                placeholder="बकाया नोट 1"
+            ></textarea>
+
         </div>
 
-        <div id="list"></div>
+        <button
+            id="saveBtn"
+            onclick="saveData()"
+        >
+            Save
+        </button>
+
+        <button
+            id="updateBtn"
+            class="updateBtn"
+            onclick="updateData()"
+        >
+            Update
+        </button>
+
+        <button
+            id="cancelBtn"
+            class="cancelBtn"
+            onclick="cancelEdit()"
+        >
+            Cancel
+        </button>
 
     </div>
 
-    <script type="module">
+    <!-- TOP NAME LIST -->
 
-        import {
-            db
-        } from "./firebase.js";
+    <div id="topList" class="topList"></div>
 
-        import {
-            collection,
-            addDoc,
-            onSnapshot,
-            doc,
-            updateDoc,
-            deleteDoc
-        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    <!-- FULL DATA LIST -->
 
-        const colRef = collection(db, "tdm");
+    <div id="list"></div>
 
-        let allData = [];
-        let editId = null;
+</div>
 
-        function cleanPhone(phone) {
-            return String(phone || "").replace(/\s+/g, "").trim();
+<script type="module">
+
+import { db } from "./firebase.js";
+
+import {
+    collection,
+    addDoc,
+    onSnapshot,
+    doc,
+    updateDoc,
+    deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const colRef = collection(db,"tdm");
+
+let allData = [];
+let editId = null;
+
+/* CLEAN PHONE */
+
+function cleanPhone(phone){
+
+    return String(phone || "")
+        .replace(/\s+/g,"")
+        .trim();
+
+}
+
+/* ESCAPE HTML */
+
+function escapeHTML(text){
+
+    return String(text || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+/* GET NOTES */
+
+function getNotes(){
+
+    let boxes = document.querySelectorAll(".noteBox");
+
+    let notes = [];
+
+    boxes.forEach(box => {
+
+        let text = box.value.trim();
+
+        if(text){
+            notes.push(text);
         }
 
-        function escapeHTML(text) {
-            return String(text || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-        }
+    });
 
-        function getNotes() {
-            let boxes = document.querySelectorAll(".noteBox");
-            let notes = [];
+    return notes;
 
-            boxes.forEach(box => {
-                let text = box.value.trim();
-                if (text) notes.push(text);
-            });
+}
 
-            return notes;
-        }
+/* RESET NOTES */
 
-        function resetNotes() {
-            document.getElementById("noteContainer").innerHTML =
-            `<textarea class="noteBox" placeholder="बकाया नोट 1"></textarea>`;
-        }
+function resetNotes(){
 
-        function clearForm() {
-            document.getElementById("name").value = "";
-            document.getElementById("phone1").value = "";
-            document.getElementById("phone2").value = "";
-            document.getElementById("phone2").style.display = "none";
-            resetNotes();
-        }
+    document.getElementById("noteContainer").innerHTML =
 
-        document.getElementById("phone1").addEventListener("dblclick", ()=> {
-            document.getElementById("phone2").style.display = "block";
-        });
+    `<textarea
+        class="noteBox"
+        placeholder="बकाया नोट 1"
+    ></textarea>`;
 
-        document.getElementById("noteContainer").addEventListener("dblclick", function(e) {
-            if (!e.target.classList.contains("noteBox")) return;
+}
 
-            let count = document.querySelectorAll(".noteBox").length + 1;
-            let box = document.createElement("textarea");
-            box.className = "noteBox";
-            box.placeholder = "बकाया नोट " + count;
+/* CLEAR FORM */
 
-            document.getElementById("noteContainer").appendChild(box);
-            box.focus();
-        });
+function clearForm(){
 
-        function noteToHTML(note) {
-            let lines = String(note)
-            .split("\n")
-            .map(t => t.trim())
-            .filter(t => t);
+    document.getElementById("name").value = "";
 
-            if (lines.length <= 1) {
-                return `
-                <div class="noteItem">
-                <span class="bullet">•</span>
-                <span class="noteText">${escapeHTML(note)}</span>
-                </div>`;
-            }
+    document.getElementById("phone1").value = "";
 
-            return `
-            <div class="noteItem">
+    document.getElementById("phone2").value = "";
+
+    document.getElementById("phone2").style.display = "none";
+
+    resetNotes();
+
+}
+
+/* SHOW SECOND PHONE */
+
+document.getElementById("phone1").addEventListener(
+    "dblclick",
+    () => {
+
+        document.getElementById("phone2").style.display = "block";
+
+    }
+);
+
+/* ADD NEW NOTE ON DOUBLE CLICK */
+
+document.getElementById("noteContainer").addEventListener(
+    "dblclick",
+    function(e){
+
+        if(!e.target.classList.contains("noteBox")) return;
+
+        let count =
+            document.querySelectorAll(".noteBox").length + 1;
+
+        let box = document.createElement("textarea");
+
+        box.className = "noteBox";
+
+        box.placeholder = "बकाया नोट " + count;
+
+        document.getElementById("noteContainer")
+            .appendChild(box);
+
+        box.focus();
+
+    }
+);
+
+/* NOTE TO HTML */
+
+function noteToHTML(note){
+
+    let lines = String(note || "")
+        .split("\n")
+        .map(t => t.trim())
+        .filter(t => t);
+
+    if(lines.length <= 1){
+
+        return `
+        <div class="noteItem">
+
             <span class="bullet">•</span>
-            <div class="innerGrid">
-            ${lines.map(t => `<span>${escapeHTML(t)}</span>`).join("")}
-            </div>
-            </div>`;
-        }
 
-        window.saveData = async function() {
+            <span class="noteText">
+                ${escapeHTML(note)}
+            </span>
 
-            let name = document.getElementById("name").value.trim();
-            let phone1 = document.getElementById("phone1").value.trim();
-            let phone2 = document.getElementById("phone2").value.trim();
-            let notes = getNotes();
+        </div>`;
 
-            if (!name) {
-                alert("नाम लिखें");
-                return;
-            }
+    }
 
-            await addDoc(colRef, {
-                name: name,
-                phone1: phone1,
-                phone2: phone2,
-                notes: notes,
-                amount: notes.join("\n\n"),
-                time: Date.now()
-            });
+    return `
+    <div class="noteItem">
 
-            clearForm();
-        }
+        <span class="bullet">•</span>
 
-        onSnapshot(colRef, (snap)=> {
+        <div class="innerGrid">
 
-            allData = [];
+            ${lines.map(t => `
+                <span>${escapeHTML(t)}</span>
+            `).join("")}
 
-            snap.forEach(d => {
-                allData.push({
-                    id: d.id,
-                    ...d.data()
-                });
-            });
+        </div>
 
-            allData.sort((a, b)=>(a.time || 0) - (b.time || 0));
+    </div>`;
 
-            render();
+}
+
+/* SAVE DATA */
+
+window.saveData = async function(){
+
+    let name =
+        document.getElementById("name").value.trim();
+
+    let phone1 =
+        document.getElementById("phone1").value.trim();
+
+    let phone2 =
+        document.getElementById("phone2").value.trim();
+
+    let notes = getNotes();
+
+    if(!name){
+
+        alert("नाम लिखें");
+
+        return;
+
+    }
+
+    try{
+
+        await addDoc(colRef,{
+
+            name:name,
+
+            phone1:phone1,
+
+            phone2:phone2,
+
+            notes:notes,
+
+            amount:notes.join("\n\n"),
+
+            time:Date.now()
 
         });
 
-        function render() {
+        clearForm();
 
-            let html = "";
+    }catch(error){
 
-            allData.forEach((x, i)=> {
+        console.error(error);
 
-                let phone1Call = cleanPhone(x.phone1 || "");
-                let phone2Call = cleanPhone(x.phone2 || "");
+        alert("Save करने में समस्या हुई");
 
-                let notes = [];
+    }
 
-                if (Array.isArray(x.notes) && x.notes.length) {
-                    notes = x.notes;
-                } else if (x.amount) {
-                    notes = String(x.amount).split("\n\n").filter(t => t.trim());
-                }
+};
 
-                let detailHTML = notes.length ? notes.map(noteToHTML).join(""): "-";
+/* FIREBASE LIVE DATA */
 
-                let showBtn = "";
+onSnapshot(colRef,(snap)=>{
 
-                if (phone1Call || phone2Call) {
-                    showBtn = `<span class="toggle" onclick="toggleNumber(${i})">Show</span>`;
-                }
+    allData = [];
 
-                html += `
-                <div class="box">
-                <div class="bottom">
+    snap.forEach(d => {
+
+        allData.push({
+
+            id:d.id,
+
+            ...d.data()
+
+        });
+
+    });
+
+    allData.sort(
+        (a,b) => (a.time || 0) - (b.time || 0)
+    );
+
+    render();
+
+});
+
+/* RENDER FULL LIST */
+
+function render(){
+
+    let html = "";
+
+    let topHTML = "";
+
+    allData.forEach((x,i)=>{
+
+        let cardId = "card" + i;
+
+        /* TOP NAME LIST */
+
+        topHTML += `
+
+        <a href="#${cardId}">
+
+            ${escapeHTML(x.name || "-")}
+
+        </a>`;
+
+        let phone1Call =
+            cleanPhone(x.phone1 || "");
+
+        let phone2Call =
+            cleanPhone(x.phone2 || "");
+
+        let notes = [];
+
+        if(
+            Array.isArray(x.notes) &&
+            x.notes.length
+        ){
+
+            notes = x.notes;
+
+        }else if(x.amount){
+
+            notes = String(x.amount)
+                .split("\n\n")
+                .filter(t => t.trim());
+
+        }
+
+        let detailHTML = notes.length
+
+            ? notes.map(noteToHTML).join("")
+
+            : "-";
+
+        let showBtn = "";
+
+        if(phone1Call || phone2Call){
+
+            showBtn = `
+
+            <span
+                class="toggle"
+                onclick="toggleNumber(${i})"
+            >
+
+                Show
+
+            </span>`;
+
+        }
+
+        html += `
+
+        <div class="box" id="${cardId}">
+
+            <div class="bottom">
+
                 <div class="nameBox">
-                👤 ${escapeHTML(x.name || "-")}
-                ${showBtn}
 
-                <div class="number" id="num${i}">
-                ${phone1Call ? "📞 " + escapeHTML(phone1Call): ""}
-                ${phone2Call ? "<br>📞 " + escapeHTML(phone2Call): ""}
-                </div>
+                    👤 ${escapeHTML(x.name || "-")}
+
+                    ${showBtn}
+
+                    <div
+                        class="number"
+                        id="num${i}"
+                    >
+
+                        ${
+                            phone1Call
+                            ? "📞 " + escapeHTML(phone1Call)
+                            : ""
+                        }
+
+                        ${
+                            phone2Call
+                            ? "<br>📞 " + escapeHTML(phone2Call)
+                            : ""
+                        }
+
+                    </div>
+
                 </div>
 
                 <div class="action">
-                ${phone1Call ? `<a href="tel:${phone1Call}" class="call">📞 Call</a>`: ""}
-                ${phone2Call ? `<a href="tel:${phone2Call}" class="call">📞 Call</a>`: ""}
-                <button class="smallBtn edit" onclick="editData(${i})">Edit</button>
-                <button class="smallBtn del" onclick="deleteData('${x.id}')">Delete</button>
+
+                    ${
+                        phone1Call
+                        ? `
+                        <a
+                            href="tel:${phone1Call}"
+                            class="call"
+                        >
+                            📞 Call
+                        </a>`
+                        : ""
+                    }
+
+                    ${
+                        phone2Call
+                        ? `
+                        <a
+                            href="tel:${phone2Call}"
+                            class="call"
+                        >
+                            📞 Call
+                        </a>`
+                        : ""
+                    }
+
+                    <button
+                        class="smallBtn edit"
+                        onclick="editData(${i})"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        class="smallBtn del"
+                        onclick="deleteData('${x.id}')"
+                    >
+                        Delete
+                    </button>
+
                 </div>
-                </div>
 
-                <div class="detail">${detailHTML}</div>
-                </div>`;
-            });
+            </div>
 
-            document.getElementById("list").innerHTML = html;
-        }
+            <div class="detail">
 
-        window.toggleNumber = function(i) {
-            let el = document.getElementById("num"+i);
-            el.style.display = el.style.display === "block" ? "none": "block";
-        }
+                ${detailHTML}
 
-        window.editData = function(i) {
+            </div>
 
-            let x = allData[i];
+        </div>`;
 
-            editId = x.id;
+    });
 
-            document.getElementById("name").value = x.name || "";
-            document.getElementById("phone1").value = x.phone1 || "";
-            document.getElementById("phone2").value = x.phone2 || "";
-            document.getElementById("phone2").style.display = x.phone2 ? "block": "none";
+    /* SHOW TOP NAME LIST */
 
-            let notes = [];
+    document.getElementById("topList").innerHTML =
+        topHTML;
 
-            if (Array.isArray(x.notes) && x.notes.length) {
-                notes = x.notes;
-            } else if (x.amount) {
-                notes = String(x.amount).split("\n\n").filter(t => t.trim());
+    /* SHOW FULL DATA */
+
+    document.getElementById("list").innerHTML =
+        html;
+
+}
+
+/* SHOW / HIDE NUMBER */
+
+window.toggleNumber = function(i){
+
+    let el = document.getElementById("num" + i);
+
+    el.style.display =
+        el.style.display === "block"
+        ? "none"
+        : "block";
+
+};
+
+/* EDIT DATA */
+
+window.editData = function(i){
+
+    let x = allData[i];
+
+    editId = x.id;
+
+    document.getElementById("name").value =
+        x.name || "";
+
+    document.getElementById("phone1").value =
+        x.phone1 || "";
+
+    document.getElementById("phone2").value =
+        x.phone2 || "";
+
+    document.getElementById("phone2").style.display =
+        x.phone2 ? "block" : "none";
+
+    let notes = [];
+
+    if(
+        Array.isArray(x.notes) &&
+        x.notes.length
+    ){
+
+        notes = x.notes;
+
+    }else if(x.amount){
+
+        notes = String(x.amount)
+            .split("\n\n")
+            .filter(t => t.trim());
+
+    }
+
+    if(notes.length === 0){
+
+        notes = [""];
+
+    }
+
+    document.getElementById("noteContainer").innerHTML =
+
+        notes.map((n,idx)=>{
+
+            return `
+
+            <textarea
+                class="noteBox"
+                placeholder="बकाया नोट ${idx+1}"
+            >${escapeHTML(n)}</textarea>`;
+
+        }).join("");
+
+    document.getElementById("saveBtn").style.display =
+        "none";
+
+    document.getElementById("updateBtn").style.display =
+        "block";
+
+    document.getElementById("cancelBtn").style.display =
+        "block";
+
+    window.scrollTo({
+
+        top:0,
+
+        behavior:"smooth"
+
+    });
+
+};
+
+/* UPDATE DATA */
+
+window.updateData = async function(){
+
+    if(!editId) return;
+
+    let name =
+        document.getElementById("name").value.trim();
+
+    let phone1 =
+        document.getElementById("phone1").value.trim();
+
+    let phone2 =
+        document.getElementById("phone2").value.trim();
+
+    let notes = getNotes();
+
+    if(!name){
+
+        alert("नाम लिखें");
+
+        return;
+
+    }
+
+    try{
+
+        await updateDoc(
+            doc(db,"tdm",editId),
+            {
+
+                name:name,
+
+                phone1:phone1,
+
+                phone2:phone2,
+
+                notes:notes,
+
+                amount:notes.join("\n\n")
+
             }
+        );
 
-            if (notes.length === 0) notes = [""];
+        cancelEdit();
 
-            document.getElementById("noteContainer").innerHTML = notes.map((n, idx)=> {
-                return `<textarea class="noteBox" placeholder="बकाया नोट ${idx+1}">${escapeHTML(n)}</textarea>`;
-            }).join("");
+    }catch(error){
 
-            document.getElementById("saveBtn").style.display = "none";
-            document.getElementById("updateBtn").style.display = "block";
-            document.getElementById("cancelBtn").style.display = "block";
+        console.error(error);
 
-            window.scrollTo({
-                top: 0, behavior: "smooth"
-            });
+        alert("Update करने में समस्या हुई");
+
+    }
+
+};
+
+/* CANCEL EDIT */
+
+window.cancelEdit = function(){
+
+    editId = null;
+
+    clearForm();
+
+    document.getElementById("saveBtn").style.display =
+        "block";
+
+    document.getElementById("updateBtn").style.display =
+        "none";
+
+    document.getElementById("cancelBtn").style.display =
+        "none";
+
+};
+
+/* DELETE DATA */
+
+window.deleteData = async function(id){
+
+    let pass = prompt("Delete password डालें");
+
+    if(pass !== "1234"){
+
+        alert("Wrong password");
+
+        return;
+
+    }
+
+    if(confirm("क्या आप सच में delete करना चाहते हैं?")){
+
+        try{
+
+            await deleteDoc(
+                doc(db,"tdm",id)
+            );
+
+        }catch(error){
+
+            console.error(error);
+
+            alert("Delete करने में समस्या हुई");
+
         }
 
-        window.updateData = async function() {
+    }
 
-            if (!editId) return;
+};
 
-            let name = document.getElementById("name").value.trim();
-            let phone1 = document.getElementById("phone1").value.trim();
-            let phone2 = document.getElementById("phone2").value.trim();
-            let notes = getNotes();
-
-            if (!name) {
-                alert("नाम लिखें");
-                return;
-            }
-
-            await updateDoc(doc(db, "tdm", editId), {
-                name: name,
-                phone1: phone1,
-                phone2: phone2,
-                notes: notes,
-                amount: notes.join("\n\n")
-            });
-
-            cancelEdit();
-        }
-
-        window.cancelEdit = function() {
-
-            editId = null;
-            clearForm();
-
-            document.getElementById("saveBtn").style.display = "block";
-            document.getElementById("updateBtn").style.display = "none";
-            document.getElementById("cancelBtn").style.display = "none";
-        }
-
-        window.deleteData = async function(id) {
-
-            let pass = prompt("Delete password डालें");
-
-            if (pass !== "1234") {
-                alert("Wrong password");
-                return;
-            }
-
-            if (confirm("क्या आप सच में delete करना चाहते हैं?")) {
-                await deleteDoc(doc(db, "tdm", id));
-            }
-        }
-
-    </script>
+</script>
 
 </body>
 </html>
