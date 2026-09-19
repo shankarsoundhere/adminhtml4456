@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -16,6 +15,7 @@ html,body{
     width:100%;
     max-width:100%;
     overflow-x:hidden;
+    scroll-behavior:smooth;
 }
 
 body{
@@ -108,13 +108,14 @@ button{
     background:#f2f2f2;
 }
 
-/* CARD */
+/* ORIGINAL CARD DESIGN */
 
 .bottom{
     display:flex;
     justify-content:space-between;
     gap:10px;
     align-items:flex-start;
+    width:100%;
 }
 
 .nameBox{
@@ -122,7 +123,7 @@ button{
     min-width:0;
     font-size:14px;
     font-weight:bold;
-    line-height:1.3;
+    line-height:1.2;
     word-break:break-word;
     overflow-wrap:anywhere;
 }
@@ -148,14 +149,18 @@ button{
 .detail{
     margin-top:8px;
     font-size:13px;
+    width:100%;
+    max-width:100%;
+    overflow:hidden;
     word-break:break-word;
-    overflow-wrap:anywhere;
 }
 
 .noteItem{
     display:flex;
     align-items:flex-start;
     margin:4px 0;
+    width:100%;
+    max-width:100%;
 }
 
 .bullet{
@@ -166,7 +171,12 @@ button{
 
 .noteText{
     white-space:pre-wrap;
+    font-size:13px;
+    line-height:1.5;
     word-break:break-word;
+    overflow-wrap:anywhere;
+    min-width:0;
+    max-width:100%;
 }
 
 .innerGrid{
@@ -174,13 +184,18 @@ button{
     grid-template-columns:repeat(4,minmax(0,1fr));
     gap:4px;
     width:100%;
+    max-width:100%;
+    min-width:0;
 }
 
 .innerGrid span{
     font-size:12px;
     line-height:1.4;
+    white-space:normal;
     word-break:break-word;
     overflow-wrap:anywhere;
+    min-width:0;
+    max-width:100%;
 }
 
 .action{
@@ -570,7 +585,7 @@ onSnapshot(colRef,(snap)=>{
 
 });
 
-/* RENDER FULL LIST */
+/* RENDER */
 
 function render(){
 
