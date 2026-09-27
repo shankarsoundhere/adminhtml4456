@@ -32,11 +32,6 @@ cursor:pointer;
 
 .printBtn{background:#007bff;}
 
-.addSlotBtn{
-background:#6f42c1;
-margin-top:15px;
-}
-
 .dateWrap{position:relative;}
 
 .datePicker{
@@ -97,9 +92,7 @@ padding:15px;
 border-radius:10px;
 }
 
-.deleteBox{
-text-align:center;
-}
+.deleteBox{text-align:center;}
 
 .redBtn{background:red;}
 .blueBtn{background:#007bff;}
@@ -190,15 +183,6 @@ onclick="printData()"
 <tbody id="noteBody"></tbody>
 
 </table>
-
-<!-- नया Slot बटन सबसे नीचे -->
-
-<button
-class="addSlotBtn"
-onclick="addNewSlot()"
->
-➕ नया Slot जोड़ें
-</button>
 
 </div>
 
@@ -326,8 +310,7 @@ onSnapshot,
 deleteDoc,
 doc,
 getDoc,
-updateDoc,
-setDoc
+updateDoc
 } from "./firebase.js";
 
 
@@ -341,31 +324,47 @@ const $ = (id) =>
 document.getElementById(id);
 
 
-/* ================================
-   PANDAL NAMES LOAD
-   अब कोई 1-10 की सीमा नहीं
-================================ */
+/*
+==================================================
+PANDAL NAMES FIREBASE से READ
+==================================================
+
+Collection:
+pandal_names
+
+Firebase में जितने भी documents होंगे,
+सभी यहाँ automatically दिखाई देंगे।
+
+कोई 1-10 की limit नहीं है।
+
+Admin page से नाम add/edit/delete होंगे।
+यह page केवल READ करेगा।
+==================================================
+*/
 
 function loadPandalNames(){
 
     const nameCollection =
-        collection(db,"pandal_names");
-
-    if(unsubscribeNames){
-        unsubscribeNames();
-    }
+        collection(
+            db,
+            "pandal_names"
+        );
 
     unsubscribeNames =
         onSnapshot(
             nameCollection,
             (snap) => {
 
-                const select = $("slot");
-                const currentSlot = select.value;
+                const select =
+                    $("slot");
+
+                const currentSlot =
+                    select.value;
 
                 select.innerHTML = "";
 
                 const names = [];
+
 
                 snap.forEach((d) => {
 
@@ -375,31 +374,39 @@ function loadPandalNames(){
                     const data =
                         d.data();
 
+
                     if(
                         !isNaN(slot) &&
-                        slot >= 1 &&
                         data.name &&
                         data.name.trim() !== ""
                     ){
 
                         names.push({
+
                             slot:slot,
-                            name:data.name.trim()
+
+                            name:
+                                data.name.trim()
+
                         });
 
                     }
 
                 });
 
+
                 names.sort(
                     (a,b) =>
                     a.slot - b.slot
                 );
 
+
                 names.forEach((item) => {
 
                     const option =
-                        document.createElement("option");
+                        document.createElement(
+                            "option"
+                        );
 
                     option.value =
                         String(item.slot);
@@ -407,9 +414,17 @@ function loadPandalNames(){
                     option.textContent =
                         item.name;
 
-                    select.appendChild(option);
+                    select.appendChild(
+                        option
+                    );
 
                 });
+
+
+                /*
+                पहले वाला slot मौजूद है
+                तो वही selected रहेगा
+                */
 
                 if(
                     currentSlot &&
@@ -424,12 +439,20 @@ function loadPandalNames(){
                         currentSlot;
 
                 }
+
+                /*
+                पहली बार पहला slot
+                */
+
                 else if(names.length){
 
                     select.value =
-                        String(names[0].slot);
+                        String(
+                            names[0].slot
+                        );
 
                 }
+
 
                 if(names.length){
 
@@ -438,8 +461,11 @@ function loadPandalNames(){
                 }
                 else{
 
-                    $("tbody").innerHTML = "";
-                    $("noteBody").innerHTML = "";
+                    $("tbody").innerHTML =
+                        "";
+
+                    $("noteBody").innerHTML =
+                        "";
 
                 }
 
@@ -454,120 +480,15 @@ function loadPandalNames(){
 
             }
         );
+
 }
 
 
-/* ================================
-   नया SLOT ADD
-================================ */
-
-window.addNewSlot =
-async function(){
-
-    const name =
-        prompt("नए Slot का नाम लिखें:");
-
-    if(
-        !name ||
-        name.trim() === ""
-    ){
-
-        return;
-
-    }
-
-    try{
-
-        const snap =
-            await getDoc(
-                doc(
-                    db,
-                    "pandal_names",
-                    "1"
-                )
-            );
-
-        /*
-        सभी existing documents देखकर
-        सबसे बड़ा slot number निकालेंगे
-        */
-
-        const allSnap =
-            await new Promise(
-                (resolve,reject) => {
-
-                    const unsub =
-                        onSnapshot(
-                            collection(
-                                db,
-                                "pandal_names"
-                            ),
-                            s => {
-                                unsub();
-                                resolve(s);
-                            },
-                            e => {
-                                unsub();
-                                reject(e);
-                            }
-                        );
-
-                }
-            );
-
-        let maxSlot = 0;
-
-        allSnap.forEach(d => {
-
-            const n =
-                Number(d.id);
-
-            if(
-                !isNaN(n) &&
-                n > maxSlot
-            ){
-
-                maxSlot = n;
-
-            }
-
-        });
-
-        const newSlot =
-            maxSlot + 1;
-
-        await setDoc(
-            doc(
-                db,
-                "pandal_names",
-                String(newSlot)
-            ),
-            {
-                name:name.trim()
-            }
-        );
-
-        alert(
-            "✅ नया Slot जोड़ दिया गया"
-        );
-
-    }
-    catch(e){
-
-        console.error(e);
-
-        alert(
-            "❌ Slot जोड़ने में Error"
-        );
-
-    }
-
-};
-
-
-/* ================================
-   COLLECTION NAME
-================================ */
+/*
+==================================================
+PANDAL DATA COLLECTION
+==================================================
+*/
 
 function colName(){
 
@@ -577,9 +498,11 @@ function colName(){
 }
 
 
-/* ================================
-   DATE
-================================ */
+/*
+==================================================
+DATE FUNCTIONS
+==================================================
+*/
 
 function isoToDDMMYYYY(iso){
 
@@ -621,9 +544,11 @@ function ddmmyyyyToISO(dateStr){
 }
 
 
-/* ================================
-   DATE PICKER
-================================ */
+/*
+==================================================
+DATE PICKER
+==================================================
+*/
 
 $("datePicker")
 .addEventListener(
@@ -653,9 +578,11 @@ $("editDatePicker")
 );
 
 
-/* ================================
-   DATE SORT
-================================ */
+/*
+==================================================
+DATE SORT
+==================================================
+*/
 
 function dateToNumber(dateStr){
 
@@ -671,18 +598,29 @@ function dateToNumber(dateStr){
     if(parts.length !== 3)
         return 99999999;
 
+    let day =
+        parts[0].padStart(2,"0");
+
+    let month =
+        parts[1].padStart(2,"0");
+
+    let year =
+        parts[2];
+
     return Number(
-        parts[2] +
-        parts[1].padStart(2,"0") +
-        parts[0].padStart(2,"0")
+        year +
+        month +
+        day
     );
 
 }
 
 
-/* ================================
-   BUTTON TEXT
-================================ */
+/*
+==================================================
+BUTTON TEXT
+==================================================
+*/
 
 function buttonText(
     btnId,
@@ -703,9 +641,11 @@ function buttonText(
 }
 
 
-/* ================================
-   SAVE
-================================ */
+/*
+==================================================
+SAVE DATA
+==================================================
+*/
 
 window.saveData =
 async function(){
@@ -715,8 +655,10 @@ async function(){
         $("work").value.trim() ||
         $("place").value.trim();
 
+
     let hasNote =
         $("note").value.trim();
+
 
     if(
         !hasMainData &&
@@ -733,6 +675,7 @@ async function(){
 
     }
 
+
     try{
 
         await addDoc(
@@ -743,19 +686,27 @@ async function(){
             {
 
                 date:
-                    $("date").value.trim()
+                    $("date")
+                    .value
+                    .trim()
                     || "-",
 
                 work:
-                    $("work").value.trim()
+                    $("work")
+                    .value
+                    .trim()
                     || "",
 
                 place:
-                    $("place").value.trim()
+                    $("place")
+                    .value
+                    .trim()
                     || "",
 
                 note:
-                    $("note").value.trim()
+                    $("note")
+                    .value
+                    .trim()
                     || "",
 
                 time:
@@ -764,11 +715,17 @@ async function(){
             }
         );
 
+
         $("date").value = "";
+
         $("datePicker").value = "";
+
         $("work").value = "";
+
         $("place").value = "";
+
         $("note").value = "";
+
 
         buttonText(
             "saveBtn",
@@ -776,10 +733,11 @@ async function(){
             "💾 Save"
         );
 
-    }
-    catch(e){
+
+    }catch(e){
 
         console.error(e);
+
 
         buttonText(
             "saveBtn",
@@ -792,19 +750,33 @@ async function(){
 };
 
 
-/* ================================
-   LOAD DATA
-================================ */
+/*
+==================================================
+LOAD DATA
+==================================================
+*/
 
 window.loadData =
 function(){
 
-    if(!$("slot").value)
+    if(
+        !$("slot").value
+    ){
+
+        $("tbody").innerHTML = "";
+        $("noteBody").innerHTML = "";
+
         return;
 
-    if(unsubscribe){
-        unsubscribe();
     }
+
+
+    if(unsubscribe){
+
+        unsubscribe();
+
+    }
+
 
     unsubscribe =
         onSnapshot(
@@ -814,45 +786,70 @@ function(){
             ),
             (snap) => {
 
-                $("tbody").innerHTML = "";
-                $("noteBody").innerHTML = "";
+                $("tbody").innerHTML =
+                    "";
+
+                $("noteBody").innerHTML =
+                    "";
+
 
                 let mainData = [];
+
                 let notes = [];
+
 
                 snap.forEach(d => {
 
                     let x =
                         d.data();
 
+
+                    /*
+                    MAIN DATA
+                    */
+
                     if(
 
                         (x.date &&
-                        x.date !== "-")
+                         x.date !== "-")
 
                         ||
 
                         (x.work &&
-                        x.work.trim() !== "")
+                         x.work.trim() !== "")
 
                         ||
 
                         (x.place &&
-                        x.place.trim() !== "")
+                         x.place.trim() !== "")
 
                     ){
 
                         mainData.push({
 
-                            id:d.id,
-                            date:x.date || "",
-                            work:x.work || "",
-                            place:x.place || "",
-                            time:x.time || 0
+                            id:
+                                d.id,
+
+                            date:
+                                x.date || "",
+
+                            work:
+                                x.work || "",
+
+                            place:
+                                x.place || "",
+
+                            time:
+                                x.time || 0
 
                         });
 
                     }
+
+
+                    /*
+                    NOTES
+                    */
 
                     if(
                         (x.note || "")
@@ -861,9 +858,14 @@ function(){
 
                         notes.push({
 
-                            id:d.id,
-                            note:x.note,
-                            time:x.time || 0
+                            id:
+                                d.id,
+
+                            note:
+                                x.note,
+
+                            time:
+                                x.time || 0
 
                         });
 
@@ -872,28 +874,45 @@ function(){
                 });
 
 
+                /*
+                MAIN DATA SORT
+                */
+
                 mainData.sort(
                     (a,b) => {
 
                         let dateA =
-                            dateToNumber(a.date);
+                            dateToNumber(
+                                a.date
+                            );
+
 
                         let dateB =
-                            dateToNumber(b.date);
+                            dateToNumber(
+                                b.date
+                            );
+
 
                         if(
                             dateA === dateB
                         ){
 
-                            return a.time - b.time;
+                            return a.time -
+                                b.time;
 
                         }
 
-                        return dateA - dateB;
+
+                        return dateA -
+                            dateB;
 
                     }
                 );
 
+
+                /*
+                MAIN TABLE
+                */
 
                 mainData.forEach(x => {
 
@@ -902,11 +921,17 @@ function(){
 
                     <tr>
 
-                    <td>${x.date || ""}</td>
+                    <td>
+                        ${x.date || ""}
+                    </td>
 
-                    <td>${x.work || ""}</td>
+                    <td>
+                        ${x.work || ""}
+                    </td>
 
-                    <td>${x.place || ""}</td>
+                    <td>
+                        ${x.place || ""}
+                    </td>
 
                     <td>
 
@@ -916,6 +941,7 @@ function(){
                     >
                     ✏️ Edit
                     </button>
+
 
                     <button
                     class="btn"
@@ -933,11 +959,19 @@ function(){
                 });
 
 
+                /*
+                NOTES SORT
+                */
+
                 notes.sort(
                     (a,b) =>
-                    a.time - b.time
+                        a.time - b.time
                 );
 
+
+                /*
+                NOTES TABLE
+                */
 
                 notes.forEach(n => {
 
@@ -947,7 +981,7 @@ function(){
                     <tr>
 
                     <td class="noteText">
-                    • ${n.note}
+                        • ${n.note}
                     </td>
 
                     <td>
@@ -958,6 +992,7 @@ function(){
                     >
                     ✏️ Edit
                     </button>
+
 
                     <button
                     class="btn"
@@ -980,9 +1015,11 @@ function(){
 };
 
 
-/* ================================
-   DELETE
-================================ */
+/*
+==================================================
+DELETE MODAL
+==================================================
+*/
 
 window.openDeleteModal =
 function(id){
@@ -990,7 +1027,9 @@ function(id){
     deleteId = id;
 
     $("deleteModal")
-    .style.display = "block";
+    .style
+    .display =
+    "block";
 
 };
 
@@ -1001,7 +1040,9 @@ function(){
     deleteId = null;
 
     $("deleteModal")
-    .style.display = "none";
+    .style
+    .display =
+    "none";
 
 };
 
@@ -1012,6 +1053,7 @@ async function(){
     if(!deleteId)
         return;
 
+
     await deleteDoc(
         doc(
             db,
@@ -1020,17 +1062,23 @@ async function(){
         )
     );
 
+
     deleteId = null;
 
+
     $("deleteModal")
-    .style.display = "none";
+    .style
+    .display =
+    "none";
 
 };
 
 
-/* ================================
-   EDIT MAIN
-================================ */
+/*
+==================================================
+EDIT MAIN DATA
+==================================================
+*/
 
 window.openMainEdit =
 async function(id){
@@ -1044,30 +1092,40 @@ async function(id){
             )
         );
 
+
     if(!snap.exists())
         return;
+
 
     let d =
         snap.data();
 
+
     editId = id;
+
 
     $("edit_date").value =
         d.date || "";
+
 
     $("editDatePicker").value =
         ddmmyyyyToISO(
             d.date || ""
         );
 
+
     $("edit_work").value =
         d.work || "";
+
 
     $("edit_place").value =
         d.place || "";
 
+
     $("mainModal")
-    .style.display = "block";
+    .style
+    .display =
+    "block";
 
 };
 
@@ -1076,7 +1134,10 @@ window.closeMainModal =
 function(){
 
     $("mainModal")
-    .style.display = "none";
+    .style
+    .display =
+    "none";
+
 
     editId = null;
 
@@ -1098,6 +1159,7 @@ async function(){
 
     }
 
+
     await updateDoc(
         doc(
             db,
@@ -1108,21 +1170,25 @@ async function(){
 
             date:
                 $("edit_date")
-                .value.trim()
+                .value
+                .trim()
                 || "-",
 
             work:
                 $("edit_work")
-                .value.trim()
+                .value
+                .trim()
                 || "",
 
             place:
                 $("edit_place")
-                .value.trim()
+                .value
+                .trim()
                 || ""
 
         }
     );
+
 
     buttonText(
         "mainUpdateBtn",
@@ -1130,10 +1196,14 @@ async function(){
         "Update"
     );
 
+
     setTimeout(() => {
 
         $("mainModal")
-        .style.display = "none";
+        .style
+        .display =
+        "none";
+
 
         editId = null;
 
@@ -1142,9 +1212,11 @@ async function(){
 };
 
 
-/* ================================
-   EDIT NOTE
-================================ */
+/*
+==================================================
+EDIT NOTE
+==================================================
+*/
 
 window.openNoteEdit =
 async function(id){
@@ -1158,19 +1230,26 @@ async function(id){
             )
         );
 
+
     if(!snap.exists())
         return;
+
 
     let d =
         snap.data();
 
+
     editId = id;
+
 
     $("edit_note").value =
         d.note || "";
 
+
     $("noteModal")
-    .style.display = "block";
+    .style
+    .display =
+    "block";
 
 };
 
@@ -1179,7 +1258,10 @@ window.closeNoteModal =
 function(){
 
     $("noteModal")
-    .style.display = "none";
+    .style
+    .display =
+    "none";
+
 
     editId = null;
 
@@ -1201,6 +1283,7 @@ async function(){
 
     }
 
+
     await updateDoc(
         doc(
             db,
@@ -1211,11 +1294,13 @@ async function(){
 
             note:
                 $("edit_note")
-                .value.trim()
+                .value
+                .trim()
                 || ""
 
         }
     );
+
 
     buttonText(
         "noteUpdateBtn",
@@ -1223,10 +1308,14 @@ async function(){
         "Update"
     );
 
+
     setTimeout(() => {
 
         $("noteModal")
-        .style.display = "none";
+        .style
+        .display =
+        "none";
+
 
         editId = null;
 
@@ -1235,14 +1324,17 @@ async function(){
 };
 
 
-/* ================================
-   PRINT
-================================ */
+/*
+==================================================
+PRINT
+==================================================
+*/
 
 window.printData =
 function(){
 
     let mainRows = "";
+
 
     document
     .querySelectorAll("#tbody tr")
@@ -1251,13 +1343,22 @@ function(){
         let tds =
             tr.querySelectorAll("td");
 
+
         mainRows += `
 
         <tr>
 
-        <td>${tds[0]?.innerText || ""}</td>
-        <td>${tds[1]?.innerText || ""}</td>
-        <td>${tds[2]?.innerText || ""}</td>
+        <td>
+            ${tds[0]?.innerText || ""}
+        </td>
+
+        <td>
+            ${tds[1]?.innerText || ""}
+        </td>
+
+        <td>
+            ${tds[2]?.innerText || ""}
+        </td>
 
         </tr>
 
@@ -1268,6 +1369,7 @@ function(){
 
     let noteRows = "";
 
+
     document
     .querySelectorAll("#noteBody tr")
     .forEach(tr => {
@@ -1275,12 +1377,13 @@ function(){
         let tds =
             tr.querySelectorAll("td");
 
+
         noteRows += `
 
         <tr>
 
         <td class="printNote">
-        ${tds[0]?.innerText || ""}
+            ${tds[0]?.innerText || ""}
         </td>
 
         </tr>
@@ -1292,6 +1395,7 @@ function(){
 
     let win =
         window.open("");
+
 
     win.document.write(`
 
@@ -1363,13 +1467,15 @@ function(){
     <body>
 
     <h2>
-    🏠 ${
-        $("slot")
-        .options[
-            $("slot").selectedIndex
-        ]?.text || ""
-    }
+        🏠 ${
+            $("slot")
+            .options[
+                $("slot")
+                .selectedIndex
+            ]?.text || ""
+        }
     </h2>
+
 
     <table>
 
@@ -1385,7 +1491,9 @@ function(){
 
     </table>
 
+
     <br>
+
 
     <table>
 
@@ -1399,22 +1507,28 @@ function(){
 
     </table>
 
+
     </body>
 
     </html>
 
     `);
 
+
     win.document.close();
+
     win.focus();
+
     win.print();
 
 };
 
 
-/* ================================
-   START
-================================ */
+/*
+==================================================
+START
+==================================================
+*/
 
 loadPandalNames();
 
@@ -1426,6 +1540,12 @@ loadPandalNames();
 
 <script>
 
+/*
+==================================================
+AUTO BACK TO ADMIN PASSWORD
+==================================================
+*/
+
 (function(){
 
     history.pushState(
@@ -1434,6 +1554,7 @@ loadPandalNames();
         location.href
     );
 
+
     window.addEventListener(
         "popstate",
         function(){
@@ -1441,6 +1562,7 @@ loadPandalNames();
             localStorage.removeItem(
                 "login"
             );
+
 
             location.replace(
                 "index.html"
