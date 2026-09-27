@@ -103,7 +103,6 @@ button{
     width:100%;
     background:#17a2b8;
     margin-top:5px;
-    margin-bottom:15px;
     font-size:16px;
     padding:12px;
 }
@@ -131,11 +130,11 @@ button:disabled{
 
 <h2>✏️ पंडाल मिस्त्री नाम</h2>
 
-
 <div class="section-title">
 🏠 पंडाल मिस्त्री
 </div>
 
+<div id="pandalList"></div>
 
 <button
 class="addBtn"
@@ -143,10 +142,6 @@ onclick="addSlot()"
 >
 ➕ नया Slot जोड़ें
 </button>
-
-
-<div id="pandalList"></div>
-
 
 </div>
 
@@ -167,10 +162,6 @@ setDoc
 } from "./firebase.js";
 
 
-/* =========================
-   FIREBASE COLLECTION
-========================= */
-
 const colRef =
 collection(
     db,
@@ -178,16 +169,20 @@ collection(
 );
 
 
-/* =========================
-   SLOT LIST
-========================= */
-
 let slotData = {};
 
 
-/* =========================
-   RENDER ALL SLOTS
-========================= */
+function escapeHTML(text){
+
+    return String(text)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
 
 function renderSlots(){
 
@@ -195,7 +190,6 @@ function renderSlots(){
         document.getElementById(
             "pandalList"
         );
-
 
     const slots =
         Object.keys(slotData)
@@ -209,9 +203,7 @@ function renderSlots(){
             (a,b)=>a-b
         );
 
-
     list.innerHTML = "";
-
 
     if(slots.length === 0){
 
@@ -222,7 +214,6 @@ function renderSlots(){
         `;
 
         return;
-
     }
 
 
@@ -233,9 +224,7 @@ function renderSlots(){
 
 
         const row =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         row.className = "row";
 
@@ -274,43 +263,33 @@ function renderSlots(){
             >
                 🗑️ Delete
             </button>
-
         `;
 
 
         list.appendChild(row);
 
 
-        /* EDIT */
-
         document.getElementById(
             "pandal-edit-"+slot
-        ).onclick =
-        function(){
+        ).onclick = function(){
 
             editName(slot);
 
         };
 
 
-        /* SAVE */
-
         document.getElementById(
             "pandal-save-"+slot
-        ).onclick =
-        function(){
+        ).onclick = function(){
 
             saveName(slot);
 
         };
 
 
-        /* DELETE */
-
         document.getElementById(
             "pandal-delete-"+slot
-        ).onclick =
-        function(){
+        ).onclick = function(){
 
             deleteName(slot);
 
@@ -321,26 +300,6 @@ function renderSlots(){
 }
 
 
-/* =========================
-   HTML SAFE TEXT
-========================= */
-
-function escapeHTML(text){
-
-    return String(text)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
-
-
-/* =========================
-   FIREBASE REALTIME UPDATE
-========================= */
-
 onSnapshot(
 
     colRef,
@@ -349,12 +308,10 @@ onSnapshot(
 
         slotData = {};
 
-
         snapshot.forEach(item=>{
 
             const slot =
                 Number(item.id);
-
 
             if(
                 !Number.isFinite(slot) ||
@@ -365,12 +322,10 @@ onSnapshot(
 
             }
 
-
             slotData[String(slot)] =
                 item.data();
 
         });
-
 
         renderSlots();
 
@@ -387,10 +342,6 @@ onSnapshot(
 
 );
 
-
-/* =========================
-   ADD NEW SLOT
-========================= */
 
 window.addSlot =
 async function(){
@@ -418,17 +369,13 @@ async function(){
 
     try{
 
-        const nameRef =
+        await setDoc(
+
             doc(
                 db,
                 "pandal_names",
                 String(nextSlot)
-            );
-
-
-        await setDoc(
-
-            nameRef,
+            ),
 
             {
                 name:"",
@@ -446,11 +393,9 @@ async function(){
                     "pandal-name-"+nextSlot
                 );
 
-
             if(input){
 
                 input.disabled = false;
-
                 input.focus();
 
             }
@@ -471,10 +416,6 @@ async function(){
 };
 
 
-/* =========================
-   EDIT
-========================= */
-
 window.editName =
 function(slot){
 
@@ -483,12 +424,10 @@ function(slot){
             "pandal-name-"+slot
         );
 
-
     const editBtn =
         document.getElementById(
             "pandal-edit-"+slot
         );
-
 
     const saveBtn =
         document.getElementById(
@@ -501,19 +440,13 @@ function(slot){
 
 
     input.disabled = false;
-
     input.focus();
 
     editBtn.disabled = true;
-
     saveBtn.disabled = false;
 
 };
 
-
-/* =========================
-   SAVE
-========================= */
 
 window.saveName =
 async function(slot){
@@ -590,11 +523,9 @@ async function(slot){
 
         input.disabled = true;
 
-
         document.getElementById(
             "pandal-edit-"+slot
         ).disabled = false;
-
 
         document.getElementById(
             "pandal-save-"+slot
@@ -613,10 +544,6 @@ async function(slot){
 
 };
 
-
-/* =========================
-   DELETE
-========================= */
 
 window.deleteName =
 async function(slot){
@@ -645,9 +572,7 @@ async function(slot){
 
         );
 
-
         delete slotData[String(slot)];
-
 
         renderSlots();
 
@@ -663,7 +588,6 @@ async function(slot){
     }
 
 };
-
 
 </script>
 
