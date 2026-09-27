@@ -19,6 +19,7 @@ content="width=device-width, initial-scale=1.0">
 <link rel="apple-touch-icon"
 href="icon-192.png">
 
+
 <style>
 
 body{
@@ -35,7 +36,9 @@ padding:15px;
 border-radius:10px;
 }
 
-input,select,button{
+input,
+select,
+button{
 width:100%;
 padding:10px;
 margin:5px 0;
@@ -76,7 +79,8 @@ margin-top:10px;
 font-size:13px;
 }
 
-td,th{
+td,
+th{
 border:1px solid #000;
 padding:6px;
 text-align:center;
@@ -137,19 +141,34 @@ background:#007bff;
 
 <body>
 
+
 <div class="box">
 
-<h2>💡 लाइट मिस्त्री</h2>
+
+<h2>
+💡 लाइट मिस्त्री
+</h2>
 
 
 <!-- =========================
      LIGHT MISTRI NAME
 ========================= -->
 
-<select id="slot" onchange="loadData()">
+<select
+id="slot"
+onchange="loadData()"
+>
+
+<option value="">
+नाम चुनें
+</option>
 
 </select>
 
+
+<!-- =========================
+     DATE
+========================= -->
 
 <div class="dateWrap">
 
@@ -168,21 +187,39 @@ type="date"
 </div>
 
 
+<!-- =========================
+     WORK
+========================= -->
+
 <input
 id="work"
 placeholder="काम"
 >
+
+
+<!-- =========================
+     PLACE
+========================= -->
 
 <input
 id="place"
 placeholder="जगह"
 >
 
+
+<!-- =========================
+     NOTE
+========================= -->
+
 <input
 id="note"
 placeholder="नोट"
 >
 
+
+<!-- =========================
+     SAVE
+========================= -->
 
 <button
 id="saveBtn"
@@ -192,6 +229,10 @@ onclick="saveData()"
 </button>
 
 
+<!-- =========================
+     PRINT
+========================= -->
+
 <button
 class="printBtn"
 onclick="printData()"
@@ -200,7 +241,14 @@ onclick="printData()"
 </button>
 
 
-<h3>📋 Main Data</h3>
+<!-- =========================
+     MAIN DATA
+========================= -->
+
+<h3>
+📋 Main Data
+</h3>
+
 
 <table>
 
@@ -209,20 +257,33 @@ onclick="printData()"
 <tr>
 
 <th>दिनांक</th>
+
 <th>काम</th>
+
 <th>जगह</th>
+
 <th>Action</th>
 
 </tr>
 
 </thead>
 
-<tbody id="tbody"></tbody>
+
+<tbody
+id="tbody"
+></tbody>
 
 </table>
 
 
-<h3>📝 Notes Table</h3>
+<!-- =========================
+     NOTES
+========================= -->
+
+<h3>
+📝 Notes Table
+</h3>
+
 
 <table>
 
@@ -231,28 +292,40 @@ onclick="printData()"
 <tr>
 
 <th>नोट</th>
+
 <th>Action</th>
 
 </tr>
 
 </thead>
 
-<tbody id="noteBody"></tbody>
+
+<tbody
+id="noteBody"
+></tbody>
 
 </table>
+
 
 </div>
 
 
-<!-- =========================
-     MAIN EDIT MODAL
-========================= -->
 
-<div class="modal" id="mainModal">
+<!-- ==================================================
+     MAIN EDIT MODAL
+================================================== -->
+
+<div
+class="modal"
+id="mainModal"
+>
 
 <div class="modal-content">
 
-<h3>✏️ Edit Main Data</h3>
+
+<h3>
+✏️ Edit Main Data
+</h3>
 
 
 <div class="dateWrap">
@@ -277,6 +350,7 @@ id="edit_work"
 placeholder="काम"
 >
 
+
 <input
 id="edit_place"
 placeholder="जगह"
@@ -298,20 +372,28 @@ class="redBtn"
 Close
 </button>
 
-</div>
 
 </div>
 
+</div>
 
-<!-- =========================
+
+
+<!-- ==================================================
      NOTE EDIT MODAL
-========================= -->
+================================================== -->
 
-<div class="modal" id="noteModal">
+<div
+class="modal"
+id="noteModal"
+>
 
 <div class="modal-content">
 
-<h3>✏️ Edit Note</h3>
+
+<h3>
+✏️ Edit Note
+</h3>
 
 
 <input
@@ -335,20 +417,29 @@ class="redBtn"
 Close
 </button>
 
-</div>
 
 </div>
 
+</div>
 
-<!-- =========================
+
+
+<!-- ==================================================
      DELETE MODAL
-========================= -->
+================================================== -->
 
-<div class="modal" id="deleteModal">
+<div
+class="modal"
+id="deleteModal"
+>
 
 <div class="modal-content deleteBox">
 
-<h3>Delete करना है?</h3>
+
+<h3>
+Delete करना है?
+</h3>
+
 
 <p>
 क्या आप इस data को delete करना चाहते हैं?
@@ -370,13 +461,19 @@ class="blueBtn"
 Cancel
 </button>
 
+
 </div>
 
 </div>
+
 
 
 <script type="module">
 
+
+/* =====================================================
+   FIREBASE IMPORT
+===================================================== */
 
 import {
 
@@ -392,9 +489,10 @@ updateDoc
 } from "./firebase.js";
 
 
-/* =========================
+
+/* =====================================================
    VARIABLES
-========================= */
+===================================================== */
 
 let editId = null;
 
@@ -403,21 +501,26 @@ let deleteId = null;
 let unsubscribe = null;
 
 
-/* =========================
+
+/* =====================================================
    SHORT ID FUNCTION
-========================= */
+===================================================== */
 
 const $ = (id) =>
 document.getElementById(id);
 
 
-/* ==================================================
+
+/* =====================================================
    FIREBASE NAME SYNC
-   light_names COLLECTION
-================================================== */
+   UNLIMITED SLOTS
+===================================================== */
 
 const nameCollection =
-collection(db,"light_names");
+collection(
+db,
+"light_names"
+);
 
 
 onSnapshot(
@@ -426,42 +529,61 @@ nameCollection,
 
 (snapshot)=>{
 
+
     const names = {};
 
 
     /*
-       Firebase से केवल वास्तविक नाम पढ़ें
+       Firebase में जितने भी slots हैं
+       सभी पढ़ें।
     */
 
-    snapshot.forEach(item=>{
+    snapshot.forEach(
+        item=>{
 
-        const slot =
-            Number(item.id);
-
-        if(slot < 1 || slot > 10)
-            return;
+            const slot =
+                Number(item.id);
 
 
-        const data =
-            item.data();
+            /*
+               केवल valid positive slot
+            */
+
+            if(
+                !Number.isInteger(slot) ||
+                slot < 1
+            ){
+
+                return;
+
+            }
 
 
-        if(
-            data.name &&
-            data.name.trim() !== ""
-        ){
+            const data =
+                item.data();
 
-            names[slot] =
-                data.name.trim();
+
+            if(
+                data.name &&
+                data.name.trim() !== ""
+            ){
+
+                names[slot] =
+                    data.name.trim();
+
+            }
 
         }
-
-    });
+    );
 
 
     const select =
         $("slot");
 
+
+    /*
+       पहले selected slot save करें
+    */
 
     const oldValue =
         select.value;
@@ -475,34 +597,72 @@ nameCollection,
 
 
     /*
-       केवल Firebase में मौजूद नाम दिखाएं
+       Default option
     */
 
-    for(let i = 1; i <= 10; i++){
-
-        if(!names[i])
-            continue;
-
-
-        const option =
-            document.createElement("option");
+    const defaultOption =
+        document.createElement(
+            "option"
+        );
 
 
-        option.value =
-            String(i);
+    defaultOption.value = "";
+
+    defaultOption.textContent =
+        "नाम चुनें";
 
 
-        option.textContent =
-            names[i];
-
-
-        select.appendChild(option);
-
-    }
+    select.appendChild(
+        defaultOption
+    );
 
 
     /*
-       पहले selected slot को वापस रखें
+       सभी उपलब्ध slots की संख्या
+       निकालें
+    */
+
+    const slots =
+        Object.keys(names)
+        .map(Number)
+        .sort(
+            (a,b)=>a-b
+        );
+
+
+    /*
+       सभी नाम dropdown में डालें
+    */
+
+    slots.forEach(
+        slot=>{
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                String(slot);
+
+
+            option.textContent =
+                names[slot];
+
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    /*
+       पहले वाला selected slot
+       अगर अभी भी मौजूद है
+       तो वापस select करें।
     */
 
     if(
@@ -517,14 +677,17 @@ nameCollection,
 
 
     /*
-       अगर selected slot मौजूद नहीं है,
-       तो पहला उपलब्ध नाम select करें
+       अगर पुराना slot मौजूद नहीं है
+       तो पहला available slot चुनें।
     */
 
     if(!select.value){
 
         const firstOption =
-            select.querySelector("option");
+            select.querySelector(
+                "option:not([value=''])"
+            );
+
 
         if(firstOption){
 
@@ -540,15 +703,21 @@ nameCollection,
        Data load करें
     */
 
-    if(select.value){
+    if(
+        select.value
+    ){
 
         loadData();
 
-    }else{
+    }
 
-        $("tbody").innerHTML = "";
+    else{
 
-        $("noteBody").innerHTML = "";
+        $("tbody").innerHTML =
+            "";
+
+        $("noteBody").innerHTML =
+            "";
 
     }
 
@@ -566,1008 +735,1315 @@ nameCollection,
 );
 
 
-/* =========================
+
+/* =====================================================
    COLLECTION NAME
-========================= */
+===================================================== */
 
 function colName(){
 
-return "light_slot_" + $("slot").value;
+    const slot =
+        $("slot").value;
+
+
+    return "light_slot_" + slot;
 
 }
 
 
-/* =========================
+
+/* =====================================================
    DATE FUNCTIONS
-========================= */
+===================================================== */
 
 function isoToDDMMYYYY(iso){
 
-if(!iso)
-return "";
+    if(!iso)
+        return "";
 
-let p = iso.split("-");
 
-return p[2] + "-" + p[1] + "-" + p[0];
+    let p =
+        iso.split("-");
+
+
+    if(p.length !== 3)
+        return "";
+
+
+    return (
+        p[2]
+        +
+        "-"
+        +
+        p[1]
+        +
+        "-"
+        +
+        p[0]
+    );
 
 }
+
 
 
 function ddmmyyyyToISO(dateStr){
 
-if(!dateStr || dateStr === "-")
-return "";
+    if(
+        !dateStr ||
+        dateStr === "-"
+    ){
 
-let p = dateStr.split("-");
+        return "";
 
-if(p.length !== 3)
-return "";
+    }
 
-return p[2] + "-" +
-p[1].padStart(2,"0") + "-" +
-p[0].padStart(2,"0");
+
+    let p =
+        dateStr.split("-");
+
+
+    if(p.length !== 3)
+        return "";
+
+
+    return (
+        p[2]
+        +
+        "-"
+        +
+        p[1].padStart(2,"0")
+        +
+        "-"
+        +
+        p[0].padStart(2,"0")
+    );
 
 }
 
 
-/* =========================
+
+/* =====================================================
    DATE PICKER
-========================= */
+===================================================== */
 
 $("datePicker").addEventListener(
+
 "change",
+
 function(){
 
-$("date").value =
-isoToDDMMYYYY(this.value);
+    $("date").value =
+        isoToDDMMYYYY(
+            this.value
+        );
 
-});
+}
+
+);
+
 
 
 $("editDatePicker").addEventListener(
+
 "change",
+
 function(){
 
-$("edit_date").value =
-isoToDDMMYYYY(this.value);
+    $("edit_date").value =
+        isoToDDMMYYYY(
+            this.value
+        );
 
-});
+}
+
+);
 
 
-/* =========================
+
+/* =====================================================
    DATE SORT
-========================= */
+===================================================== */
 
 function dateToNumber(dateStr){
 
-if(!dateStr || dateStr === "-")
-return 99999999;
+    if(
+        !dateStr ||
+        dateStr === "-"
+    ){
 
-let parts =
-dateStr.split("-");
+        return 99999999;
 
-if(parts.length !== 3)
-return 99999999;
+    }
 
-let day =
-parts[0].padStart(2,"0");
 
-let month =
-parts[1].padStart(2,"0");
+    let parts =
+        dateStr.split("-");
 
-let year =
-parts[2];
 
-return Number(
-year + month + day
-);
+    if(parts.length !== 3){
+
+        return 99999999;
+
+    }
+
+
+    let day =
+        parts[0].padStart(2,"0");
+
+
+    let month =
+        parts[1].padStart(2,"0");
+
+
+    let year =
+        parts[2];
+
+
+    return Number(
+        year
+        +
+        month
+        +
+        day
+    );
 
 }
 
 
-/* =========================
+
+/* =====================================================
    BUTTON TEXT
-========================= */
+===================================================== */
 
 function buttonText(
-btnId,
-newText,
-oldText
+    btnId,
+    newText,
+    oldText
 ){
 
-$(btnId).innerText =
-newText;
+    $(btnId).innerText =
+        newText;
 
-setTimeout(()=>{
 
-$(btnId).innerText =
-oldText;
+    setTimeout(
+        ()=>{
 
-},1200);
+            $(btnId).innerText =
+                oldText;
+
+        },
+        1200
+    );
 
 }
 
 
-/* =========================
+
+/* =====================================================
    SAVE DATA
-========================= */
+===================================================== */
 
 window.saveData =
 async function(){
 
-let hasMainData =
-$("date").value.trim() ||
-$("work").value.trim() ||
-$("place").value.trim();
+
+    let hasMainData =
+        $("date").value.trim()
+        ||
+        $("work").value.trim()
+        ||
+        $("place").value.trim();
 
 
-let hasNote =
-$("note").value.trim();
+    let hasNote =
+        $("note").value.trim();
 
 
-if(!hasMainData && !hasNote){
+    /*
+       कुछ भी नहीं लिखा
+    */
 
-buttonText(
-"saveBtn",
-"कुछ तो लिखो",
-"💾 Save"
-);
+    if(
+        !hasMainData &&
+        !hasNote
+    ){
 
-return;
+        buttonText(
+            "saveBtn",
+            "कुछ तो लिखो",
+            "💾 Save"
+        );
 
-}
+        return;
 
-
-if(!$("slot").value){
-
-buttonText(
-"saveBtn",
-"पहले नाम जोड़ें",
-"💾 Save"
-);
-
-return;
-
-}
+    }
 
 
-try{
+    /*
+       नाम select नहीं किया
+    */
+
+    if(
+        !$("slot").value
+    ){
+
+        buttonText(
+            "saveBtn",
+            "पहले नाम जोड़ें",
+            "💾 Save"
+        );
+
+        return;
+
+    }
 
 
-await addDoc(
-
-collection(
-db,
-colName()
-),
-
-{
-
-date:
-$("date").value.trim() || "-",
-
-work:
-$("work").value.trim() || "",
-
-place:
-$("place").value.trim() || "",
-
-note:
-$("note").value.trim() || "",
-
-time:
-Date.now()
-
-}
-
-);
+    try{
 
 
-$("date").value = "";
+        await addDoc(
 
-$("datePicker").value = "";
+            collection(
+                db,
+                colName()
+            ),
 
-$("work").value = "";
+            {
 
-$("place").value = "";
+                date:
+                $("date").value.trim()
+                ||
+                "-",
 
-$("note").value = "";
+                work:
+                $("work").value.trim()
+                ||
+                "",
+
+                place:
+                $("place").value.trim()
+                ||
+                "",
+
+                note:
+                $("note").value.trim()
+                ||
+                "",
+
+                time:
+                Date.now()
+
+            }
+
+        );
 
 
-buttonText(
-"saveBtn",
-"✅ Saved",
-"💾 Save"
-);
+        /*
+           Form clear
+        */
+
+        $("date").value =
+            "";
+
+        $("datePicker").value =
+            "";
+
+        $("work").value =
+            "";
+
+        $("place").value =
+            "";
+
+        $("note").value =
+            "";
 
 
-}catch(e){
+        buttonText(
+            "saveBtn",
+            "✅ Saved",
+            "💾 Save"
+        );
 
-console.error(e);
 
-buttonText(
-"saveBtn",
-"Error",
-"💾 Save"
-);
+    }
 
-}
+    catch(e){
+
+        console.error(e);
+
+
+        buttonText(
+            "saveBtn",
+            "Error",
+            "💾 Save"
+        );
+
+    }
 
 };
 
 
-/* =========================
+
+/* =====================================================
    LOAD DATA
-========================= */
+===================================================== */
 
 window.loadData =
 function(){
 
-if(!$("slot").value){
 
-$("tbody").innerHTML = "";
+    /*
+       कोई slot selected नहीं
+    */
 
-$("noteBody").innerHTML = "";
+    if(
+        !$("slot").value
+    ){
 
-return;
+        $("tbody").innerHTML =
+            "";
 
-}
+        $("noteBody").innerHTML =
+            "";
 
+        return;
 
-if(unsubscribe){
+    }
 
-unsubscribe();
 
-}
+    /*
+       पुराने listener को बंद करें
+    */
 
+    if(unsubscribe){
 
-unsubscribe =
+        unsubscribe();
 
-onSnapshot(
+    }
 
-collection(
-db,
-colName()
-),
 
-(snap)=>{
+    /*
+       नए slot का listener
+    */
 
+    unsubscribe =
 
-$("tbody").innerHTML = "";
+    onSnapshot(
 
-$("noteBody").innerHTML = "";
+        collection(
+            db,
+            colName()
+        ),
 
+        (snap)=>{
 
-let mainData = [];
 
-let notes = [];
+            $("tbody").innerHTML =
+                "";
 
+            $("noteBody").innerHTML =
+                "";
 
-snap.forEach(d=>{
 
-let x =
-d.data();
+            let mainData = [];
 
+            let notes = [];
 
-/*
-   MAIN DATA
-*/
 
-if(
+            /*
+               सभी documents
+            */
 
-(x.date &&
-x.date !== "-") ||
+            snap.forEach(
+                d=>{
 
-(x.work &&
-x.work.trim() !== "") ||
+                    let x =
+                        d.data();
 
-(x.place &&
-x.place.trim() !== "")
 
-){
+                    /*
+                       MAIN DATA
+                    */
 
-mainData.push({
+                    if(
 
-id:d.id,
+                        (
+                            x.date &&
+                            x.date !== "-"
+                        )
 
-date:x.date || "",
+                        ||
 
-work:x.work || "",
+                        (
+                            x.work &&
+                            x.work.trim() !== ""
+                        )
 
-place:x.place || "",
+                        ||
 
-time:x.time || 0
+                        (
+                            x.place &&
+                            x.place.trim() !== ""
+                        )
 
-});
+                    ){
 
-}
+                        mainData.push({
 
+                            id:
+                            d.id,
 
-/*
-   NOTES
-*/
+                            date:
+                            x.date || "",
 
-if(
-(x.note || "").trim() !== ""
-){
+                            work:
+                            x.work || "",
 
-notes.push({
+                            place:
+                            x.place || "",
 
-id:d.id,
+                            time:
+                            x.time || 0
 
-note:x.note,
+                        });
 
-time:x.time || 0
+                    }
 
-});
 
-}
+                    /*
+                       NOTES
+                    */
 
-});
+                    if(
+                        (
+                            x.note ||
+                            ""
+                        ).trim() !== ""
+                    ){
 
+                        notes.push({
 
-/*
-   SORT MAIN DATA
-*/
+                            id:
+                            d.id,
 
-mainData.sort((a,b)=>{
+                            note:
+                            x.note,
 
-let dateA =
-dateToNumber(a.date);
+                            time:
+                            x.time || 0
 
-let dateB =
-dateToNumber(b.date);
+                        });
 
+                    }
 
-if(dateA === dateB){
+                }
+            );
 
-return a.time - b.time;
 
-}
+            /*
+               MAIN DATA SORT
+            */
 
+            mainData.sort(
+                (a,b)=>{
 
-return dateA - dateB;
+                    let dateA =
+                        dateToNumber(
+                            a.date
+                        );
 
-});
 
+                    let dateB =
+                        dateToNumber(
+                            b.date
+                        );
 
-/*
-   MAIN TABLE
-*/
 
-mainData.forEach(x=>{
+                    if(
+                        dateA === dateB
+                    ){
 
-$("tbody").innerHTML += `
+                        return (
+                            a.time -
+                            b.time
+                        );
 
-<tr>
+                    }
 
-<td>${x.date || ""}</td>
 
-<td>${x.work || ""}</td>
+                    return (
+                        dateA -
+                        dateB
+                    );
 
-<td>${x.place || ""}</td>
+                }
+            );
 
-<td>
 
-<button
-class="btn"
-onclick="openMainEdit('${x.id}')"
->
-✏️ Edit
-</button>
+            /*
+               MAIN TABLE
+            */
 
-<button
-class="btn"
-onclick="openDeleteModal('${x.id}')"
->
-🗑️ Delete
-</button>
+            mainData.forEach(
+                x=>{
 
-</td>
+                    $("tbody").innerHTML += `
 
-</tr>
+                    <tr>
 
-`;
+                    <td>
+                    ${x.date || ""}
+                    </td>
 
-});
+                    <td>
+                    ${x.work || ""}
+                    </td>
 
+                    <td>
+                    ${x.place || ""}
+                    </td>
 
-/*
-   SORT NOTES
-*/
+                    <td>
 
-notes.sort((a,b)=>
-a.time - b.time
-);
+                    <button
+                    class="btn"
+                    onclick="openMainEdit('${x.id}')"
+                    >
+                    ✏️ Edit
+                    </button>
 
 
-/*
-   NOTES TABLE
-*/
+                    <button
+                    class="btn"
+                    onclick="openDeleteModal('${x.id}')"
+                    >
+                    🗑️ Delete
+                    </button>
 
-notes.forEach(n=>{
+                    </td>
 
-$("noteBody").innerHTML += `
+                    </tr>
 
-<tr>
+                    `;
 
-<td class="noteText">
-• ${n.note}
-</td>
+                }
+            );
 
-<td>
 
-<button
-class="btn"
-onclick="openNoteEdit('${n.id}')"
->
-✏️ Edit
-</button>
+            /*
+               NOTES SORT
+            */
 
-<button
-class="btn"
-onclick="openDeleteModal('${n.id}')"
->
-🗑️ Delete
-</button>
+            notes.sort(
+                (a,b)=>
+                    a.time - b.time
+            );
 
-</td>
 
-</tr>
+            /*
+               NOTES TABLE
+            */
 
-`;
+            notes.forEach(
+                n=>{
 
-});
+                    $("noteBody").innerHTML += `
 
-});
+                    <tr>
+
+                    <td class="noteText">
+                    • ${n.note}
+                    </td>
+
+                    <td>
+
+                    <button
+                    class="btn"
+                    onclick="openNoteEdit('${n.id}')"
+                    >
+                    ✏️ Edit
+                    </button>
+
+
+                    <button
+                    class="btn"
+                    onclick="openDeleteModal('${n.id}')"
+                    >
+                    🗑️ Delete
+                    </button>
+
+                    </td>
+
+                    </tr>
+
+                    `;
+
+                }
+            );
+
+        }
+
+    );
 
 };
 
 
-/* =========================
+
+/* =====================================================
    DELETE MODAL
-========================= */
+===================================================== */
 
 window.openDeleteModal =
 function(id){
 
-deleteId = id;
+    deleteId =
+        id;
 
-$("deleteModal").style.display =
-"block";
+
+    $("deleteModal").style.display =
+        "block";
 
 };
+
 
 
 window.closeDeleteModal =
 function(){
 
-deleteId = null;
+    deleteId =
+        null;
 
-$("deleteModal").style.display =
-"none";
+
+    $("deleteModal").style.display =
+        "none";
 
 };
 
 
-/* =========================
+
+/* =====================================================
    CONFIRM DELETE
-========================= */
+===================================================== */
 
 window.confirmDelete =
 async function(){
 
-if(!deleteId)
-return;
+
+    if(!deleteId)
+        return;
 
 
-try{
-
-await deleteDoc(
-
-doc(
-db,
-colName(),
-deleteId
-)
-
-);
-
-deleteId = null;
-
-$("deleteModal").style.display =
-"none";
+    try{
 
 
-}catch(error){
+        await deleteDoc(
 
-console.error(error);
+            doc(
+                db,
+                colName(),
+                deleteId
+            )
 
-alert(
-"Delete नहीं हुआ।"
-);
+        );
 
-}
+
+        deleteId =
+            null;
+
+
+        $("deleteModal").style.display =
+            "none";
+
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+
+        alert(
+            "Delete नहीं हुआ।"
+        );
+
+    }
 
 };
 
 
-/* =========================
+
+/* =====================================================
    MAIN EDIT
-========================= */
+===================================================== */
 
 window.openMainEdit =
 async function(id){
 
-let snap =
 
-await getDoc(
+    let snap =
 
-doc(
-db,
-colName(),
-id
-)
+    await getDoc(
 
-);
+        doc(
+            db,
+            colName(),
+            id
+        )
 
-
-if(!snap.exists())
-return;
+    );
 
 
-let d =
-snap.data();
+    if(
+        !snap.exists()
+    ){
+
+        return;
+
+    }
 
 
-editId = id;
+    let d =
+        snap.data();
 
 
-$("edit_date").value =
-d.date || "";
+    editId =
+        id;
 
 
-$("editDatePicker").value =
-ddmmyyyyToISO(
-d.date || ""
-);
+    $("edit_date").value =
+        d.date || "";
 
 
-$("edit_work").value =
-d.work || "";
+    $("editDatePicker").value =
+        ddmmyyyyToISO(
+            d.date || ""
+        );
 
 
-$("edit_place").value =
-d.place || "";
+    $("edit_work").value =
+        d.work || "";
 
 
-$("mainModal").style.display =
-"block";
+    $("edit_place").value =
+        d.place || "";
+
+
+    $("mainModal").style.display =
+        "block";
 
 };
 
 
-/* =========================
+
+/* =====================================================
    CLOSE MAIN MODAL
-========================= */
+===================================================== */
 
 window.closeMainModal =
 function(){
 
-$("mainModal").style.display =
-"none";
+    $("mainModal").style.display =
+        "none";
 
-editId = null;
+
+    editId =
+        null;
 
 };
 
 
-/* =========================
+
+/* =====================================================
    UPDATE MAIN DATA
-========================= */
+===================================================== */
 
 window.updateMainData =
 async function(){
 
-if(!editId){
 
-buttonText(
-"mainUpdateBtn",
-"पहले Edit select करो",
-"Update"
-);
+    if(!editId){
 
-return;
+        buttonText(
+            "mainUpdateBtn",
+            "पहले Edit select करो",
+            "Update"
+        );
 
-}
+        return;
 
-
-try{
-
-await updateDoc(
-
-doc(
-db,
-colName(),
-editId
-),
-
-{
-
-date:
-$("edit_date").value.trim() || "-",
-
-work:
-$("edit_work").value.trim() || "",
-
-place:
-$("edit_place").value.trim() || ""
-
-}
-
-);
+    }
 
 
-buttonText(
-"mainUpdateBtn",
-"Updated",
-"Update"
-);
+    try{
 
 
-setTimeout(()=>{
+        await updateDoc(
 
-$("mainModal").style.display =
-"none";
+            doc(
+                db,
+                colName(),
+                editId
+            ),
 
-editId = null;
+            {
 
-},500);
+                date:
+                $("edit_date").value.trim()
+                ||
+                "-",
+
+                work:
+                $("edit_work").value.trim()
+                ||
+                "",
+
+                place:
+                $("edit_place").value.trim()
+                ||
+                ""
+
+            }
+
+        );
 
 
-}catch(error){
+        buttonText(
+            "mainUpdateBtn",
+            "Updated",
+            "Update"
+        );
 
-console.error(error);
 
-alert(
-"Update नहीं हुआ।"
-);
+        setTimeout(
+            ()=>{
 
-}
+                $("mainModal").style.display =
+                    "none";
+
+
+                editId =
+                    null;
+
+            },
+            500
+        );
+
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+
+        alert(
+            "Update नहीं हुआ।"
+        );
+
+    }
 
 };
 
 
-/* =========================
+
+/* =====================================================
    NOTE EDIT
-========================= */
+===================================================== */
 
 window.openNoteEdit =
 async function(id){
 
-let snap =
 
-await getDoc(
+    let snap =
 
-doc(
-db,
-colName(),
-id
-)
+    await getDoc(
 
-);
+        doc(
+            db,
+            colName(),
+            id
+        )
 
-
-if(!snap.exists())
-return;
+    );
 
 
-let d =
-snap.data();
+    if(
+        !snap.exists()
+    ){
+
+        return;
+
+    }
 
 
-editId = id;
+    let d =
+        snap.data();
 
 
-$("edit_note").value =
-d.note || "";
+    editId =
+        id;
 
 
-$("noteModal").style.display =
-"block";
+    $("edit_note").value =
+        d.note || "";
+
+
+    $("noteModal").style.display =
+        "block";
 
 };
 
 
-/* =========================
+
+/* =====================================================
    CLOSE NOTE MODAL
-========================= */
+===================================================== */
 
 window.closeNoteModal =
 function(){
 
-$("noteModal").style.display =
-"none";
+    $("noteModal").style.display =
+        "none";
 
-editId = null;
+
+    editId =
+        null;
 
 };
 
 
-/* =========================
+
+/* =====================================================
    UPDATE NOTE
-========================= */
+===================================================== */
 
 window.updateNoteData =
 async function(){
 
-if(!editId){
 
-buttonText(
-"noteUpdateBtn",
-"पहले Edit select करो",
-"Update"
-);
+    if(!editId){
 
-return;
+        buttonText(
+            "noteUpdateBtn",
+            "पहले Edit select करो",
+            "Update"
+        );
 
-}
+        return;
 
-
-try{
-
-await updateDoc(
-
-doc(
-db,
-colName(),
-editId
-),
-
-{
-
-note:
-$("edit_note").value.trim() || ""
-
-}
-
-);
+    }
 
 
-buttonText(
-"noteUpdateBtn",
-"Updated",
-"Update"
-);
+    try{
 
 
-setTimeout(()=>{
+        await updateDoc(
 
-$("noteModal").style.display =
-"none";
+            doc(
+                db,
+                colName(),
+                editId
+            ),
 
-editId = null;
+            {
 
-},500);
+                note:
+                $("edit_note").value.trim()
+                ||
+                ""
+
+            }
+
+        );
 
 
-}catch(error){
+        buttonText(
+            "noteUpdateBtn",
+            "Updated",
+            "Update"
+        );
 
-console.error(error);
 
-alert(
-"Note Update नहीं हुआ।"
-);
+        setTimeout(
+            ()=>{
 
-}
+                $("noteModal").style.display =
+                    "none";
+
+
+                editId =
+                    null;
+
+            },
+            500
+        );
+
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+
+        alert(
+            "Note Update नहीं हुआ।"
+        );
+
+    }
 
 };
 
 
-/* =========================
+
+/* =====================================================
    PRINT
-========================= */
+===================================================== */
 
 window.printData =
 function(){
 
-let mainRows = "";
 
+    let mainRows =
+        "";
 
-document
-.querySelectorAll("#tbody tr")
-.forEach(tr=>{
 
-let tds =
-tr.querySelectorAll("td");
+    document
+    .querySelectorAll(
+        "#tbody tr"
+    )
+    .forEach(
+        tr=>{
 
+            let tds =
+                tr.querySelectorAll(
+                    "td"
+                );
 
-mainRows += `
 
-<tr>
+            mainRows += `
 
-<td>
-${tds[0]?.innerText || ""}
-</td>
+            <tr>
 
-<td>
-${tds[1]?.innerText || ""}
-</td>
+            <td>
+            ${tds[0]?.innerText || ""}
+            </td>
 
-<td>
-${tds[2]?.innerText || ""}
-</td>
+            <td>
+            ${tds[1]?.innerText || ""}
+            </td>
 
-</tr>
+            <td>
+            ${tds[2]?.innerText || ""}
+            </td>
 
-`;
+            </tr>
 
-});
+            `;
 
+        }
+    );
 
-let noteRows = "";
 
 
-document
-.querySelectorAll("#noteBody tr")
-.forEach(tr=>{
+    let noteRows =
+        "";
 
-let tds =
-tr.querySelectorAll("td");
 
+    document
+    .querySelectorAll(
+        "#noteBody tr"
+    )
+    .forEach(
+        tr=>{
 
-noteRows += `
+            let tds =
+                tr.querySelectorAll(
+                    "td"
+                );
 
-<tr>
 
-<td class="printNote">
-${tds[0]?.innerText || ""}
-</td>
+            noteRows += `
 
-</tr>
+            <tr>
 
-`;
+            <td class="printNote">
+            ${tds[0]?.innerText || ""}
+            </td>
 
-});
+            </tr>
 
+            `;
 
-let win =
-window.open("");
+        }
+    );
 
 
-win.document.write(`
 
-<html>
+    let selectedName =
 
-<head>
+        $("slot")
+        .options[
+            $("slot").selectedIndex
+        ]
+        ?.text
+        ||
+        "लाइट मिस्त्री";
 
-<title>Print</title>
 
-<style>
 
-body{
-font-family:Arial;
-padding:12px;
-}
+    let win =
+        window.open("");
 
-h2{
-text-align:center;
-margin:5px 0 12px 0;
-font-size:20px;
-}
 
-table{
-width:100%;
-border-collapse:collapse;
-font-size:14px;
-margin-top:8px;
-}
+    win.document.write(`
 
-th{
-border:1px solid #000;
-padding:6px;
-background:#e5e5e5;
-text-align:center;
-}
+    <html>
 
-td{
-border:1px solid #000;
-padding:6px;
-text-align:center;
-}
+    <head>
 
-.printNote{
-text-align:left !important;
-padding-left:10px;
-}
+    <title>
+    Print
+    </title>
 
-@media print{
 
-body{
-padding:5px;
-}
+    <style>
 
-table{
-page-break-inside:auto;
-}
+    body{
+    font-family:Arial;
+    padding:12px;
+    }
 
-tr{
-page-break-inside:avoid;
-page-break-after:auto;
-}
 
-}
+    h2{
+    text-align:center;
+    margin:5px 0 12px 0;
+    font-size:20px;
+    }
 
-</style>
 
-</head>
+    table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    margin-top:8px;
+    }
 
 
-<body>
+    th{
+    border:1px solid #000;
+    padding:6px;
+    background:#e5e5e5;
+    text-align:center;
+    }
 
 
-<h2>
-💡 ${
-$("slot")
-.options[
-$("slot").selectedIndex
-]?.text || "लाइट मिस्त्री"
-}
-</h2>
+    td{
+    border:1px solid #000;
+    padding:6px;
+    text-align:center;
+    }
 
 
-<table>
+    .printNote{
+    text-align:left !important;
+    padding-left:10px;
+    }
 
-<tr>
 
-<th>दिनांक</th>
+    @media print{
 
-<th>काम</th>
+        body{
+        padding:5px;
+        }
 
-<th>जगह</th>
+        table{
+        page-break-inside:auto;
+        }
 
-</tr>
+        tr{
+        page-break-inside:avoid;
+        page-break-after:auto;
+        }
 
-${mainRows}
+    }
 
-</table>
+    </style>
 
+    </head>
 
-<br>
 
+    <body>
 
-<table>
 
-<tr>
+    <h2>
+    💡 ${selectedName}
+    </h2>
 
-<th>नोट</th>
 
-</tr>
+    <table>
 
-${noteRows}
+    <tr>
 
-</table>
+    <th>
+    दिनांक
+    </th>
 
+    <th>
+    काम
+    </th>
 
-</body>
+    <th>
+    जगह
+    </th>
 
-</html>
+    </tr>
 
-`);
+    ${mainRows}
 
+    </table>
 
-win.document.close();
 
-win.focus();
+    <br>
 
-win.print();
+
+    <table>
+
+    <tr>
+
+    <th>
+    नोट
+    </th>
+
+    </tr>
+
+    ${noteRows}
+
+    </table>
+
+
+    </body>
+
+    </html>
+
+    `);
+
+
+    win.document.close();
+
+
+    win.focus();
+
+
+    win.print();
 
 };
 
 
-/* =========================
+
+/* =====================================================
    INITIAL LOAD
-========================= */
+===================================================== */
 
 loadData();
 
@@ -1575,35 +2051,47 @@ loadData();
 </script>
 
 
+
+<!-- =========================
+     PWA
+========================= -->
+
 <script src="pwa.js"></script>
 
 
-<script>
 
-/* =========================
-   AUTO BACK TO ADMIN
-========================= */
+<!-- =========================
+     BACK BUTTON
+========================= -->
+
+<script>
 
 (function(){
 
-history.pushState(
-null,
-"",
-location.href
-);
+
+    history.pushState(
+        null,
+        "",
+        location.href
+    );
 
 
-window.addEventListener(
-"popstate",
-function(){
+    window.addEventListener(
+        "popstate",
+        function(){
 
-localStorage.removeItem("login");
+            localStorage.removeItem(
+                "login"
+            );
 
-location.replace(
-"index.html"
-);
 
-});
+            location.replace(
+                "index.html"
+            );
+
+        }
+    );
+
 
 })();
 
