@@ -53,6 +53,27 @@ th{background:#eee}
 .accountClose{position:absolute;right:0;top:0;width:35px;height:35px;padding:0;margin:0;font-size:22px;background:#dc3545;border-radius:50%}
 .hiddenWorker{opacity:.65;background:#f4f4f4}
 
+.paymentDeleteBox{
+display:none;
+background:#fff3f3;
+border:1px solid #dc3545;
+padding:12px;
+border-radius:8px;
+margin-top:10px;
+}
+.paymentDeleteBox p{
+margin:0 0 8px;
+font-weight:bold;
+text-align:center;
+}
+.paymentDeleteActions{
+display:flex;
+gap:8px;
+}
+.paymentDeleteActions button{
+flex:1;
+}
+
 #toastMsg{
 position:fixed;
 bottom:25px;
@@ -168,7 +189,7 @@ th:last-child,td:last-child{display:none}
 </div>
 </div>
 
-<!-- DELETE -->
+<!-- DELETE DAILY DATA / NOTE -->
 <div class="popup" id="deletePopup">
 <div class="popup-box">
 <h3>Delete करना है?</h3>
@@ -235,6 +256,14 @@ th:last-child,td:last-child{display:none}
 <div class="section">
 <h3>💵 Advance और भुगतान का रिकॉर्ड</h3>
 <div id="paymentHistory"></div>
+
+<div id="paymentDeleteBox" class="paymentDeleteBox">
+<p>क्या यह पैसा Delete करना है?</p>
+<div class="paymentDeleteActions">
+<button class="redBtn" onclick="confirmPaymentDelete()">🗑️ Delete</button>
+<button class="grayBtn" onclick="cancelPaymentDelete()">Cancel</button>
+</div>
+</div>
 </div>
 
 <div class="popupActions noPrint">
@@ -254,6 +283,7 @@ const DAILY_RATE=350;
 const $=id=>document.getElementById(id);
 
 let editId=null,noteEditId=null,deleteId=null,deleteType="";
+let paymentDeleteId=null;
 let workers=[],attendanceData=[],payments=[],selectedWorker=null;
 let workerSyncRunning=false,workersLoaded=false,attendanceLoaded=false;
 let accountHistoryActive=false,ignoreNextPopstate=false;
@@ -519,6 +549,8 @@ if(!w)return;
 selectedWorker=getWorkerGroup(w);
 $("accountPopup").style.display="flex";
 $("payDate").value=todayISO();
+$("paymentDeleteBox").style.display="none";
+paymentDeleteId=null;
 if(!accountHistoryActive){
 history.pushState({accountPopup:true},"",location.href);
 accountHistoryActive=true;
@@ -528,6 +560,8 @@ renderAccount();
 
 window.closeAccount=()=>{
 $("accountPopup").style.display="none";
+$("paymentDeleteBox").style.display="none";
+paymentDeleteId=null;
 selectedWorker=null;
 if(accountHistoryActive){
 accountHistoryActive=false;
@@ -618,9 +652,28 @@ showToast("भुगतान का रिकॉर्ड Save हो गया
 }catch(e){showToast("Save नहीं हुआ: "+e.message);}
 };
 
-/* DELETE PAYMENT */
+/* PAYMENT DELETE - INLINE CONFIRMATION */
 window.deletePayment=id=>{
-openDeletePopup(id,"payment");
+paymentDeleteId=id;
+$("paymentDeleteBox").style.display="block";
+};
+
+window.cancelPaymentDelete=()=>{
+paymentDeleteId=null;
+$("paymentDeleteBox").style.display="none";
+};
+
+window.confirmPaymentDelete=async()=>{
+if(!paymentDeleteId)return;
+
+try{
+await deleteDoc(doc(db,"jharkila_payments",paymentDeleteId));
+paymentDeleteId=null;
+$("paymentDeleteBox").style.display="none";
+showToast("पैसा Delete हो गया ✓");
+}catch(e){
+showToast("Delete नहीं हुआ: "+e.message);
+}
 };
 
 /* EDIT DAILY DATA */
@@ -667,13 +720,12 @@ showToast("नोट Update हो गया ✓");
 };
 window.closeNotePopup=()=>{$("notePopup").style.display="none";noteEditId=null;};
 
-/* DELETE DAILY DATA / NOTE / PAYMENT */
+/* DELETE DAILY DATA / NOTE */
 window.openDeletePopup=(id,type)=>{
 deleteId=id;
 deleteType=type;
 
 $("deleteMessage").innerText=
-type==="payment"?"क्या आप यह भुगतान रिकॉर्ड Delete करना चाहते हैं?":
 type==="note"?"क्या आप यह नोट Delete करना चाहते हैं?":
 "क्या आप इस डेटा को Delete करना चाहते हैं?";
 
@@ -695,9 +747,6 @@ await deleteDoc(doc(db,"jharkila",deleteId));
 }
 else if(deleteType==="note"){
 await deleteDoc(doc(db,"jharkila_note",deleteId));
-}
-else if(deleteType==="payment"){
-await deleteDoc(doc(db,"jharkila_payments",deleteId));
 }
 
 closeDeletePopup();
