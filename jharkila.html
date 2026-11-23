@@ -208,6 +208,7 @@ th:last-child,td:last-child{display:none}
 <select id="payType">
 <option value="Advance">Advance</option>
 <option value="Payment" selected>भुगतान</option>
+</select>
 <input id="payAmount" type="number" min="1" placeholder="रकम रुपये में">
 <input id="payNote" placeholder="विवरण (वैकल्पिक)">
 <button onclick="addPayment()">💾 पैसा Save करें</button>
@@ -255,14 +256,17 @@ let attendanceData=[];
 let payments=[];
 let selectedWorker=null;
 let workerSyncRunning=false;
+let workersLoaded=false;
+let attendanceLoaded=false;
 let accountHistoryActive=false;
 let ignoreNextPopstate=false;
 
 /* BACK BUTTON CONTROL */
 
-history.replaceState({adminPage:true},"",location.href);
+history.pushState({adminPage:true},"",location.href);
 
 window.addEventListener("popstate",()=>{
+
 if(ignoreNextPopstate){
 ignoreNextPopstate=false;
 return;
@@ -272,11 +276,13 @@ if(accountHistoryActive){
 accountHistoryActive=false;
 $("accountPopup").style.display="none";
 selectedWorker=null;
+history.pushState({adminPage:true},"",location.href);
 return;
 }
 
 localStorage.removeItem("login");
 location.replace("index.html");
+
 });
 
 /* DATE FUNCTIONS */
@@ -384,11 +390,38 @@ alert("Save नहीं हुआ: "+e.message);
 }
 };
 
-/* AUTOMATIC WORKER CREATION FROM TABLE */
+/* WORKER GROUPING */
+
+function getWorkerGroup(worker){
+
+let same=workers.filter(w=>
+normalizeName(w.name)===normalizeName(worker.name)
+);
+
+let aliases=[];
+
+same.forEach(w=>{
+[w.name,...w.aliases].forEach(name=>{
+if(name&&!aliases.some(a=>normalizeName(a)===normalizeName(name))){
+aliases.push(name);
+}
+});
+});
+
+return {
+...worker,
+aliases,
+memberIds:same.map(w=>w.id)
+};
+
+}
+
+/* AUTOMATIC WORKER CREATION */
 
 async function syncWorkersFromAttendance(){
 
-if(workerSyncRunning)return;
+if(workerSyncRunning||!workersLoaded||!attendanceLoaded)return;
+
 workerSyncRunning=true;
 
 try{
@@ -398,6 +431,7 @@ let tableNames=[];
 attendanceData.forEach(row=>{
 ["n1","n2","n3","n4","n5","n6"].forEach(key=>{
 let name=String(row[key]||"").trim();
+
 if(name&&!tableNames.some(x=>normalizeName(x)===normalizeName(name))){
 tableNames.push(name);
 }
@@ -412,12 +446,22 @@ return names.includes(normalizeName(name));
 });
 
 if(!exists){
+
 await addDoc(collection(db,"jharkila_workers"),{
 name,
 aliases:[],
 active:true,
 createdAt:Date.now()
 });
+
+workers.push({
+id:"pending_"+normalizeName(name),
+name,
+aliases:[],
+active:true,
+createdAt:Date.now()
+});
+
 }
 
 }
@@ -451,6 +495,8 @@ time:x.time||0
 });
 });
 
+attendanceLoaded=true;
+
 attendanceData.sort((a,b)=>{
 let x=dateSort(a.date),y=dateSort(b.date);
 return x===y?a.time-b.time:x-y;
@@ -476,9 +522,18 @@ syncWorkersFromAttendance();
 renderWorkers();
 
 if(selectedWorker){
-let stillPresent=getWorkerDates(selectedWorker).length>0;
-if(stillPresent)renderAccount();
-else closeAccount();
+let updated=workers.find(w=>w.id===selectedWorker.id);
+
+if(updated){
+selectedWorker=getWorkerGroup(updated);
+if(getWorkerDates(selectedWorker).length>0){
+renderAccount();
+}else{
+closeAccount();
+}
+}else{
+closeAccount();
+}
 }
 
 });
@@ -522,21 +577,33 @@ createdAt:x.createdAt||0
 });
 });
 
+workersLoaded=true;
+
 workers.sort((a,b)=>a.name.localeCompare(b.name,"hi"));
 
 renderWorkers();
 
+syncWorkersFromAttendance();
+
 if(selectedWorker){
-selectedWorker=workers.find(w=>w.id===selectedWorker.id)||null;
-if(selectedWorker)renderAccount();
-else closeAccount();
+
+let updated=workers.find(w=>w.id===selectedWorker.id);
+
+if(updated){
+selectedWorker=getWorkerGroup(updated);
+renderAccount();
+}else{
+closeAccount();
+}
+
 }
 
 });
 
-/* CHECK IF WORKER STILL EXISTS IN TABLE */
+/* CHECK IF WORKER IS IN TABLE */
 
 function workerIsInTable(worker){
+
 let names=[worker.name,...worker.aliases].map(normalizeName);
 
 return attendanceData.some(row=>
@@ -545,14 +612,28 @@ let value=normalizeName(row[key]);
 return value&&names.includes(value);
 })
 );
+
 }
 
-/* RENDER WORKER LIST FROM TABLE NAMES */
+/* RENDER WORKER LIST WITHOUT DUPLICATES */
 
 function renderWorkers(){
 
 let list=$("workerList");
-let visibleWorkers=workers.filter(w=>workerIsInTable(w));
+let groups={};
+
+workers.forEach(w=>{
+
+let key=normalizeName(w.name);
+if(!key)return;
+
+if(!groups[key]){
+groups[key]=getWorkerGroup(w);
+}
+
+});
+
+let visibleWorkers=Object.values(groups).filter(w=>workerIsInTable(w));
 
 if(!visibleWorkers.length){
 list.innerHTML='<p class="muted">टेबल में अभी कोई मजदूर का नाम नहीं है।</p>';
@@ -576,6 +657,8 @@ window.renameWorker=async(id)=>{
 let w=workers.find(x=>x.id===id);
 if(!w)return;
 
+let group=getWorkerGroup(w);
+
 let newName=prompt("नया नाम लिखें:",w.name);
 if(newName===null)return;
 
@@ -583,22 +666,26 @@ newName=newName.trim();
 if(!newName)return alert("नाम खाली नहीं हो सकता");
 
 let duplicate=workers.some(x=>
-x.id!==id&&normalizeName(x.name)===normalizeName(newName)
+!group.memberIds.includes(x.id)&&normalizeName(x.name)===normalizeName(newName)
 );
 
 if(duplicate)return alert("यह नाम किसी दूसरे लड़के का है");
 
-let aliases=[...w.aliases];
+let aliases=[...group.aliases];
 
 if(!aliases.some(a=>normalizeName(a)===normalizeName(w.name))){
 aliases.push(w.name);
 }
 
 try{
-await updateDoc(doc(db,"jharkila_workers",id),{
+
+for(let memberId of group.memberIds){
+await updateDoc(doc(db,"jharkila_workers",memberId),{
 name:newName,
 aliases
 });
+}
+
 }catch(e){
 alert(e.message);
 }
@@ -612,7 +699,8 @@ window.openAccount=id=>{
 let w=workers.find(x=>x.id===id);
 if(!w)return;
 
-selectedWorker=w;
+selectedWorker=getWorkerGroup(w);
+
 $("accountPopup").style.display="flex";
 $("payDate").value=todayISO();
 
@@ -674,7 +762,10 @@ if(!selectedWorker)return;
 let worker=selectedWorker;
 let dates=getWorkerDates(worker);
 
-let workerPayments=payments.filter(p=>p.workerId===worker.id);
+let ids=worker.memberIds||[worker.id];
+
+let workerPayments=payments.filter(p=>ids.includes(p.workerId));
+
 workerPayments.sort((a,b)=>dateSort(a.date)-dateSort(b.date)||a.time-b.time);
 
 let days=dates.length;
