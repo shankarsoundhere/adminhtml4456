@@ -11,181 +11,58 @@
 
 <style>
 *{box-sizing:border-box}
-body{
-font-family:Arial,sans-serif;
-background:#dcdde1;
-padding:10px;
-margin:0;
-}
-.box{
-width:210mm;
-max-width:100%;
-min-height:297mm;
-margin:auto;
-background:white;
-padding:12mm;
-box-shadow:0 0 10px #aaa;
-}
+body{font-family:Arial,sans-serif;background:#dcdde1;padding:10px;margin:0}
+.box{width:210mm;max-width:100%;min-height:297mm;margin:auto;background:white;padding:12mm;box-shadow:0 0 10px #aaa}
 h2,h3{text-align:center}
-input,button,textarea,select{
-width:100%;
-padding:10px;
-margin:4px 0;
-font-size:14px;
-box-sizing:border-box;
-}
-button{
-background:#28a745;
-color:white;
-border:0;
-border-radius:5px;
-cursor:pointer;
-}
+input,button,textarea,select{width:100%;padding:10px;margin:4px 0;font-size:14px;box-sizing:border-box}
+button{background:#28a745;color:white;border:0;border-radius:5px;cursor:pointer}
 button:disabled{opacity:.5}
 .redBtn{background:#dc3545}
 .blueBtn{background:#007bff}
 .grayBtn{background:#6c757d}
-.smallBtn{
-width:auto;
-padding:6px 9px;
-font-size:12px;
-margin:2px;
-}
+.smallBtn{width:auto;padding:6px 9px;font-size:12px;margin:2px}
 .dateWrap{position:relative}
-.datePicker{
-position:absolute;
-top:4px;
-left:0;
-height:38px;
-opacity:0;
-z-index:2;
-}
+.datePicker{position:absolute;top:4px;left:0;height:38px;opacity:0;z-index:2}
 .tableWrap{width:100%;overflow-x:auto;margin-top:10px}
-table{
-width:100%;
-border-collapse:collapse;
-table-layout:fixed;
-text-align:center;
-font-size:12px;
-}
-td,th{
-border:1px solid #222;
-padding:5px 3px;
-word-break:break-word;
-}
+table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:center;font-size:12px}
+td,th{border:1px solid #222;padding:5px 3px;word-break:break-word}
 th{background:#eee}
-.actionBtn{
-width:25px;
-height:23px;
-padding:0;
-margin:1px;
-font-size:11px;
-}
+.actionBtn{width:25px;height:23px;padding:0;margin:1px;font-size:11px}
 .noteTable{table-layout:fixed}
-.noteTable th:first-child,.noteTable td:first-child{
-width:calc(100% - 60px);
-text-align:left;
-}
-.noteTable th:last-child,.noteTable td:last-child{
-width:60px;
-}
-.section{
-border:1px solid #ddd;
-border-radius:9px;
-padding:12px;
-margin-top:18px;
-}
+.noteTable th:first-child,.noteTable td:first-child{width:calc(100% - 60px);text-align:left}
+.noteTable th:last-child,.noteTable td:last-child{width:60px}
+.section{border:1px solid #ddd;border-radius:9px;padding:12px;margin-top:18px}
 .section h3{margin-top:2px}
-.worker{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:8px;
-padding:10px;
-border:1px solid #ddd;
-border-radius:7px;
-margin:6px 0;
-}
-.workerName{
-font-weight:bold;
-flex:1;
-text-align:left;
-}
+.worker{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border:1px solid #ddd;border-radius:7px;margin:6px 0;flex-wrap:wrap}
+.workerName{font-weight:bold;flex:1;text-align:left}
 .worker button{width:auto;padding:8px;font-size:12px}
-.accountSummary{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin:12px 0;
-}
-.summaryCard{
-background:#f1f5f9;
-padding:12px;
-border-radius:8px;
-}
+.accountSummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.summaryCard{background:#f1f5f9;padding:12px;border-radius:8px}
 .summaryCard small{color:#555}
-.summaryCard strong{
-display:block;
-font-size:20px;
-margin-top:5px;
-}
+.summaryCard strong{display:block;font-size:20px;margin-top:5px}
 .green{color:#16833b}
 .red{color:#dc3545}
-.popup{
-display:none;
-position:fixed;
-inset:0;
-background:#0008;
-justify-content:center;
-align-items:center;
-z-index:999;
-padding:10px;
-}
-.popup-box{
-background:white;
-padding:15px;
-border-radius:10px;
-width:100%;
-max-width:500px;
-max-height:90vh;
-overflow-y:auto;
-}
+.popup{display:none;position:fixed;inset:0;background:#0008;justify-content:center;align-items:center;z-index:999;padding:10px}
+.popup-box{background:white;padding:15px;border-radius:10px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
 .popup-box h3{margin-top:5px}
-.popupActions{
-display:flex;
-gap:7px;
-}
+.popupActions{display:flex;gap:7px}
 .popupActions button{flex:1}
-.paymentRow{
-display:flex;
-justify-content:space-between;
-gap:8px;
-border-bottom:1px solid #ddd;
-padding:9px 2px;
-font-size:13px;
-}
+.paymentRow{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #ddd;padding:9px 2px;font-size:13px}
 .paymentRow div:first-child{flex:1}
 .muted{color:#666;font-size:12px}
-.accountTitle{
-text-align:center;
-font-size:20px;
-font-weight:bold;
-}
+.accountTitle{text-align:center;font-size:20px;font-weight:bold}
 @media(max-width:700px){
 body{padding:5px}
 .box{width:100%;padding:10px;box-shadow:none}
 table{font-size:10px}
 td,th{padding:4px 2px}
-.worker{flex-wrap:wrap}
 .workerName{min-width:100px}
 }
 @media print{
 @page{size:A4;margin:8mm}
 body{background:white;padding:0}
 .box{width:100%;padding:0;box-shadow:none}
-h3,input,textarea,button,.popup,.datePicker,.noPrint{
-display:none!important
-}
+h3,input,textarea,button,.popup,.datePicker,.noPrint{display:none!important}
 .tableWrap{overflow:visible}
 table{font-size:11px}
 th:last-child,td:last-child{display:none}
@@ -196,10 +73,7 @@ th:last-child,td:last-child{display:none}
 <body>
 
 <div class="box">
-
 <h2>👷 झारकिला लेबर</h2>
-
-<!-- DAILY ENTRY -->
 
 <h3>आज का डेटा जोड़ें</h3>
 
@@ -234,8 +108,6 @@ th:last-child,td:last-child{display:none}
 </table>
 </div>
 
-<!-- NOTES -->
-
 <h3>📝 Notes Table</h3>
 
 <div class="tableWrap">
@@ -247,26 +119,18 @@ th:last-child,td:last-child{display:none}
 </table>
 </div>
 
-<!-- WORKERS -->
-
 <div class="section">
 <h3>👷 Labour List / मजदूरों की लिस्ट</h3>
-
-<p class="muted">
-हर लड़के का नाम एक बार जोड़ें। नाम पर क्लिक करके उसका पूरा हिसाब देखें।
-</p>
+<p class="muted">हर लड़के का नाम एक बार जोड़ें। नाम पर क्लिक करके उसका पूरा हिसाब देखें।</p>
 
 <input id="workerName" placeholder="नया लड़का का नाम लिखें">
-
 <button onclick="addWorker()">➕ नया लड़का जोड़ें</button>
 
 <div id="workerList"></div>
 </div>
-
 </div>
 
 <!-- EDIT DAILY DATA -->
-
 <div class="popup" id="editPopup">
 <div class="popup-box">
 <h3>डेटा Edit करें</h3>
@@ -289,7 +153,6 @@ th:last-child,td:last-child{display:none}
 </div>
 
 <!-- EDIT NOTE -->
-
 <div class="popup" id="notePopup">
 <div class="popup-box">
 <h3>Edit Note</h3>
@@ -299,8 +162,7 @@ th:last-child,td:last-child{display:none}
 </div>
 </div>
 
-<!-- DELETE -->
-
+<!-- DELETE DAILY DATA / NOTE -->
 <div class="popup" id="deletePopup">
 <div class="popup-box">
 <h3>Delete करना है?</h3>
@@ -311,14 +173,11 @@ th:last-child,td:last-child{display:none}
 </div>
 
 <!-- LABOUR ACCOUNT -->
-
 <div class="popup" id="accountPopup">
 <div class="popup-box">
 
 <div class="accountTitle" id="accountName">लेबर का हिसाब</div>
-<p class="muted" style="text-align:center">
-प्रतिदिन मजदूरी: ₹350
-</p>
+<p class="muted" style="text-align:center">प्रतिदिन मजदूरी: ₹350</p>
 
 <div class="accountSummary">
 <div class="summaryCard">
@@ -341,18 +200,13 @@ th:last-child,td:last-child{display:none}
 
 <div class="section">
 <h3>💰 पैसा जोड़ें</h3>
-
 <input id="payDate" type="date">
-
 <select id="payType">
 <option value="Advance">Advance</option>
 <option value="Payment">भुगतान</option>
 </select>
-
 <input id="payAmount" type="number" min="1" placeholder="रकम रुपये में">
-
 <input id="payNote" placeholder="विवरण (वैकल्पिक)">
-
 <button onclick="addPayment()">💾 पैसा Save करें</button>
 </div>
 
@@ -370,7 +224,6 @@ th:last-child,td:last-child{display:none}
 <button class="blueBtn" onclick="window.print()">🖨️ Print</button>
 <button class="redBtn" onclick="closeAccount()">बंद करें</button>
 </div>
-
 </div>
 </div>
 
@@ -387,41 +240,36 @@ updateDoc,
 getDoc
 } from "./firebase.js";
 
-/* SETTINGS */
+const DAILY_RATE=350;
+const $=id=>document.getElementById(id);
 
-const DAILY_RATE = 350;
-
-const $ = id => document.getElementById(id);
-
-let editId = null;
-let noteEditId = null;
-let deleteId = null;
-let deleteType = "";
-
-let workers = [];
-let attendanceData = [];
-let payments = [];
-
-let selectedWorker = null;
+let editId=null;
+let noteEditId=null;
+let deleteId=null;
+let deleteType="";
+let workers=[];
+let attendanceData=[];
+let payments=[];
+let selectedWorker=null;
 
 /* DATE FUNCTIONS */
 
 function isoToDDMMYYYY(iso){
-if(!iso) return "";
+if(!iso)return "";
 let p=iso.split("-");
 return p[2]+"-"+p[1]+"-"+p[0];
 }
 
 function ddmmyyyyToISO(value){
-if(!value) return "";
+if(!value)return "";
 let p=value.split("-");
-if(p.length!==3) return "";
+if(p.length!==3)return "";
 return p[2]+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0");
 }
 
 function dateSort(value){
 let p=(value||"").split("-");
-if(p.length!==3) return 0;
+if(p.length!==3)return 0;
 let yy=p[2].length===2?"20"+p[2]:p[2];
 return Number(yy+p[1].padStart(2,"0")+p[0].padStart(2,"0"));
 }
@@ -470,13 +318,11 @@ setTimeout(()=>btn.innerText=old,1500);
 /* DAILY DATA SAVE */
 
 window.saveData=async()=>{
-
 try{
-
 let note=$("noteInput").value.trim();
 let date=$("date").value;
 
-if(!date && !note){
+if(!date&&!note){
 alert("दिनांक या नोट डालें");
 return;
 }
@@ -506,17 +352,14 @@ $("datePicker").value="";
 ["n1","n2","n3","n4","n5","n6","noteInput"].forEach(id=>$(id).value="");
 
 buttonText($("saveBtn"),"✅ Saved","💾 Save");
-
 }catch(e){
 alert("Save नहीं हुआ: "+e.message);
 }
-
 };
 
 /* DAILY DATA LIST */
 
 onSnapshot(collection(db,"jharkila"),snap=>{
-
 attendanceData=[];
 
 snap.forEach(d=>{
@@ -556,15 +399,12 @@ $("tbody").innerHTML=attendanceData.map(x=>`
 `).join("");
 
 renderWorkers();
-
-if(selectedWorker) renderAccount();
-
+if(selectedWorker)renderAccount();
 });
 
 /* NOTES */
 
 onSnapshot(collection(db,"jharkila_note"),snap=>{
-
 let arr=[];
 
 snap.forEach(d=>{
@@ -582,13 +422,11 @@ $("noteBody").innerHTML=arr.map(n=>`
 </td>
 </tr>
 `).join("");
-
 });
 
-/* WORKER LIST */
+/* ADD WORKER */
 
 window.addWorker=async()=>{
-
 let name=$("workerName").value.trim();
 
 if(!name){
@@ -596,9 +434,7 @@ alert("लड़के का नाम लिखें");
 return;
 }
 
-let duplicate=workers.some(w=>
-normalizeName(w.name)===normalizeName(name)
-);
+let duplicate=workers.some(w=>normalizeName(w.name)===normalizeName(name));
 
 if(duplicate){
 alert("यह नाम पहले से मौजूद है");
@@ -606,24 +442,21 @@ return;
 }
 
 try{
-
 await addDoc(collection(db,"jharkila_workers"),{
 name,
 aliases:[],
 active:true,
 createdAt:Date.now()
 });
-
 $("workerName").value="";
-
 }catch(e){
 alert("नाम Save नहीं हुआ: "+e.message);
 }
-
 };
 
-onSnapshot(collection(db,"jharkila_workers"),snap=>{
+/* WORKER SNAPSHOT */
 
+onSnapshot(collection(db,"jharkila_workers"),snap=>{
 workers=[];
 
 snap.forEach(d=>{
@@ -643,14 +476,14 @@ renderWorkers();
 
 if(selectedWorker){
 selectedWorker=workers.find(w=>w.id===selectedWorker.id)||null;
-if(selectedWorker) renderAccount();
+if(selectedWorker)renderAccount();
 else closeAccount();
 }
-
 });
 
-function renderWorkers(){
+/* RENDER WORKER LIST */
 
+function renderWorkers(){
 let list=$("workerList");
 
 if(!workers.length){
@@ -669,29 +502,25 @@ ${w.active?"":'<small class="red"> (बंद)</small>'}
 <button class="smallBtn grayBtn" onclick="toggleWorker('${w.id}')">
 ${w.active?"बंद करें":"चालू करें"}
 </button>
+<button class="smallBtn redBtn" onclick="deleteWorker('${w.id}')">🗑️ Delete</button>
 </div>
 `).join("");
-
 }
 
-/* RENAME WORKER - KEEP OLD NAME FOR OLD ATTENDANCE */
+/* RENAME WORKER */
 
 window.renameWorker=async(id)=>{
-
 let w=workers.find(x=>x.id===id);
-if(!w) return;
+if(!w)return;
 
 let newName=prompt("नया नाम लिखें:",w.name);
-if(newName===null) return;
+if(newName===null)return;
 
 newName=newName.trim();
-if(!newName) return alert("नाम खाली नहीं हो सकता");
+if(!newName)return alert("नाम खाली नहीं हो सकता");
 
-let duplicate=workers.some(x=>
-x.id!==id && normalizeName(x.name)===normalizeName(newName)
-);
-
-if(duplicate) return alert("यह नाम किसी दूसरे लड़के का है");
+let duplicate=workers.some(x=>x.id!==id&&normalizeName(x.name)===normalizeName(newName));
+if(duplicate)return alert("यह नाम किसी दूसरे लड़के का है");
 
 let aliases=[...w.aliases];
 
@@ -707,37 +536,93 @@ aliases
 }catch(e){
 alert(e.message);
 }
-
 };
 
-/* WORKER ACTIVE / INACTIVE */
+/* ACTIVE / INACTIVE */
 
 window.toggleWorker=async(id)=>{
-
 let w=workers.find(x=>x.id===id);
-if(!w) return;
+if(!w)return;
 
-if(!confirm(w.active?"इस लड़के को लिस्ट से बंद करें?":"इस लड़के को फिर चालू करें?")) return;
+if(!confirm(w.active?"इस लड़के को लिस्ट से बंद करें?":"इस लड़के को फिर चालू करें?"))return;
 
 await updateDoc(doc(db,"jharkila_workers",id),{
 active:!w.active
 });
+};
 
+/* COMPLETE WORKER DELETE */
+
+window.deleteWorker=async(id)=>{
+let w=workers.find(x=>x.id===id);
+if(!w)return;
+
+let ok=confirm(
+"क्या आप "+w.name+" को पूरी तरह Delete करना चाहते हैं?\n\n"+
+"इससे:\n"+
+"1. मजदूर का नाम लिस्ट से हटेगा।\n"+
+"2. पुरानी हाजिरी से उसका नाम हटेगा।\n"+
+"3. Advance और भुगतान का पूरा रिकॉर्ड हटेगा।\n\n"+
+"यह काम वापस नहीं होगा!"
+);
+
+if(!ok)return;
+
+try{
+
+/* REMOVE NAME FROM ATTENDANCE */
+
+let names=[w.name,...w.aliases].map(normalizeName);
+
+for(let row of attendanceData){
+let data={};
+let changed=false;
+
+["n1","n2","n3","n4","n5","n6"].forEach(key=>{
+if(names.includes(normalizeName(row[key]))&&normalizeName(row[key])){
+data[key]="";
+changed=true;
+}
+});
+
+if(changed){
+await updateDoc(doc(db,"jharkila",row.id),data);
+}
+}
+
+/* DELETE ALL PAYMENTS */
+
+let workerPayments=payments.filter(p=>p.workerId===id);
+
+for(let p of workerPayments){
+await deleteDoc(doc(db,"jharkila_payments",p.id));
+}
+
+/* DELETE WORKER */
+
+await deleteDoc(doc(db,"jharkila_workers",id));
+
+if(selectedWorker&&selectedWorker.id===id){
+closeAccount();
+}
+
+alert("मजदूर का नाम और उसका पूरा हिसाब Delete हो गया।");
+
+}catch(e){
+alert("Delete करते समय समस्या आई: "+e.message);
+}
 };
 
 /* ACCOUNT OPEN */
 
-window.openAccount=(id)=>{
-
+window.openAccount=id=>{
 let w=workers.find(x=>x.id===id);
-if(!w) return;
+if(!w)return;
 
 selectedWorker=w;
 $("accountPopup").style.display="flex";
 $("payDate").value=todayISO();
-
 renderAccount();
-
 };
 
 window.closeAccount=()=>{
@@ -748,35 +633,28 @@ selectedWorker=null;
 /* ATTENDANCE MATCHING */
 
 function getWorkerDates(worker){
-
 let names=[worker.name,...worker.aliases].map(normalizeName);
 let dates=new Set();
 
 attendanceData.forEach(row=>{
-
 let found=false;
 
 ["n1","n2","n3","n4","n5","n6"].forEach(key=>{
-if(names.includes(normalizeName(row[key])) && normalizeName(row[key])){
+if(names.includes(normalizeName(row[key]))&&normalizeName(row[key])){
 found=true;
 }
 });
 
-if(found && row.date){
-dates.add(row.date);
-}
-
+if(found&&row.date)dates.add(row.date);
 });
 
 return [...dates].sort((a,b)=>dateSort(a)-dateSort(b));
-
 }
 
 /* ACCOUNT CALCULATION */
 
 function renderAccount(){
-
-if(!selectedWorker) return;
+if(!selectedWorker)return;
 
 let worker=selectedWorker;
 let dates=getWorkerDates(worker);
@@ -794,7 +672,6 @@ $("totalDays").innerText=days+" दिन";
 $("totalWage").innerText=money(wage);
 $("totalPaid").innerText=money(paid);
 $("balance").innerText=money(Math.abs(remaining));
-
 $("balance").className=remaining>=0?"green":"red";
 
 if(remaining<0){
@@ -823,18 +700,15 @@ workerPayments.map(p=>`
 </div>
 `).join("")
 :'<p class="muted">अभी कोई भुगतान दर्ज नहीं है।</p>';
-
 }
 
 /* PAYMENT SNAPSHOT */
 
 onSnapshot(collection(db,"jharkila_payments"),snap=>{
-
 payments=[];
 
 snap.forEach(d=>{
 let x=d.data();
-
 payments.push({
 id:d.id,
 workerId:x.workerId||"",
@@ -847,15 +721,13 @@ time:x.time||0
 });
 });
 
-if(selectedWorker) renderAccount();
-
+if(selectedWorker)renderAccount();
 });
 
 /* ADD PAYMENT */
 
 window.addPayment=async()=>{
-
-if(!selectedWorker) return;
+if(!selectedWorker)return;
 
 let date=$("payDate").value;
 let amount=Number($("payAmount").value);
@@ -873,7 +745,6 @@ return;
 }
 
 try{
-
 await addDoc(collection(db,"jharkila_payments"),{
 workerId:selectedWorker.id,
 workerName:selectedWorker.name,
@@ -886,40 +757,32 @@ time:Date.now()
 
 $("payAmount").value="";
 $("payNote").value="";
-
 alert("भुगतान का रिकॉर्ड Save हो गया");
-
 }catch(e){
 alert("Save नहीं हुआ: "+e.message);
 }
-
 };
 
 /* DELETE PAYMENT */
 
-window.deletePayment=async(id)=>{
-
-if(!confirm("यह भुगतान रिकॉर्ड Delete करना है?")) return;
+window.deletePayment=async id=>{
+if(!confirm("यह भुगतान रिकॉर्ड Delete करना है?"))return;
 
 try{
 await deleteDoc(doc(db,"jharkila_payments",id));
 }catch(e){
 alert(e.message);
 }
-
 };
 
 /* EDIT DAILY DATA */
 
-window.editData=async(id)=>{
-
+window.editData=async id=>{
 try{
-
 let snap=await getDoc(doc(db,"jharkila",id));
-if(!snap.exists()) return;
+if(!snap.exists())return;
 
 let x=snap.data();
-
 $("e_date").value=x.date||"";
 $("e_datePicker").value=ddmmyyyyToISO(x.date||"");
 
@@ -929,35 +792,26 @@ $("e"+(i+1)).value=x[key]||"";
 
 editId=id;
 $("editPopup").style.display="flex";
-
 }catch(e){
 alert(e.message);
 }
-
 };
 
 window.updateData=async()=>{
-
-if(!editId) return;
+if(!editId)return;
 
 try{
-
-let data={
-date:$("e_date").value
-};
+let data={date:$("e_date").value};
 
 ["n1","n2","n3","n4","n5","n6"].forEach((key,i)=>{
 data[key]=$("e"+(i+1)).value.trim();
 });
 
 await updateDoc(doc(db,"jharkila",editId),data);
-
 closePopup();
-
 }catch(e){
 alert(e.message);
 }
-
 };
 
 window.closePopup=()=>{
@@ -967,32 +821,26 @@ editId=null;
 
 /* EDIT NOTE */
 
-window.editNoteData=async(id)=>{
-
+window.editNoteData=async id=>{
 let snap=await getDoc(doc(db,"jharkila_note",id));
-if(!snap.exists()) return;
+if(!snap.exists())return;
 
 $("editNote").value=snap.data().text||"";
 noteEditId=id;
 $("notePopup").style.display="flex";
-
 };
 
 window.updateNote=async()=>{
-
-if(!noteEditId) return;
+if(!noteEditId)return;
 
 try{
 await updateDoc(doc(db,"jharkila_note",noteEditId),{
 text:$("editNote").value.trim()
 });
-
 closeNotePopup();
-
 }catch(e){
 alert(e.message);
 }
-
 };
 
 window.closeNotePopup=()=>{
@@ -1015,23 +863,18 @@ $("deletePopup").style.display="none";
 };
 
 window.confirmDelete=async()=>{
-
-if(!deleteId) return;
+if(!deleteId)return;
 
 try{
-
 if(deleteType==="main"){
 await deleteDoc(doc(db,"jharkila",deleteId));
 }else{
 await deleteDoc(doc(db,"jharkila_note",deleteId));
 }
-
 closeDeletePopup();
-
 }catch(e){
 alert(e.message);
 }
-
 };
 
 /* PRINT */
