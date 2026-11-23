@@ -51,6 +51,7 @@ th{background:#eee}
 .accountTitle{text-align:center;font-size:20px;font-weight:bold}
 .accountTop{position:relative;padding:5px 40px 5px}
 .accountClose{position:absolute;right:0;top:0;width:35px;height:35px;padding:0;margin:0;font-size:22px;background:#dc3545;border-radius:50%}
+.hiddenWorker{opacity:.65;background:#f4f4f4}
 
 @media(max-width:700px){
 body{padding:5px}
@@ -73,7 +74,6 @@ th:last-child,td:last-child{display:none}
 </head>
 
 <body>
-
 <div class="box">
 <h2>👷 झारकिला लेबर</h2>
 
@@ -111,22 +111,17 @@ th:last-child,td:last-child{display:none}
 </div>
 
 <h3>📝 Notes Table</h3>
-
 <div class="tableWrap">
 <table class="noteTable">
-<thead>
-<tr><th>नोट</th><th>Action</th></tr>
-</thead>
+<thead><tr><th>नोट</th><th>Action</th></tr></thead>
 <tbody id="noteBody"></tbody>
 </table>
 </div>
 
 <div class="section">
 <h3>👷 Labour List / मजदूरों की लिस्ट</h3>
-<p class="muted">इस लिस्ट में टेबल में दर्ज सभी मजदूरों के नाम अपने-आप आएँगे। नाम का हिसाब देखने के लिए 📒 दबाएँ।</p>
-<div id="workerList">
-<p class="muted">नाम लोड हो रहे हैं...</p>
-</div>
+<p class="muted">हिसाब देखने के लिए 📒 दबाएँ। Hide किए मजदूर View में नहीं दिखेंगे।</p>
+<div id="workerList"><p class="muted">नाम लोड हो रहे हैं...</p></div>
 </div>
 </div>
 
@@ -134,19 +129,16 @@ th:last-child,td:last-child{display:none}
 <div class="popup" id="editPopup">
 <div class="popup-box">
 <h3>डेटा Edit करें</h3>
-
 <div class="dateWrap">
 <input id="e_date" placeholder="दिनांक" readonly>
 <input id="e_datePicker" class="datePicker" type="date">
 </div>
-
 <input id="e1" placeholder="नाम 1">
 <input id="e2" placeholder="नाम 2">
 <input id="e3" placeholder="नाम 3">
 <input id="e4" placeholder="नाम 4">
 <input id="e5" placeholder="नाम 5">
 <input id="e6" placeholder="नाम 6">
-
 <button onclick="updateData()">Update</button>
 <button class="redBtn" onclick="closePopup()">Cancel</button>
 </div>
@@ -162,7 +154,7 @@ th:last-child,td:last-child{display:none}
 </div>
 </div>
 
-<!-- DELETE DAILY DATA / NOTE -->
+<!-- DELETE -->
 <div class="popup" id="deletePopup">
 <div class="popup-box">
 <h3>Delete करना है?</h3>
@@ -175,9 +167,8 @@ th:last-child,td:last-child{display:none}
 <!-- LABOUR ACCOUNT -->
 <div class="popup" id="accountPopup">
 <div class="popup-box">
-
 <div class="accountTop">
-<button class="accountClose" onclick="closeAccount()" title="बंद करें">✕</button>
+<button class="accountClose" onclick="closeAccount()">✕</button>
 <div class="accountTitle" id="accountName">लेबर का हिसाब</div>
 </div>
 
@@ -193,8 +184,16 @@ th:last-child,td:last-child{display:none}
 <strong id="totalWage">₹0</strong>
 </div>
 <div class="summaryCard">
-<small>कुल Advance / भुगतान</small>
-<strong id="totalPaid">₹0</strong>
+<small>कुल Advance</small>
+<strong id="totalAdvance">₹0</strong>
+</div>
+<div class="summaryCard">
+<small>अब तक भुगतान</small>
+<strong id="totalPayment">₹0</strong>
+</div>
+<div class="summaryCard">
+<small>कुल दिया गया पैसा</small>
+<strong id="totalGiven">₹0</strong>
 </div>
 <div class="summaryCard">
 <small>बाकी पैसा</small>
@@ -232,46 +231,22 @@ th:last-child,td:last-child{display:none}
 </div>
 
 <script type="module">
-
 import {
-db,
-collection,
-addDoc,
-onSnapshot,
-deleteDoc,
-doc,
-updateDoc,
-getDoc
+db,collection,addDoc,onSnapshot,deleteDoc,doc,updateDoc,getDoc
 } from "./firebase.js";
 
 const DAILY_RATE=350;
 const $=id=>document.getElementById(id);
 
-let editId=null;
-let noteEditId=null;
-let deleteId=null;
-let deleteType="";
-let workers=[];
-let attendanceData=[];
-let payments=[];
-let selectedWorker=null;
-let workerSyncRunning=false;
-let workersLoaded=false;
-let attendanceLoaded=false;
-let accountHistoryActive=false;
-let ignoreNextPopstate=false;
-
-/* BACK BUTTON CONTROL */
+let editId=null,noteEditId=null,deleteId=null,deleteType="";
+let workers=[],attendanceData=[],payments=[],selectedWorker=null;
+let workerSyncRunning=false,workersLoaded=false,attendanceLoaded=false;
+let accountHistoryActive=false,ignoreNextPopstate=false;
 
 history.pushState({adminPage:true},"",location.href);
 
 window.addEventListener("popstate",()=>{
-
-if(ignoreNextPopstate){
-ignoreNextPopstate=false;
-return;
-}
-
+if(ignoreNextPopstate){ignoreNextPopstate=false;return;}
 if(accountHistoryActive){
 accountHistoryActive=false;
 $("accountPopup").style.display="none";
@@ -279,749 +254,411 @@ selectedWorker=null;
 history.pushState({adminPage:true},"",location.href);
 return;
 }
-
 localStorage.removeItem("login");
 location.replace("index.html");
-
 });
-
-/* DATE FUNCTIONS */
 
 function isoToDDMMYYYY(iso){
 if(!iso)return "";
 let p=iso.split("-");
 return p[2]+"-"+p[1]+"-"+p[0];
 }
-
 function ddmmyyyyToISO(value){
 if(!value)return "";
 let p=value.split("-");
 if(p.length!==3)return "";
 return p[2]+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0");
 }
-
 function dateSort(value){
 let p=(value||"").split("-");
 if(p.length!==3)return 0;
 let yy=p[2].length===2?"20"+p[2]:p[2];
 return Number(yy+p[1].padStart(2,"0")+p[0].padStart(2,"0"));
 }
-
 function todayISO(){
-let d=new Date();
-let offset=d.getTimezoneOffset();
+let d=new Date(),offset=d.getTimezoneOffset();
 return new Date(d.getTime()-offset*60000).toISOString().slice(0,10);
 }
-
 $("datePicker").addEventListener("change",function(){
 $("date").value=isoToDDMMYYYY(this.value);
 });
-
 $("e_datePicker").addEventListener("change",function(){
 $("e_date").value=isoToDDMMYYYY(this.value);
 });
-
 $("payDate").value=todayISO();
-
-/* SAFE TEXT */
 
 function safe(value){
 return String(value??"").replace(/[&<>"']/g,c=>({
-"&":"&amp;",
-"<":"&lt;",
-">":"&gt;",
-'"':"&quot;",
-"'":"&#39;"
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
 })[c]);
 }
-
 function normalizeName(value){
 return String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase("hi");
 }
-
 function money(value){
 return "₹"+Number(value||0).toLocaleString("en-IN");
 }
-
 function buttonText(btn,text,old){
 btn.innerText=text;
 setTimeout(()=>btn.innerText=old,1500);
 }
 
-/* DAILY DATA SAVE */
-
+/* DAILY SAVE */
 window.saveData=async()=>{
 try{
-let note=$("noteInput").value.trim();
-let date=$("date").value;
-
-if(!date&&!note){
-alert("दिनांक या नोट डालें");
-return;
-}
-
+let note=$("noteInput").value.trim(),date=$("date").value;
+if(!date&&!note){alert("दिनांक या नोट डालें");return;}
 if(date){
 await addDoc(collection(db,"jharkila"),{
-date,
-n1:$("n1").value.trim(),
-n2:$("n2").value.trim(),
-n3:$("n3").value.trim(),
-n4:$("n4").value.trim(),
-n5:$("n5").value.trim(),
-n6:$("n6").value.trim(),
-time:Date.now()
+date,n1:$("n1").value.trim(),n2:$("n2").value.trim(),
+n3:$("n3").value.trim(),n4:$("n4").value.trim(),
+n5:$("n5").value.trim(),n6:$("n6").value.trim(),time:Date.now()
 });
 }
-
-if(note){
-await addDoc(collection(db,"jharkila_note"),{
-text:note,
-time:Date.now()
-});
-}
-
-$("date").value="";
-$("datePicker").value="";
+if(note)await addDoc(collection(db,"jharkila_note"),{text:note,time:Date.now()});
+$("date").value="";$("datePicker").value="";
 ["n1","n2","n3","n4","n5","n6","noteInput"].forEach(id=>$(id).value="");
-
 buttonText($("saveBtn"),"✅ Saved","💾 Save");
-}catch(e){
-alert("Save नहीं हुआ: "+e.message);
-}
+}catch(e){alert("Save नहीं हुआ: "+e.message);}
 };
 
 /* WORKER GROUPING */
-
 function getWorkerGroup(worker){
-
-let same=workers.filter(w=>
-normalizeName(w.name)===normalizeName(worker.name)
-);
-
+let same=workers.filter(w=>normalizeName(w.name)===normalizeName(worker.name));
 let aliases=[];
-
 same.forEach(w=>{
 [w.name,...w.aliases].forEach(name=>{
-if(name&&!aliases.some(a=>normalizeName(a)===normalizeName(name))){
-aliases.push(name);
-}
+if(name&&!aliases.some(a=>normalizeName(a)===normalizeName(name)))aliases.push(name);
 });
 });
-
 return {
-...worker,
-aliases,
-memberIds:same.map(w=>w.id)
+...worker,aliases,memberIds:same.map(w=>w.id),
+hidden:same.some(w=>w.hidden===true)
 };
-
 }
 
-/* AUTOMATIC WORKER CREATION */
-
+/* AUTO CREATE WORKERS */
 async function syncWorkersFromAttendance(){
-
 if(workerSyncRunning||!workersLoaded||!attendanceLoaded)return;
-
 workerSyncRunning=true;
-
 try{
-
 let tableNames=[];
-
 attendanceData.forEach(row=>{
 ["n1","n2","n3","n4","n5","n6"].forEach(key=>{
 let name=String(row[key]||"").trim();
-
-if(name&&!tableNames.some(x=>normalizeName(x)===normalizeName(name))){
-tableNames.push(name);
-}
+if(name&&!tableNames.some(x=>normalizeName(x)===normalizeName(name)))tableNames.push(name);
 });
 });
-
 for(let name of tableNames){
-
 let exists=workers.some(w=>{
 let names=[w.name,...w.aliases].map(normalizeName);
 return names.includes(normalizeName(name));
 });
-
 if(!exists){
-
 await addDoc(collection(db,"jharkila_workers"),{
-name,
-aliases:[],
-active:true,
-createdAt:Date.now()
+name,aliases:[],active:true,hidden:false,createdAt:Date.now()
 });
-
 workers.push({
-id:"pending_"+normalizeName(name),
-name,
-aliases:[],
-active:true,
-createdAt:Date.now()
+id:"pending_"+normalizeName(name),name,aliases:[],
+active:true,hidden:false,createdAt:Date.now()
 });
-
+}
+}
+}catch(e){console.log("Worker sync:",e.message);}
+finally{workerSyncRunning=false;}
 }
 
-}
-
-}catch(e){
-console.log("Worker sync:",e.message);
-}finally{
-workerSyncRunning=false;
-}
-
-}
-
-/* DAILY DATA LIST */
-
+/* DAILY DATA SNAPSHOT */
 onSnapshot(collection(db,"jharkila"),snap=>{
-
 attendanceData=[];
-
 snap.forEach(d=>{
 let x=d.data();
 attendanceData.push({
-id:d.id,
-date:x.date||"",
-n1:x.n1||"",
-n2:x.n2||"",
-n3:x.n3||"",
-n4:x.n4||"",
-n5:x.n5||"",
-n6:x.n6||"",
-time:x.time||0
+id:d.id,date:x.date||"",n1:x.n1||"",n2:x.n2||"",
+n3:x.n3||"",n4:x.n4||"",n5:x.n5||"",n6:x.n6||"",time:x.time||0
 });
 });
-
 attendanceLoaded=true;
-
 attendanceData.sort((a,b)=>{
 let x=dateSort(a.date),y=dateSort(b.date);
 return x===y?a.time-b.time:x-y;
 });
-
 $("tbody").innerHTML=attendanceData.map(x=>`
 <tr>
-<td>${safe(x.date)}</td>
-<td>${safe(x.n1)}</td>
-<td>${safe(x.n2)}</td>
-<td>${safe(x.n3)}</td>
-<td>${safe(x.n4)}</td>
-<td>${safe(x.n5)}</td>
+<td>${safe(x.date)}</td><td>${safe(x.n1)}</td><td>${safe(x.n2)}</td>
+<td>${safe(x.n3)}</td><td>${safe(x.n4)}</td><td>${safe(x.n5)}</td>
 <td>${safe(x.n6)}</td>
 <td>
 <button class="actionBtn" onclick="editData('${x.id}')">✏️</button>
 <button class="actionBtn redBtn" onclick="openDeletePopup('${x.id}','main')">🗑️</button>
-</td>
-</tr>
-`).join("");
-
+</td></tr>`).join("");
 syncWorkersFromAttendance();
 renderWorkers();
-
 if(selectedWorker){
 let updated=workers.find(w=>w.id===selectedWorker.id);
-
 if(updated){
 selectedWorker=getWorkerGroup(updated);
-if(getWorkerDates(selectedWorker).length>0){
-renderAccount();
-}else{
-closeAccount();
+if(getWorkerDates(selectedWorker).length>0)renderAccount();
+else closeAccount();
+}else closeAccount();
 }
-}else{
-closeAccount();
-}
-}
-
 });
 
 /* NOTES */
-
 onSnapshot(collection(db,"jharkila_note"),snap=>{
 let arr=[];
-
-snap.forEach(d=>{
-arr.push({id:d.id,text:d.data().text||"",time:d.data().time||0});
-});
-
+snap.forEach(d=>arr.push({id:d.id,text:d.data().text||"",time:d.data().time||0}));
 arr.sort((a,b)=>a.time-b.time);
-
 $("noteBody").innerHTML=arr.map(n=>`
-<tr>
-<td>${safe(n.text)}</td>
-<td>
+<tr><td>${safe(n.text)}</td><td>
 <button class="actionBtn" onclick="editNoteData('${n.id}')">✏️</button>
 <button class="actionBtn redBtn" onclick="openDeletePopup('${n.id}','note')">🗑️</button>
-</td>
-</tr>
-`).join("");
+</td></tr>`).join("");
 });
 
 /* WORKER SNAPSHOT */
-
 onSnapshot(collection(db,"jharkila_workers"),snap=>{
-
 workers=[];
-
 snap.forEach(d=>{
 let x=d.data();
 workers.push({
-id:d.id,
-name:x.name||"",
-aliases:Array.isArray(x.aliases)?x.aliases:[],
-active:x.active!==false,
-createdAt:x.createdAt||0
+id:d.id,name:x.name||"",aliases:Array.isArray(x.aliases)?x.aliases:[],
+active:x.active!==false,hidden:x.hidden===true,createdAt:x.createdAt||0
 });
 });
-
 workersLoaded=true;
-
 workers.sort((a,b)=>a.name.localeCompare(b.name,"hi"));
-
 renderWorkers();
-
 syncWorkersFromAttendance();
-
 if(selectedWorker){
-
 let updated=workers.find(w=>w.id===selectedWorker.id);
-
-if(updated){
-selectedWorker=getWorkerGroup(updated);
-renderAccount();
-}else{
-closeAccount();
+if(updated){selectedWorker=getWorkerGroup(updated);renderAccount();}
+else closeAccount();
 }
-
-}
-
 });
 
-/* CHECK IF WORKER IS IN TABLE */
-
+/* CHECK WORKER IN TABLE */
 function workerIsInTable(worker){
-
 let names=[worker.name,...worker.aliases].map(normalizeName);
-
 return attendanceData.some(row=>
 ["n1","n2","n3","n4","n5","n6"].some(key=>{
 let value=normalizeName(row[key]);
 return value&&names.includes(value);
 })
 );
-
 }
 
-/* RENDER WORKER LIST WITHOUT DUPLICATES */
-
+/* RENDER WORKER LIST */
 function renderWorkers(){
-
-let list=$("workerList");
-let groups={};
-
+let list=$("workerList"),groups={};
 workers.forEach(w=>{
-
 let key=normalizeName(w.name);
 if(!key)return;
-
-if(!groups[key]){
-groups[key]=getWorkerGroup(w);
-}
-
+if(!groups[key])groups[key]=getWorkerGroup(w);
 });
-
 let visibleWorkers=Object.values(groups).filter(w=>workerIsInTable(w));
-
 if(!visibleWorkers.length){
 list.innerHTML='<p class="muted">टेबल में अभी कोई मजदूर का नाम नहीं है।</p>';
 return;
 }
-
 list.innerHTML=visibleWorkers.map(w=>`
-<div class="worker">
-<div class="workerName">${safe(w.name)}</div>
+<div class="worker ${w.hidden?"hiddenWorker":""}">
+<div class="workerName">${safe(w.name)} ${w.hidden?'<span class="muted">(Hidden)</span>':""}</div>
 <button onclick="openAccount('${w.id}')">📒 हिसाब</button>
-<button class="smallBtn blueBtn" onclick="renameWorker('${w.id}')">✏️ नाम बदलें</button>
-</div>
-`).join("");
-
+<button class="smallBtn ${w.hidden?"blueBtn":"redBtn"}" onclick="toggleWorkerVisibility('${w.id}')">
+${w.hidden?"Unhide":"Hide"}
+</button>
+</div>`).join("");
 }
 
-/* RENAME WORKER */
-
-window.renameWorker=async(id)=>{
-
+/* HIDE / UNHIDE */
+window.toggleWorkerVisibility=async id=>{
 let w=workers.find(x=>x.id===id);
 if(!w)return;
-
 let group=getWorkerGroup(w);
-
-let newName=prompt("नया नाम लिखें:",w.name);
-if(newName===null)return;
-
-newName=newName.trim();
-if(!newName)return alert("नाम खाली नहीं हो सकता");
-
-let duplicate=workers.some(x=>
-!group.memberIds.includes(x.id)&&normalizeName(x.name)===normalizeName(newName)
-);
-
-if(duplicate)return alert("यह नाम किसी दूसरे लड़के का है");
-
-let aliases=[...group.aliases];
-
-if(!aliases.some(a=>normalizeName(a)===normalizeName(w.name))){
-aliases.push(w.name);
-}
-
+let newHidden=!group.hidden;
+if(!confirm(newHidden?"क्या इस मजदूर को View पेज से Hide करना है?":"क्या इस मजदूर को फिर से View पेज पर दिखाना है?"))return;
 try{
-
 for(let memberId of group.memberIds){
-await updateDoc(doc(db,"jharkila_workers",memberId),{
-name:newName,
-aliases
-});
+await updateDoc(doc(db,"jharkila_workers",memberId),{hidden:newHidden});
 }
-
-}catch(e){
-alert(e.message);
-}
-
+alert(newHidden?"मजदूर Hide कर दिया गया।":"मजदूर Unhide कर दिया गया।");
+}catch(e){alert("बदलाव नहीं हुआ: "+e.message);}
 };
 
 /* ACCOUNT OPEN */
-
 window.openAccount=id=>{
-
 let w=workers.find(x=>x.id===id);
 if(!w)return;
-
 selectedWorker=getWorkerGroup(w);
-
 $("accountPopup").style.display="flex";
 $("payDate").value=todayISO();
-
 if(!accountHistoryActive){
 history.pushState({accountPopup:true},"",location.href);
 accountHistoryActive=true;
 }
-
 renderAccount();
-
 };
 
-/* ACCOUNT CLOSE */
-
 window.closeAccount=()=>{
-
 $("accountPopup").style.display="none";
 selectedWorker=null;
-
 if(accountHistoryActive){
 accountHistoryActive=false;
 ignoreNextPopstate=true;
 history.back();
 }
-
 };
 
 /* ATTENDANCE MATCHING */
-
 function getWorkerDates(worker){
-
-let names=[worker.name,...worker.aliases].map(normalizeName);
-let dates=new Set();
-
+let names=[worker.name,...worker.aliases].map(normalizeName),dates=new Set();
 attendanceData.forEach(row=>{
-
 let found=false;
-
 ["n1","n2","n3","n4","n5","n6"].forEach(key=>{
-if(names.includes(normalizeName(row[key]))&&normalizeName(row[key])){
-found=true;
-}
+if(names.includes(normalizeName(row[key]))&&normalizeName(row[key]))found=true;
 });
-
 if(found&&row.date)dates.add(row.date);
-
 });
-
 return [...dates].sort((a,b)=>dateSort(a)-dateSort(b));
-
 }
 
 /* ACCOUNT CALCULATION */
-
 function renderAccount(){
-
 if(!selectedWorker)return;
-
-let worker=selectedWorker;
-let dates=getWorkerDates(worker);
-
+let worker=selectedWorker,dates=getWorkerDates(worker);
 let ids=worker.memberIds||[worker.id];
-
 let workerPayments=payments.filter(p=>ids.includes(p.workerId));
-
 workerPayments.sort((a,b)=>dateSort(a.date)-dateSort(b.date)||a.time-b.time);
 
-let days=dates.length;
-let wage=days*DAILY_RATE;
-let paid=workerPayments.reduce((sum,p)=>sum+Number(p.amount||0),0);
-let remaining=wage-paid;
+let days=dates.length,wage=days*DAILY_RATE;
+let advance=workerPayments.filter(p=>p.type==="Advance")
+.reduce((sum,p)=>sum+Number(p.amount||0),0);
+let paid=workerPayments.filter(p=>p.type!=="Advance")
+.reduce((sum,p)=>sum+Number(p.amount||0),0);
+let totalGiven=advance+paid;
+let remaining=wage-totalGiven;
 
 $("accountName").innerText=worker.name+" का हिसाब";
 $("totalDays").innerText=days+" दिन";
 $("totalWage").innerText=money(wage);
-$("totalPaid").innerText=money(paid);
-$("balance").innerText=money(Math.abs(remaining));
+$("totalAdvance").innerText=money(advance);
+$("totalPayment").innerText=money(paid);
+$("totalGiven").innerText=money(totalGiven);
+$("balance").innerText=remaining>=0?money(remaining):money(Math.abs(remaining))+" जमा";
 $("balance").className=remaining>=0?"green":"red";
 
-if(remaining<0){
-$("balance").innerText=money(Math.abs(remaining))+" जमा";
-}
+$("attendanceHistory").innerHTML=dates.length?dates.map(d=>`
+<div class="paymentRow"><div>काम किया</div><strong>${safe(d)}</strong><div>${money(DAILY_RATE)}</div></div>
+`).join(""):'<p class="muted">अभी कोई हाजिरी नहीं मिली।</p>';
 
-$("attendanceHistory").innerHTML=dates.length?
-dates.map(d=>`
+$("paymentHistory").innerHTML=workerPayments.length?workerPayments.map(p=>`
 <div class="paymentRow">
-<div>काम किया</div>
-<strong>${safe(d)}</strong>
-<div>${money(DAILY_RATE)}</div>
-</div>
-`).join("")
-:'<p class="muted">अभी कोई हाजिरी नहीं मिली।</p>';
-
-$("paymentHistory").innerHTML=workerPayments.length?
-workerPayments.map(p=>`
-<div class="paymentRow">
-<div>
-<strong>${safe(p.type)}</strong>
-<div class="muted">${safe(p.date)} ${p.note?"· "+safe(p.note):""}</div>
-</div>
+<div><strong>${safe(p.type==="Advance"?"Advance":"भुगतान")}</strong>
+<div class="muted">${safe(p.date)} ${p.note?"· "+safe(p.note):""}</div></div>
 <strong>${money(p.amount)}</strong>
 <button class="actionBtn redBtn" onclick="deletePayment('${p.id}')">🗑️</button>
-</div>
-`).join("")
-:'<p class="muted">अभी कोई भुगतान दर्ज नहीं है।</p>';
-
+</div>`).join(""):'<p class="muted">अभी कोई भुगतान दर्ज नहीं है।</p>';
 }
 
 /* PAYMENT SNAPSHOT */
-
 onSnapshot(collection(db,"jharkila_payments"),snap=>{
-
 payments=[];
-
 snap.forEach(d=>{
 let x=d.data();
-
 payments.push({
-id:d.id,
-workerId:x.workerId||"",
-workerName:x.workerName||"",
-date:x.date||"",
-type:x.type||"Payment",
-amount:Number(x.amount||0),
-note:x.note||"",
-time:x.time||0
+id:d.id,workerId:x.workerId||"",workerName:x.workerName||"",
+date:x.date||"",type:x.type||"Payment",
+amount:Number(x.amount||0),note:x.note||"",time:x.time||0
 });
 });
-
 if(selectedWorker)renderAccount();
-
 });
 
 /* ADD PAYMENT */
-
 window.addPayment=async()=>{
-
 if(!selectedWorker)return;
-
-let date=$("payDate").value;
-let amount=Number($("payAmount").value);
-let type=$("payType").value;
-let note=$("payNote").value.trim();
-
-if(!date){
-alert("भुगतान की तारीख चुनें");
-return;
-}
-
-if(!Number.isFinite(amount)||amount<=0){
-alert("सही रकम डालें");
-return;
-}
-
+let date=$("payDate").value,amount=Number($("payAmount").value);
+let type=$("payType").value,note=$("payNote").value.trim();
+if(!date){alert("भुगतान की तारीख चुनें");return;}
+if(!Number.isFinite(amount)||amount<=0){alert("सही रकम डालें");return;}
 try{
-
 await addDoc(collection(db,"jharkila_payments"),{
-workerId:selectedWorker.id,
-workerName:selectedWorker.name,
-date:isoToDDMMYYYY(date),
-type,
-amount,
-note,
-time:Date.now()
+workerId:selectedWorker.id,workerName:selectedWorker.name,
+date:isoToDDMMYYYY(date),type,amount,note,time:Date.now()
 });
-
-$("payAmount").value="";
-$("payNote").value="";
-
+$("payAmount").value="";$("payNote").value="";
 alert("भुगतान का रिकॉर्ड Save हो गया");
-
-}catch(e){
-alert("Save नहीं हुआ: "+e.message);
-}
-
+}catch(e){alert("Save नहीं हुआ: "+e.message);}
 };
 
 /* DELETE PAYMENT */
-
 window.deletePayment=async id=>{
-
 if(!confirm("यह भुगतान रिकॉर्ड Delete करना है?"))return;
-
-try{
-await deleteDoc(doc(db,"jharkila_payments",id));
-}catch(e){
-alert(e.message);
-}
-
+try{await deleteDoc(doc(db,"jharkila_payments",id));}
+catch(e){alert(e.message);}
 };
 
 /* EDIT DAILY DATA */
-
 window.editData=async id=>{
-
 try{
-
 let snap=await getDoc(doc(db,"jharkila",id));
 if(!snap.exists())return;
-
 let x=snap.data();
-
 $("e_date").value=x.date||"";
 $("e_datePicker").value=ddmmyyyyToISO(x.date||"");
-
-["n1","n2","n3","n4","n5","n6"].forEach((key,i)=>{
-$("e"+(i+1)).value=x[key]||"";
-});
-
-editId=id;
-$("editPopup").style.display="flex";
-
-}catch(e){
-alert(e.message);
-}
-
+["n1","n2","n3","n4","n5","n6"].forEach((key,i)=>{$("e"+(i+1)).value=x[key]||"";});
+editId=id;$("editPopup").style.display="flex";
+}catch(e){alert(e.message);}
 };
 
 window.updateData=async()=>{
-
 if(!editId)return;
-
 try{
-
 let data={date:$("e_date").value};
-
-["n1","n2","n3","n4","n5","n6"].forEach((key,i)=>{
-data[key]=$("e"+(i+1)).value.trim();
-});
-
+["n1","n2","n3","n4","n5","n6"].forEach((key,i)=>{data[key]=$("e"+(i+1)).value.trim();});
 await updateDoc(doc(db,"jharkila",editId),data);
-
 closePopup();
-
-}catch(e){
-alert(e.message);
-}
-
+}catch(e){alert(e.message);}
 };
-
-window.closePopup=()=>{
-$("editPopup").style.display="none";
-editId=null;
-};
+window.closePopup=()=>{$("editPopup").style.display="none";editId=null;};
 
 /* EDIT NOTE */
-
 window.editNoteData=async id=>{
-
 let snap=await getDoc(doc(db,"jharkila_note",id));
 if(!snap.exists())return;
-
 $("editNote").value=snap.data().text||"";
-noteEditId=id;
-$("notePopup").style.display="flex";
-
+noteEditId=id;$("notePopup").style.display="flex";
 };
-
 window.updateNote=async()=>{
-
 if(!noteEditId)return;
-
 try{
-await updateDoc(doc(db,"jharkila_note",noteEditId),{
-text:$("editNote").value.trim()
-});
-
+await updateDoc(doc(db,"jharkila_note",noteEditId),{text:$("editNote").value.trim()});
 closeNotePopup();
-
-}catch(e){
-alert(e.message);
-}
-
+}catch(e){alert(e.message);}
 };
-
-window.closeNotePopup=()=>{
-$("notePopup").style.display="none";
-noteEditId=null;
-};
+window.closeNotePopup=()=>{$("notePopup").style.display="none";noteEditId=null;};
 
 /* DELETE DAILY DATA / NOTE */
-
 window.openDeletePopup=(id,type)=>{
-deleteId=id;
-deleteType=type;
-$("deletePopup").style.display="flex";
+deleteId=id;deleteType=type;$("deletePopup").style.display="flex";
 };
-
 window.closeDeletePopup=()=>{
-deleteId=null;
-deleteType="";
-$("deletePopup").style.display="none";
+deleteId=null;deleteType="";$("deletePopup").style.display="none";
 };
-
 window.confirmDelete=async()=>{
-
 if(!deleteId)return;
-
 try{
-
-if(deleteType==="main"){
-await deleteDoc(doc(db,"jharkila",deleteId));
-}else{
-await deleteDoc(doc(db,"jharkila_note",deleteId));
-}
-
+if(deleteType==="main")await deleteDoc(doc(db,"jharkila",deleteId));
+else await deleteDoc(doc(db,"jharkila_note",deleteId));
 closeDeletePopup();
-
-}catch(e){
-alert(e.message);
-}
-
+}catch(e){alert(e.message);}
 };
 
 /* PRINT */
-
 window.printData=()=>window.print();
-
 </script>
 
 <script src="pwa.js"></script>
-
 </body>
 </html>
