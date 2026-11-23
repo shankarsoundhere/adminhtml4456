@@ -49,6 +49,9 @@ th{background:#eee}
 .paymentRow div:first-child{flex:1}
 .muted{color:#666;font-size:12px}
 .accountTitle{text-align:center;font-size:20px;font-weight:bold}
+.accountTop{position:relative;padding:5px 40px 5px}
+.accountClose{position:absolute;right:0;top:0;width:35px;height:35px;padding:0;margin:0;font-size:22px;background:#dc3545;border-radius:50%}
+
 @media(max-width:700px){
 body{padding:5px}
 .box{width:100%;padding:10px;box-shadow:none}
@@ -56,6 +59,7 @@ table{font-size:10px}
 td,th{padding:4px 2px}
 .workerName{min-width:100px}
 }
+
 @media print{
 @page{size:A4;margin:8mm}
 body{background:white;padding:0}
@@ -172,7 +176,11 @@ th:last-child,td:last-child{display:none}
 <div class="popup" id="accountPopup">
 <div class="popup-box">
 
+<div class="accountTop">
+<button class="accountClose" onclick="closeAccount()" title="बंद करें">✕</button>
 <div class="accountTitle" id="accountName">लेबर का हिसाब</div>
+</div>
+
 <p class="muted" style="text-align:center">प्रतिदिन मजदूरी: ₹350</p>
 
 <div class="accountSummary">
@@ -248,6 +256,29 @@ let attendanceData=[];
 let payments=[];
 let selectedWorker=null;
 let workerSyncRunning=false;
+let accountHistoryActive=false;
+let ignoreNextPopstate=false;
+
+/* BACK BUTTON CONTROL */
+
+history.replaceState({adminPage:true},"",location.href);
+
+window.addEventListener("popstate",()=>{
+if(ignoreNextPopstate){
+ignoreNextPopstate=false;
+return;
+}
+
+if(accountHistoryActive){
+accountHistoryActive=false;
+$("accountPopup").style.display="none";
+selectedWorker=null;
+return;
+}
+
+localStorage.removeItem("login");
+location.replace("index.html");
+});
 
 /* DATE FUNCTIONS */
 
@@ -586,13 +617,28 @@ selectedWorker=w;
 $("accountPopup").style.display="flex";
 $("payDate").value=todayISO();
 
+if(!accountHistoryActive){
+history.pushState({accountPopup:true},"",location.href);
+accountHistoryActive=true;
+}
+
 renderAccount();
 
 };
 
+/* ACCOUNT CLOSE */
+
 window.closeAccount=()=>{
+
 $("accountPopup").style.display="none";
 selectedWorker=null;
+
+if(accountHistoryActive){
+accountHistoryActive=false;
+ignoreNextPopstate=true;
+history.back();
+}
+
 };
 
 /* ATTENDANCE MATCHING */
@@ -886,16 +932,6 @@ window.printData=()=>window.print();
 </script>
 
 <script src="pwa.js"></script>
-
-<script>
-(function(){
-history.pushState(null,"",location.href);
-window.addEventListener("popstate",function(){
-localStorage.removeItem("login");
-location.replace("index.html");
-});
-})();
-</script>
 
 </body>
 </html>
