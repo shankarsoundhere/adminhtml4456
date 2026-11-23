@@ -172,7 +172,7 @@ th:last-child,td:last-child{display:none}
 <div class="popup" id="deletePopup">
 <div class="popup-box">
 <h3>Delete करना है?</h3>
-<p>क्या आप इस डेटा को Delete करना चाहते हैं?</p>
+<p id="deleteMessage">क्या आप इस डेटा को Delete करना चाहते हैं?</p>
 <button class="redBtn" onclick="confirmDelete()">🗑️ Delete</button>
 <button class="blueBtn" onclick="closeDeletePopup()">Cancel</button>
 </div>
@@ -619,12 +619,8 @@ showToast("भुगतान का रिकॉर्ड Save हो गया
 };
 
 /* DELETE PAYMENT */
-window.deletePayment=async id=>{
-if(!confirm("यह भुगतान रिकॉर्ड Delete करना है?"))return;
-try{
-await deleteDoc(doc(db,"jharkila_payments",id));
-showToast("भुगतान रिकॉर्ड Delete हो गया");
-}catch(e){showToast(e.message);}
+window.deletePayment=id=>{
+openDeletePopup(id,"payment");
 };
 
 /* EDIT DAILY DATA */
@@ -671,21 +667,45 @@ showToast("नोट Update हो गया ✓");
 };
 window.closeNotePopup=()=>{$("notePopup").style.display="none";noteEditId=null;};
 
-/* DELETE DAILY DATA / NOTE */
+/* DELETE DAILY DATA / NOTE / PAYMENT */
 window.openDeletePopup=(id,type)=>{
-deleteId=id;deleteType=type;$("deletePopup").style.display="flex";
+deleteId=id;
+deleteType=type;
+
+$("deleteMessage").innerText=
+type==="payment"?"क्या आप यह भुगतान रिकॉर्ड Delete करना चाहते हैं?":
+type==="note"?"क्या आप यह नोट Delete करना चाहते हैं?":
+"क्या आप इस डेटा को Delete करना चाहते हैं?";
+
+$("deletePopup").style.display="flex";
 };
+
 window.closeDeletePopup=()=>{
-deleteId=null;deleteType="";$("deletePopup").style.display="none";
+deleteId=null;
+deleteType="";
+$("deletePopup").style.display="none";
 };
+
 window.confirmDelete=async()=>{
 if(!deleteId)return;
+
 try{
-if(deleteType==="main")await deleteDoc(doc(db,"jharkila",deleteId));
-else await deleteDoc(doc(db,"jharkila_note",deleteId));
+if(deleteType==="main"){
+await deleteDoc(doc(db,"jharkila",deleteId));
+}
+else if(deleteType==="note"){
+await deleteDoc(doc(db,"jharkila_note",deleteId));
+}
+else if(deleteType==="payment"){
+await deleteDoc(doc(db,"jharkila_payments",deleteId));
+}
+
 closeDeletePopup();
-showToast("डेटा Delete हो गया");
-}catch(e){showToast(e.message);}
+showToast("रिकॉर्ड Delete हो गया ✓");
+
+}catch(e){
+showToast("Delete नहीं हुआ: "+e.message);
+}
 };
 
 /* PRINT */
