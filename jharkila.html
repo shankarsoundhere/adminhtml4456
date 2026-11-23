@@ -53,6 +53,23 @@ th{background:#eee}
 .accountClose{position:absolute;right:0;top:0;width:35px;height:35px;padding:0;margin:0;font-size:22px;background:#dc3545;border-radius:50%}
 .hiddenWorker{opacity:.65;background:#f4f4f4}
 
+#toastMsg{
+position:fixed;
+bottom:25px;
+left:50%;
+transform:translateX(-50%);
+background:#222;
+color:white;
+padding:12px 20px;
+border-radius:10px;
+font-size:14px;
+z-index:99999;
+display:none;
+box-shadow:0 3px 12px #0004;
+text-align:center;
+max-width:90%;
+}
+
 @media(max-width:700px){
 body{padding:5px}
 .box{width:100%;padding:10px;box-shadow:none}
@@ -118,7 +135,6 @@ th:last-child,td:last-child{display:none}
 
 <div class="section">
 <h3>👷 झारकिला लेबर</h3>
-
 <div id="workerList"><p class="muted">नाम लोड हो रहे हैं...</p></div>
 </div>
 </div>
@@ -222,11 +238,12 @@ th:last-child,td:last-child{display:none}
 </div>
 
 <div class="popupActions noPrint">
-<button class="blueBtn" onclick="window.print()">🖨️ Print</button>
 <button class="redBtn" onclick="closeAccount()">बंद करें</button>
 </div>
 </div>
 </div>
+
+<div id="toastMsg"></div>
 
 <script type="module">
 import {
@@ -255,6 +272,16 @@ return;
 localStorage.removeItem("login");
 location.replace("index.html");
 });
+
+function showToast(message){
+const box=$("toastMsg");
+box.textContent=message;
+box.style.display="block";
+clearTimeout(window.toastTimer);
+window.toastTimer=setTimeout(()=>{
+box.style.display="none";
+},2500);
+}
 
 function isoToDDMMYYYY(iso){
 if(!iso)return "";
@@ -305,7 +332,7 @@ setTimeout(()=>btn.innerText=old,1500);
 window.saveData=async()=>{
 try{
 let note=$("noteInput").value.trim(),date=$("date").value;
-if(!date&&!note){alert("दिनांक या नोट डालें");return;}
+if(!date&&!note){showToast("दिनांक या नोट डालें");return;}
 if(date){
 await addDoc(collection(db,"jharkila"),{
 date,n1:$("n1").value.trim(),n2:$("n2").value.trim(),
@@ -317,7 +344,8 @@ if(note)await addDoc(collection(db,"jharkila_note"),{text:note,time:Date.now()})
 $("date").value="";$("datePicker").value="";
 ["n1","n2","n3","n4","n5","n6","noteInput"].forEach(id=>$(id).value="");
 buttonText($("saveBtn"),"✅ Saved","💾 Save");
-}catch(e){alert("Save नहीं हुआ: "+e.message);}
+showToast("डेटा Save हो गया ✓");
+}catch(e){showToast("Save नहीं हुआ: "+e.message);}
 };
 
 /* WORKER GROUPING */
@@ -480,8 +508,8 @@ try{
 for(let memberId of group.memberIds){
 await updateDoc(doc(db,"jharkila_workers",memberId),{hidden:newHidden});
 }
-alert(newHidden?"मजदूर Hide कर दिया गया।":"मजदूर Unhide कर दिया गया।");
-}catch(e){alert("बदलाव नहीं हुआ: "+e.message);}
+showToast(newHidden?"मजदूर Hide कर दिया गया।":"मजदूर Unhide कर दिया गया।");
+}catch(e){showToast("बदलाव नहीं हुआ: "+e.message);}
 };
 
 /* ACCOUNT OPEN */
@@ -578,23 +606,25 @@ window.addPayment=async()=>{
 if(!selectedWorker)return;
 let date=$("payDate").value,amount=Number($("payAmount").value);
 let type=$("payType").value,note=$("payNote").value.trim();
-if(!date){alert("भुगतान की तारीख चुनें");return;}
-if(!Number.isFinite(amount)||amount<=0){alert("सही रकम डालें");return;}
+if(!date){showToast("भुगतान की तारीख चुनें");return;}
+if(!Number.isFinite(amount)||amount<=0){showToast("सही रकम डालें");return;}
 try{
 await addDoc(collection(db,"jharkila_payments"),{
 workerId:selectedWorker.id,workerName:selectedWorker.name,
 date:isoToDDMMYYYY(date),type,amount,note,time:Date.now()
 });
 $("payAmount").value="";$("payNote").value="";
-alert("भुगतान का रिकॉर्ड Save हो गया");
-}catch(e){alert("Save नहीं हुआ: "+e.message);}
+showToast("भुगतान का रिकॉर्ड Save हो गया ✓");
+}catch(e){showToast("Save नहीं हुआ: "+e.message);}
 };
 
 /* DELETE PAYMENT */
 window.deletePayment=async id=>{
 if(!confirm("यह भुगतान रिकॉर्ड Delete करना है?"))return;
-try{await deleteDoc(doc(db,"jharkila_payments",id));}
-catch(e){alert(e.message);}
+try{
+await deleteDoc(doc(db,"jharkila_payments",id));
+showToast("भुगतान रिकॉर्ड Delete हो गया");
+}catch(e){showToast(e.message);}
 };
 
 /* EDIT DAILY DATA */
@@ -607,7 +637,7 @@ $("e_date").value=x.date||"";
 $("e_datePicker").value=ddmmyyyyToISO(x.date||"");
 ["n1","n2","n3","n4","n5","n6"].forEach((key,i)=>{$("e"+(i+1)).value=x[key]||"";});
 editId=id;$("editPopup").style.display="flex";
-}catch(e){alert(e.message);}
+}catch(e){showToast(e.message);}
 };
 
 window.updateData=async()=>{
@@ -617,23 +647,27 @@ let data={date:$("e_date").value};
 ["n1","n2","n3","n4","n5","n6"].forEach((key,i)=>{data[key]=$("e"+(i+1)).value.trim();});
 await updateDoc(doc(db,"jharkila",editId),data);
 closePopup();
-}catch(e){alert(e.message);}
+showToast("डेटा Update हो गया ✓");
+}catch(e){showToast(e.message);}
 };
 window.closePopup=()=>{$("editPopup").style.display="none";editId=null;};
 
 /* EDIT NOTE */
 window.editNoteData=async id=>{
+try{
 let snap=await getDoc(doc(db,"jharkila_note",id));
 if(!snap.exists())return;
 $("editNote").value=snap.data().text||"";
 noteEditId=id;$("notePopup").style.display="flex";
+}catch(e){showToast(e.message);}
 };
 window.updateNote=async()=>{
 if(!noteEditId)return;
 try{
 await updateDoc(doc(db,"jharkila_note",noteEditId),{text:$("editNote").value.trim()});
 closeNotePopup();
-}catch(e){alert(e.message);}
+showToast("नोट Update हो गया ✓");
+}catch(e){showToast(e.message);}
 };
 window.closeNotePopup=()=>{$("notePopup").style.display="none";noteEditId=null;};
 
@@ -650,10 +684,12 @@ try{
 if(deleteType==="main")await deleteDoc(doc(db,"jharkila",deleteId));
 else await deleteDoc(doc(db,"jharkila_note",deleteId));
 closeDeletePopup();
-}catch(e){alert(e.message);}
+showToast("डेटा Delete हो गया");
+}catch(e){showToast(e.message);}
 };
 
 /* PRINT */
+window.printData=()=>window.print();
 
 </script>
 
