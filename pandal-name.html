@@ -54,6 +54,46 @@ h2{
     margin:10px 0 12px;
 }
 
+/* =========================
+   COMMON DELETE TICK BAR
+========================= */
+
+.security-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#fff3cd;
+    border:1px solid #ffeeba;
+    padding:10px 12px;
+    border-radius:7px;
+    margin-bottom:12px;
+    font-size:14px;
+    font-weight:bold;
+    color:#856404;
+}
+
+.security-bar.unlocked{
+    background:#d4edda;
+    border-color:#c3e6cb;
+    color:#155724;
+}
+
+.security-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    user-select:none;
+    margin:0;
+}
+
+.security-label input[type="checkbox"]{
+    width:18px;
+    height:18px;
+    margin:0;
+    cursor:pointer;
+}
+
 .row{
     border:1px solid #ddd;
     border-radius:8px;
@@ -134,6 +174,18 @@ button:disabled{
 🏠 पंडाल मिस्त्री
 </div>
 
+<!-- =========================
+     COMMON DELETE SECURITY TICK
+========================== -->
+
+<div class="security-bar" id="securityBar">
+    <label class="security-label">
+        <input type="checkbox" id="commonDeleteTick">
+        <span>🔓 Common Delete Mode (बिना बार-बार पासवर्ड के Delete)</span>
+    </label>
+    <span id="securityStatus">🔒 OFF</span>
+</div>
+
 <div id="pandalList"></div>
 
 <button
@@ -160,6 +212,85 @@ getDoc,
 setDoc
 
 } from "./firebase.js";
+
+
+/* =====================================================
+   COMMON PASSWORD & DELETE SECURITY SYSTEM
+===================================================== */
+
+let isCommonDeleteUnlocked = false;
+
+const commonTick = document.getElementById("commonDeleteTick");
+const securityBar = document.getElementById("securityBar");
+const securityStatus = document.getElementById("securityStatus");
+
+function updateSecurityUI(){
+    commonTick.checked = isCommonDeleteUnlocked;
+    if(isCommonDeleteUnlocked){
+        securityBar.classList.add("unlocked");
+        securityStatus.textContent = "✅ ON";
+    } else {
+        securityBar.classList.remove("unlocked");
+        securityStatus.textContent = "🔒 OFF";
+    }
+}
+
+/* Firebase से Common Password वेरिफाई करने का फंक्शन */
+async function verifyCommonPassword(){
+    const enteredPass = prompt("🔐 Delete करने के लिए Common Password दर्ज करें:");
+    if(enteredPass === null) return false;
+
+    try{
+        const passDocRef = doc(db, "security", "config");
+        const passSnap = await getDoc(passDocRef);
+
+        if(!passSnap.exists() || !passSnap.data().deletePassword){
+            alert("⚠️ Firebase में Common Password (security/config -> deletePassword) सेट नहीं है!");
+            return false;
+        }
+
+        const realPassword = String(passSnap.data().deletePassword);
+
+        if(enteredPass === realPassword){
+            return true;
+        } else {
+            alert("❌ गलत Password! Delete रद्द कर दिया गया।");
+            return false;
+        }
+    } catch(err){
+        console.error("Password Verification Error:", err);
+        alert("⚠️ Password जांचने में समस्या आई। इंटरनेट या Firebase जांचें।");
+        return false;
+    }
+}
+
+/* Tick ON/OFF हैंडलर */
+commonTick.addEventListener("change", async function(){
+    if(commonTick.checked){
+        commonTick.checked = false;
+        const isValid = await verifyCommonPassword();
+        if(isValid){
+            isCommonDeleteUnlocked = true;
+            updateSecurityUI();
+        }
+    } else {
+        isCommonDeleteUnlocked = false;
+        updateSecurityUI();
+    }
+});
+
+/* पेज छोड़ते ही (Back / Close / Navigate) Tick अपने आप OFF हो जाए */
+function resetSecurityOnLeave(){
+    isCommonDeleteUnlocked = false;
+    if(commonTick) commonTick.checked = false;
+    updateSecurityUI();
+}
+
+window.addEventListener("pagehide", resetSecurityOnLeave);
+window.addEventListener("beforeunload", resetSecurityOnLeave);
+window.addEventListener("pageshow", function(){
+    resetSecurityOnLeave();
+});
 
 
 const colRef =
@@ -547,6 +678,17 @@ async function(slot){
 
 window.deleteName =
 async function(slot){
+
+    /* यदि Common Tick OFF है तो पहले Password मांगें */
+    if(!isCommonDeleteUnlocked){
+
+        const isValid = await verifyCommonPassword();
+
+        if(!isValid)
+            return;
+
+    }
+
 
     const yes =
         confirm(
