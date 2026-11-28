@@ -74,7 +74,7 @@ gap:8px;
 flex:1;
 }
 
-/* COMMON DELETE MODE BAR */
+/* COMMON EDIT / DELETE MODE BAR */
 .deleteModeBar{
 display:flex;
 align-items:center;
@@ -110,7 +110,7 @@ margin:0;
 cursor:pointer;
 }
 
-.delBtnLocked{
+.actionBtnLocked{
 opacity:0.45;
 }
 
@@ -155,11 +155,11 @@ th:last-child,td:last-child{display:none}
 <div class="box">
 <h2>👷 झारकिला लेबर</h2>
 
-<!-- COMMON DELETE MODE -->
+<!-- COMMON EDIT / DELETE MODE -->
 <div class="deleteModeBar" id="deleteModeBar">
   <label class="deleteModeLabel">
     <input type="checkbox" id="commonDeleteCheck">
-    <span>Common Delete Mode</span>
+    <span>Common Edit / Delete Mode</span>
   </label>
   <span id="deleteModeStatus">🔒 OFF</span>
 </div>
@@ -209,15 +209,15 @@ th:last-child,td:last-child{display:none}
 </div>
 </div>
 
-<!-- COMMON DELETE PASSWORD POPUP -->
+<!-- COMMON PASSWORD POPUP -->
 <div class="popup" id="passPopup" style="z-index:2000;">
 <div class="popup-box" style="max-width:380px; text-align:center;">
-<h3>🔐 Delete Password</h3>
-<p style="font-size:14px; color:#444;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+<h3>🔐 Security Password</h3>
+<p style="font-size:14px; color:#444;">Edit / Delete चालू करने के लिए पासवर्ड डालें:</p>
 <input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
 <p id="passErrorMsg" style="color:#dc3545; font-size:13px; display:none; margin:6px 0;"></p>
 <div class="popupActions">
-<button class="blueBtn" id="verifyPassBtn" onclick="verifyDeletePassword()">Unlock Delete</button>
+<button class="blueBtn" id="verifyPassBtn" onclick="verifyDeletePassword()">Unlock</button>
 <button class="redBtn" onclick="closePassPopup()">Cancel</button>
 </div>
 </div>
@@ -351,20 +351,20 @@ let workers=[],attendanceData=[],payments=[],selectedWorker=null;
 let workerSyncRunning=false,workersLoaded=false,attendanceLoaded=false;
 let accountHistoryActive=false,ignoreNextPopstate=false;
 
-let isDeleteUnlocked=false;
+let isActionUnlocked=false;
 let pendingAction=null;
 
 /* =====================================================
-   COMMON DELETE MODE LOGIC
+   COMMON EDIT / DELETE MODE LOGIC
 ===================================================== */
-function updateDeleteUI(){
+function updateSecurityUI(){
 const bar=$("deleteModeBar");
 const status=$("deleteModeStatus");
 const chk=$("commonDeleteCheck");
 
-chk.checked=isDeleteUnlocked;
+chk.checked=isActionUnlocked;
 
-if(isDeleteUnlocked){
+if(isActionUnlocked){
 bar.classList.add("unlocked");
 status.textContent="🔓 ON";
 }else{
@@ -372,11 +372,11 @@ bar.classList.remove("unlocked");
 status.textContent="🔒 OFF";
 }
 
-document.querySelectorAll(".delActionBtn").forEach(btn=>{
-if(isDeleteUnlocked){
-btn.classList.remove("delBtnLocked");
+document.querySelectorAll(".secActionBtn").forEach(btn=>{
+if(isActionUnlocked){
+btn.classList.remove("actionBtnLocked");
 }else{
-btn.classList.add("delBtnLocked");
+btn.classList.add("actionBtnLocked");
 }
 });
 }
@@ -394,9 +394,9 @@ if(this.checked){
 this.checked=false;
 openPasswordPrompt(null);
 }else{
-isDeleteUnlocked=false;
+isActionUnlocked=false;
 pendingAction=null;
-updateDeleteUI();
+updateSecurityUI();
 }
 });
 
@@ -425,12 +425,12 @@ const snap=await getDoc(doc(db,"security","config"));
 const savedPass=snap.exists()?String(snap.data().deletePassword||""):"";
 
 if(!savedPass){
-errEl.textContent="अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+errEl.textContent="अभी कोई Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
 errEl.style.display="block";
 }else if(entered===savedPass){
-isDeleteUnlocked=true;
+isActionUnlocked=true;
 $("passPopup").style.display="none";
-updateDeleteUI();
+updateSecurityUI();
 
 if(pendingAction){
 const act=pendingAction;
@@ -439,6 +439,10 @@ if(act.kind==="main_or_note"){
 openDeletePopup(act.id,act.type);
 }else if(act.kind==="payment"){
 deletePayment(act.id);
+}else if(act.kind==="editMain"){
+editData(act.id);
+}else if(act.kind==="editNote"){
+editNoteData(act.id);
 }
 }
 }else{
@@ -451,24 +455,24 @@ errEl.textContent="त्रुटि हुई: इंटरनेट या Fi
 errEl.style.display="block";
 }finally{
 btn.disabled=false;
-btn.textContent="Unlock Delete";
+btn.textContent="Unlock";
 }
 };
 
 window.closePassPopup=function(){
 $("passPopup").style.display="none";
 pendingAction=null;
-isDeleteUnlocked=false;
-updateDeleteUI();
+isActionUnlocked=false;
+updateSecurityUI();
 };
 
 window.addEventListener("beforeunload",()=>{
-isDeleteUnlocked=false;
+isActionUnlocked=false;
 });
 
 window.addEventListener("pagehide",()=>{
-isDeleteUnlocked=false;
-updateDeleteUI();
+isActionUnlocked=false;
+updateSecurityUI();
 });
 
 history.pushState({adminPage:true},"",location.href);
@@ -622,15 +626,15 @@ attendanceData.sort((a,b)=>{
 let x=dateSort(a.date),y=dateSort(b.date);
 return x===y?a.time-b.time:x-y;
 });
-const lockClass=isDeleteUnlocked?"":"delBtnLocked";
+const lockClass=isActionUnlocked?"":"actionBtnLocked";
 $("tbody").innerHTML=attendanceData.map(x=>`
 <tr>
 <td>${safe(x.date)}</td><td>${safe(x.n1)}</td><td>${safe(x.n2)}</td>
 <td>${safe(x.n3)}</td><td>${safe(x.n4)}</td><td>${safe(x.n5)}</td>
 <td>${safe(x.n6)}</td>
 <td>
-<button class="actionBtn" onclick="editData('${x.id}')">✏️</button>
-<button class="actionBtn redBtn delActionBtn ${lockClass}" onclick="openDeletePopup('${x.id}','main')">🗑️</button>
+<button class="actionBtn secActionBtn ${lockClass}" onclick="editData('${x.id}')">✏️</button>
+<button class="actionBtn redBtn secActionBtn ${lockClass}" onclick="openDeletePopup('${x.id}','main')">🗑️</button>
 </td></tr>`).join("");
 syncWorkersFromAttendance();
 renderWorkers();
@@ -649,11 +653,11 @@ onSnapshot(collection(db,"jharkila_note"),snap=>{
 let arr=[];
 snap.forEach(d=>arr.push({id:d.id,text:d.data().text||"",time:d.data().time||0}));
 arr.sort((a,b)=>a.time-b.time);
-const lockClass=isDeleteUnlocked?"":"delBtnLocked";
+const lockClass=isActionUnlocked?"":"actionBtnLocked";
 $("noteBody").innerHTML=arr.map(n=>`
 <tr><td>${safe(n.text)}</td><td>
-<button class="actionBtn" onclick="editNoteData('${n.id}')">✏️</button>
-<button class="actionBtn redBtn delActionBtn ${lockClass}" onclick="openDeletePopup('${n.id}','note')">🗑️</button>
+<button class="actionBtn secActionBtn ${lockClass}" onclick="editNoteData('${n.id}')">✏️</button>
+<button class="actionBtn redBtn secActionBtn ${lockClass}" onclick="openDeletePopup('${n.id}','note')">🗑️</button>
 </td></tr>`).join("");
 });
 
@@ -718,7 +722,6 @@ let w=workers.find(x=>x.id===id);
 if(!w)return;
 let group=getWorkerGroup(w);
 let newHidden=!group.hidden;
-if(!confirm(newHidden?"क्या इस मजदूर को View पेज से Hide करना है?":"क्या इस मजदूर को फिर से View पेज पर दिखाना है?"))return;
 try{
 for(let memberId of group.memberIds){
 await updateDoc(doc(db,"jharkila_workers",memberId),{hidden:newHidden});
@@ -797,13 +800,13 @@ $("attendanceHistory").innerHTML=dates.length?dates.map(d=>`
 <div class="paymentRow"><div>काम किया</div><strong>${safe(d)}</strong><div>${money(DAILY_RATE)}</div></div>
 `).join(""):'<p class="muted">अभी कोई हाजिरी नहीं मिली।</p>';
 
-const lockClass=isDeleteUnlocked?"":"delBtnLocked";
+const lockClass=isActionUnlocked?"":"actionBtnLocked";
 $("paymentHistory").innerHTML=workerPayments.length?workerPayments.map(p=>`
 <div class="paymentRow">
 <div><strong>${safe(p.type==="Advance"?"Advance":"भुगतान")}</strong>
 <div class="muted">${safe(p.date)} ${p.note?"· "+safe(p.note):""}</div></div>
 <strong>${money(p.amount)}</strong>
-<button class="actionBtn redBtn delActionBtn ${lockClass}" onclick="deletePayment('${p.id}')">🗑️</button>
+<button class="actionBtn redBtn secActionBtn ${lockClass}" onclick="deletePayment('${p.id}')">🗑️</button>
 </div>`).join(""):'<p class="muted">अभी कोई भुगतान दर्ज नहीं है।</p>';
 }
 
@@ -840,7 +843,7 @@ showToast("भुगतान का रिकॉर्ड Save हो गया
 
 /* PAYMENT DELETE - INLINE CONFIRMATION */
 window.deletePayment=id=>{
-if(!isDeleteUnlocked){
+if(!isActionUnlocked){
 openPasswordPrompt({kind:"payment",id});
 return;
 }
@@ -854,7 +857,7 @@ $("paymentDeleteBox").style.display="none";
 };
 
 window.confirmPaymentDelete=async()=>{
-if(!isDeleteUnlocked){
+if(!isActionUnlocked){
 $("paymentDeleteBox").style.display="none";
 openPasswordPrompt({kind:"payment",id:paymentDeleteId});
 return;
@@ -873,6 +876,10 @@ showToast("Delete नहीं हुआ: "+e.message);
 
 /* EDIT DAILY DATA */
 window.editData=async id=>{
+if(!isActionUnlocked){
+openPasswordPrompt({kind:"editMain",id});
+return;
+}
 try{
 let snap=await getDoc(doc(db,"jharkila",id));
 if(!snap.exists())return;
@@ -885,6 +892,11 @@ editId=id;$("editPopup").style.display="flex";
 };
 
 window.updateData=async()=>{
+if(!isActionUnlocked){
+closePopup();
+openPasswordPrompt({kind:"editMain",id:editId});
+return;
+}
 if(!editId)return;
 try{
 let data={date:$("e_date").value};
@@ -898,6 +910,10 @@ window.closePopup=()=>{$("editPopup").style.display="none";editId=null;};
 
 /* EDIT NOTE */
 window.editNoteData=async id=>{
+if(!isActionUnlocked){
+openPasswordPrompt({kind:"editNote",id});
+return;
+}
 try{
 let snap=await getDoc(doc(db,"jharkila_note",id));
 if(!snap.exists())return;
@@ -906,6 +922,11 @@ noteEditId=id;$("notePopup").style.display="flex";
 }catch(e){showToast(e.message);}
 };
 window.updateNote=async()=>{
+if(!isActionUnlocked){
+closeNotePopup();
+openPasswordPrompt({kind:"editNote",id:noteEditId});
+return;
+}
 if(!noteEditId)return;
 try{
 await updateDoc(doc(db,"jharkila_note",noteEditId),{text:$("editNote").value.trim()});
@@ -917,7 +938,7 @@ window.closeNotePopup=()=>{$("notePopup").style.display="none";noteEditId=null;}
 
 /* DELETE DAILY DATA / NOTE */
 window.openDeletePopup=(id,type)=>{
-if(!isDeleteUnlocked){
+if(!isActionUnlocked){
 openPasswordPrompt({kind:"main_or_note",id,type});
 return;
 }
@@ -938,7 +959,7 @@ $("deletePopup").style.display="none";
 };
 
 window.confirmDelete=async()=>{
-if(!isDeleteUnlocked){
+if(!isActionUnlocked){
 $("deletePopup").style.display="none";
 openPasswordPrompt({kind:"main_or_note",id:deleteId,type:deleteType});
 return;
@@ -964,7 +985,7 @@ showToast("Delete नहीं हुआ: "+e.message);
 /* PRINT */
 window.printData=()=>window.print();
 
-updateDeleteUI();
+updateSecurityUI();
 
 </script>
 
