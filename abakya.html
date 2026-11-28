@@ -139,7 +139,7 @@
             border-radius: 20px
         }
 
-        /* COMMON DELETE MODE BAR */
+        /* COMMON EDIT / DELETE MODE BAR */
         .deleteModeBar {
             display: flex;
             align-items: center;
@@ -171,7 +171,7 @@
             margin: 0;
             cursor: pointer;
         }
-        .delBtnLocked {
+        .actionBtnLocked {
             opacity: 0.45;
         }
 
@@ -221,11 +221,11 @@
 
         <h2>डायरी हिसाब</h2>
 
-        <!-- COMMON DELETE MODE -->
+        <!-- COMMON EDIT / DELETE MODE -->
         <div class="deleteModeBar" id="deleteModeBar">
             <label class="deleteModeLabel">
                 <input type="checkbox" id="commonDeleteCheck">
-                <span>Common Delete Mode</span>
+                <span>Common Edit / Delete Mode</span>
             </label>
             <span id="deleteModeStatus">🔒 OFF</span>
         </div>
@@ -251,12 +251,12 @@
     <!-- PASSWORD MODAL -->
     <div class="modal" id="passModal">
         <div class="modal-content">
-            <h3>🔐 Delete Password</h3>
-            <p style="font-size:14px; color:#444; margin:6px 0;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+            <h3>🔐 Security Password</h3>
+            <p style="font-size:14px; color:#444; margin:6px 0;">Edit / Delete चालू करने के लिए पासवर्ड डालें:</p>
             <input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
             <p id="passErrorMsg" style="color:#d63031; font-size:13px; display:none; margin:5px 0;"></p>
             <div class="modal-actions">
-                <button class="blueBtn" id="verifyPassBtn" onclick="verifyDeletePassword()">Unlock Delete</button>
+                <button class="blueBtn" id="verifyPassBtn" onclick="verifyDeletePassword()">Unlock</button>
                 <button class="redBtn" onclick="closePassModal()">Cancel</button>
             </div>
         </div>
@@ -292,22 +292,22 @@
         let allData = [];
         let editId = null;
         let deleteId = null;
-        let pendingDeleteId = null;
-        let isDeleteUnlocked = false;
+        let pendingAction = null;
+        let isActionUnlocked = false;
 
         const $ = (id) => document.getElementById(id);
 
         /* =====================================================
-           COMMON DELETE MODE LOGIC
+           COMMON EDIT / DELETE MODE LOGIC
         ===================================================== */
-        function updateDeleteUI() {
+        function updateSecurityUI() {
             const bar = $("deleteModeBar");
             const status = $("deleteModeStatus");
             const chk = $("commonDeleteCheck");
 
-            chk.checked = isDeleteUnlocked;
+            chk.checked = isActionUnlocked;
 
-            if (isDeleteUnlocked) {
+            if (isActionUnlocked) {
                 bar.classList.add("unlocked");
                 status.textContent = "🔓 ON";
             } else {
@@ -315,17 +315,17 @@
                 status.textContent = "🔒 OFF";
             }
 
-            document.querySelectorAll(".delActionBtn").forEach(btn => {
-                if (isDeleteUnlocked) {
-                    btn.classList.remove("delBtnLocked");
+            document.querySelectorAll(".secActionBtn").forEach(btn => {
+                if (isActionUnlocked) {
+                    btn.classList.remove("actionBtnLocked");
                 } else {
-                    btn.classList.add("delBtnLocked");
+                    btn.classList.add("actionBtnLocked");
                 }
             });
         }
 
-        function openPasswordPrompt(targetId = null) {
-            pendingDeleteId = targetId;
+        function openPasswordPrompt(actionObj = null) {
+            pendingAction = actionObj;
             $("deletePassInput").value = "";
             $("passErrorMsg").style.display = "none";
             $("passModal").style.display = "block";
@@ -337,9 +337,9 @@
                 this.checked = false;
                 openPasswordPrompt(null);
             } else {
-                isDeleteUnlocked = false;
-                pendingDeleteId = null;
-                updateDeleteUI();
+                isActionUnlocked = false;
+                pendingAction = null;
+                updateSecurityUI();
             }
         });
 
@@ -368,17 +368,21 @@
                 const savedPass = snap.exists() ? String(snap.data().deletePassword || "") : "";
 
                 if (!savedPass) {
-                    errEl.textContent = "अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+                    errEl.textContent = "अभी कोई Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
                     errEl.style.display = "block";
                 } else if (entered === savedPass) {
-                    isDeleteUnlocked = true;
+                    isActionUnlocked = true;
                     $("passModal").style.display = "none";
-                    updateDeleteUI();
+                    updateSecurityUI();
 
-                    if (pendingDeleteId) {
-                        const idToDelete = pendingDeleteId;
-                        pendingDeleteId = null;
-                        openDeleteModal(idToDelete);
+                    if (pendingAction) {
+                        const act = pendingAction;
+                        pendingAction = null;
+                        if (act.type === "delete") {
+                            openDeleteModal(act.id);
+                        } else if (act.type === "edit") {
+                            editData(act.index);
+                        }
                     }
                 } else {
                     errEl.textContent = "❌ गलत पासवर्ड!";
@@ -390,24 +394,24 @@
                 errEl.style.display = "block";
             } finally {
                 btn.disabled = false;
-                btn.textContent = "Unlock Delete";
+                btn.textContent = "Unlock";
             }
         };
 
         window.closePassModal = function() {
             $("passModal").style.display = "none";
-            pendingDeleteId = null;
-            isDeleteUnlocked = false;
-            updateDeleteUI();
+            pendingAction = null;
+            isActionUnlocked = false;
+            updateSecurityUI();
         };
 
         window.addEventListener("beforeunload", () => {
-            isDeleteUnlocked = false;
+            isActionUnlocked = false;
         });
 
         window.addEventListener("pagehide", () => {
-            isDeleteUnlocked = false;
-            updateDeleteUI();
+            isActionUnlocked = false;
+            updateSecurityUI();
         });
 
         /* =====================================================
@@ -534,7 +538,7 @@
         function render() {
 
             let html = "";
-            const lockClass = isDeleteUnlocked ? "" : "delBtnLocked";
+            const lockClass = isActionUnlocked ? "" : "actionBtnLocked";
 
             allData.forEach((x, i)=> {
 
@@ -573,8 +577,8 @@
                 <div class="action">
                 ${phone1Call ? `<a href="tel:${phone1Call}" class="call">📞 Call</a>`: ""}
                 ${phone2Call ? `<a href="tel:${phone2Call}" class="call">📞 Call</a>`: ""}
-                <button class="smallBtn edit" onclick="editData(${i})">Edit</button>
-                <button class="smallBtn del delActionBtn ${lockClass}" onclick="deleteData('${x.id}')">Delete</button>
+                <button class="smallBtn edit secActionBtn ${lockClass}" onclick="editData(${i})">Edit</button>
+                <button class="smallBtn del secActionBtn ${lockClass}" onclick="deleteData('${x.id}')">Delete</button>
                 </div>
                 </div>
 
@@ -591,6 +595,10 @@
         }
 
         window.editData = function(i) {
+            if (!isActionUnlocked) {
+                openPasswordPrompt({ type: "edit", index: i });
+                return;
+            }
 
             let x = allData[i];
 
@@ -625,6 +633,10 @@
         }
 
         window.updateData = async function() {
+            if (!isActionUnlocked) {
+                openPasswordPrompt(null);
+                return;
+            }
 
             if (!editId) return;
 
@@ -670,9 +682,9 @@
         };
 
         window.confirmDelete = async function() {
-            if (!isDeleteUnlocked) {
+            if (!isActionUnlocked) {
                 $("deleteModal").style.display = "none";
-                openPasswordPrompt(deleteId);
+                openPasswordPrompt({ type: "delete", id: deleteId });
                 return;
             }
             if (!deleteId) return;
@@ -682,14 +694,14 @@
         };
 
         window.deleteData = function(id) {
-            if (!isDeleteUnlocked) {
-                openPasswordPrompt(id);
+            if (!isActionUnlocked) {
+                openPasswordPrompt({ type: "delete", id });
                 return;
             }
             openDeleteModal(id);
         }
 
-        updateDeleteUI();
+        updateSecurityUI();
 
     </script>
 
