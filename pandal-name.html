@@ -73,9 +73,9 @@ h2{
 }
 
 .security-bar.unlocked{
-    background:#d4edda;
-    border-color:#c3e6cb;
-    color:#155724;
+    background:#f8d7da;
+    border-color:#f5c6cb;
+    color:#721c24;
 }
 
 .security-label{
@@ -92,6 +92,10 @@ h2{
     height:18px;
     margin:0;
     cursor:pointer;
+}
+
+.delBtnLocked{
+    opacity:0.45;
 }
 
 .row{
@@ -158,6 +162,65 @@ button:disabled{
     padding:20px;
 }
 
+/* =========================
+   CUSTOM MODAL & TOAST
+========================= */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:9999;
+    padding:15px;
+}
+
+.modal-content{
+    background:white;
+    width:100%;
+    max-width:380px;
+    margin:100px auto;
+    padding:18px;
+    border-radius:12px;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+}
+
+.modal-content h3{
+    margin:0 0 8px 0;
+}
+
+.modal-actions{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+}
+
+.modal-actions button{
+    flex:1;
+    margin:0;
+    padding:11px;
+    font-size:15px;
+    font-weight:bold;
+}
+
+#toastMsg{
+    position:fixed;
+    bottom:25px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#222;
+    color:white;
+    padding:11px 18px;
+    border-radius:10px;
+    font-size:14px;
+    z-index:99999;
+    display:none;
+    box-shadow:0 3px 12px rgba(0,0,0,0.25);
+    text-align:center;
+    max-width:90%;
+}
+
 </style>
 
 </head>
@@ -181,7 +244,7 @@ button:disabled{
 <div class="security-bar" id="securityBar">
     <label class="security-label">
         <input type="checkbox" id="commonDeleteTick">
-        <span>🔓 Common Delete Mode (बिना बार-बार पासवर्ड के Delete)</span>
+        <span>Common Delete Mode</span>
     </label>
     <span id="securityStatus">🔒 OFF</span>
 </div>
@@ -196,6 +259,43 @@ onclick="addSlot()"
 </button>
 
 </div>
+
+
+<!-- ==================================================
+     COMMON DELETE PASSWORD MODAL
+================================================== -->
+
+<div class="modal" id="passModal">
+    <div class="modal-content">
+        <h3>🔐 Delete Password</h3>
+        <p style="font-size:14px; color:#444; margin:6px 0;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+        <input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
+        <p id="passErrorMsg" style="color:#dc3545; font-size:13px; display:none; margin:5px 0;"></p>
+        <div class="modal-actions">
+            <button class="editBtn" id="verifyPassBtn">Unlock Delete</button>
+            <button class="deleteBtn" id="closePassBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==================================================
+     CONFIRM DELETE MODAL
+================================================== -->
+
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <h3>Delete करना है?</h3>
+        <p id="deleteConfirmText" style="font-size:14px; color:#444; margin:8px 0;"></p>
+        <div class="modal-actions">
+            <button class="deleteBtn" id="confirmDeleteBtn">🗑️ Delete</button>
+            <button class="editBtn" id="cancelDeleteBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="toastMsg"></div>
 
 
 <script type="module">
@@ -219,78 +319,134 @@ setDoc
 ===================================================== */
 
 let isCommonDeleteUnlocked = false;
+let pendingDeleteSlot = null;
+let targetDeleteSlot = null;
 
 const commonTick = document.getElementById("commonDeleteTick");
 const securityBar = document.getElementById("securityBar");
 const securityStatus = document.getElementById("securityStatus");
 
+function showToast(msg){
+    const box = document.getElementById("toastMsg");
+    box.textContent = msg;
+    box.style.display = "block";
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => {
+        box.style.display = "none";
+    }, 2400);
+}
+
 function updateSecurityUI(){
     commonTick.checked = isCommonDeleteUnlocked;
     if(isCommonDeleteUnlocked){
         securityBar.classList.add("unlocked");
-        securityStatus.textContent = "✅ ON";
+        securityStatus.textContent = "🔓 ON";
     } else {
         securityBar.classList.remove("unlocked");
         securityStatus.textContent = "🔒 OFF";
     }
+
+    document.querySelectorAll(".deleteBtn.slotDelBtn").forEach(btn => {
+        if(isCommonDeleteUnlocked){
+            btn.classList.remove("delBtnLocked");
+        } else {
+            btn.classList.add("delBtnLocked");
+        }
+    });
 }
 
-/* Firebase से Common Password वेरिफाई करने का फंक्शन */
-async function verifyCommonPassword(){
-    const enteredPass = prompt("🔐 Delete करने के लिए Common Password दर्ज करें:");
-    if(enteredPass === null) return false;
+function openPasswordPrompt(slotToDelete = null){
+    pendingDeleteSlot = slotToDelete;
+    document.getElementById("deletePassInput").value = "";
+    document.getElementById("passErrorMsg").style.display = "none";
+    document.getElementById("passModal").style.display = "block";
+    setTimeout(() => document.getElementById("deletePassInput").focus(), 100);
+}
+
+async function verifyDeletePassword(){
+    const enteredPass = document.getElementById("deletePassInput").value.trim();
+    const errEl = document.getElementById("passErrorMsg");
+    const btn = document.getElementById("verifyPassBtn");
+
+    if(!enteredPass){
+        errEl.textContent = "कृपया पासवर्ड डालें।";
+        errEl.style.display = "block";
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "जाँच हो रही है...";
 
     try{
         const passDocRef = doc(db, "security", "config");
         const passSnap = await getDoc(passDocRef);
 
         if(!passSnap.exists() || !passSnap.data().deletePassword){
-            alert("⚠️ Firebase में Common Password (security/config -> deletePassword) सेट नहीं है!");
-            return false;
-        }
-
-        const realPassword = String(passSnap.data().deletePassword);
-
-        if(enteredPass === realPassword){
-            return true;
+            errEl.textContent = "अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+            errEl.style.display = "block";
         } else {
-            alert("❌ गलत Password! Delete रद्द कर दिया गया।");
-            return false;
+            const realPassword = String(passSnap.data().deletePassword);
+            if(enteredPass === realPassword){
+                isCommonDeleteUnlocked = true;
+                document.getElementById("passModal").style.display = "none";
+                updateSecurityUI();
+
+                if(pendingDeleteSlot !== null){
+                    const s = pendingDeleteSlot;
+                    pendingDeleteSlot = null;
+                    openDeleteConfirmModal(s);
+                }
+            } else {
+                errEl.textContent = "❌ गलत पासवर्ड!";
+                errEl.style.display = "block";
+            }
         }
     } catch(err){
         console.error("Password Verification Error:", err);
-        alert("⚠️ Password जांचने में समस्या आई। इंटरनेट या Firebase जांचें।");
-        return false;
+        errEl.textContent = "त्रुटि हुई: इंटरनेट या Firebase जांचें।";
+        errEl.style.display = "block";
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Unlock Delete";
     }
 }
 
+function closePassModal(){
+    document.getElementById("passModal").style.display = "none";
+    pendingDeleteSlot = null;
+    isCommonDeleteUnlocked = false;
+    updateSecurityUI();
+}
+
+document.getElementById("verifyPassBtn").addEventListener("click", verifyDeletePassword);
+document.getElementById("closePassBtn").addEventListener("click", closePassModal);
+document.getElementById("deletePassInput").addEventListener("keypress", function(e){
+    if(e.key === "Enter") verifyDeletePassword();
+});
+
 /* Tick ON/OFF हैंडलर */
-commonTick.addEventListener("change", async function(){
+commonTick.addEventListener("change", function(){
     if(commonTick.checked){
         commonTick.checked = false;
-        const isValid = await verifyCommonPassword();
-        if(isValid){
-            isCommonDeleteUnlocked = true;
-            updateSecurityUI();
-        }
+        openPasswordPrompt(null);
     } else {
         isCommonDeleteUnlocked = false;
+        pendingDeleteSlot = null;
         updateSecurityUI();
     }
 });
 
-/* पेज छोड़ते ही (Back / Close / Navigate) Tick अपने आप OFF हो जाए */
+/* पेज छोड़ते ही Tick अपने आप OFF हो जाए */
 function resetSecurityOnLeave(){
     isCommonDeleteUnlocked = false;
+    pendingDeleteSlot = null;
     if(commonTick) commonTick.checked = false;
     updateSecurityUI();
 }
 
 window.addEventListener("pagehide", resetSecurityOnLeave);
 window.addEventListener("beforeunload", resetSecurityOnLeave);
-window.addEventListener("pageshow", function(){
-    resetSecurityOnLeave();
-});
+window.addEventListener("pageshow", resetSecurityOnLeave);
 
 
 const colRef =
@@ -347,6 +503,7 @@ function renderSlots(){
         return;
     }
 
+    const lockClass = isCommonDeleteUnlocked ? "" : "delBtnLocked";
 
     slots.forEach(slot=>{
 
@@ -389,7 +546,7 @@ function renderSlots(){
             </button>
 
             <button
-                class="deleteBtn"
+                class="deleteBtn slotDelBtn ${lockClass}"
                 id="pandal-delete-${slot}"
             >
                 🗑️ Delete
@@ -538,9 +695,7 @@ async function(){
 
         console.error(error);
 
-        alert(
-            "नया Slot नहीं बनाया गया।"
-        );
+        showToast("❌ नया Slot नहीं बनाया गया।");
 
     }
 
@@ -598,9 +753,8 @@ async function(slot){
 
     if(name === ""){
 
-        alert(
-            "नाम खाली नहीं हो सकता।"
-        );
+        showToast("नाम खाली नहीं हो सकता।");
+        input.focus();
 
         return;
 
@@ -662,45 +816,46 @@ async function(slot){
             "pandal-save-"+slot
         ).disabled = true;
 
+        showToast("✅ नाम Save हो गया");
+
 
     }catch(error){
 
         console.error(error);
 
-        alert(
-            "नाम Save नहीं हुआ। Firebase Error देखें।"
-        );
+        showToast("❌ नाम Save नहीं हुआ।");
 
     }
 
 };
 
 
-window.deleteName =
-async function(slot){
+function openDeleteConfirmModal(slot){
+    targetDeleteSlot = slot;
+    document.getElementById("deleteConfirmText").textContent =
+        "पंडाल मिस्त्री Slot " + slot + " का नाम Delete करना है?";
+    document.getElementById("deleteModal").style.display = "block";
+}
 
-    /* यदि Common Tick OFF है तो पहले Password मांगें */
+function closeDeleteConfirmModal(){
+    targetDeleteSlot = null;
+    document.getElementById("deleteModal").style.display = "none";
+}
+
+document.getElementById("cancelDeleteBtn").addEventListener("click", closeDeleteConfirmModal);
+
+document.getElementById("confirmDeleteBtn").addEventListener("click", async function(){
     if(!isCommonDeleteUnlocked){
-
-        const isValid = await verifyCommonPassword();
-
-        if(!isValid)
-            return;
-
+        closeDeleteConfirmModal();
+        openPasswordPrompt(targetDeleteSlot);
+        return;
     }
 
-
-    const yes =
-        confirm(
-            "पंडाल मिस्त्री Slot "+
-            slot+
-            " का नाम Delete करना है?"
-        );
-
-
-    if(!yes)
+    if(targetDeleteSlot === null)
         return;
 
+    const slot = targetDeleteSlot;
+    closeDeleteConfirmModal();
 
     try{
 
@@ -718,18 +873,32 @@ async function(slot){
 
         renderSlots();
 
+        showToast("🗑️ नाम Delete हो गया");
+
 
     }catch(error){
 
         console.error(error);
 
-        alert(
-            "नाम Delete नहीं हुआ।"
-        );
+        showToast("❌ नाम Delete नहीं हुआ।");
 
     }
+});
+
+
+window.deleteName =
+function(slot){
+
+    if(!isCommonDeleteUnlocked){
+        openPasswordPrompt(slot);
+        return;
+    }
+
+    openDeleteConfirmModal(slot);
 
 };
+
+updateSecurityUI();
 
 </script>
 
