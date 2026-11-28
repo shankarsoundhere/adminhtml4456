@@ -134,7 +134,7 @@ background:red;
 background:#007bff;
 }
 
-/* COMMON DELETE MODE BAR */
+/* COMMON EDIT / DELETE MODE BAR */
 .deleteModeBar{
 display:flex;
 align-items:center;
@@ -170,7 +170,7 @@ margin:0;
 cursor:pointer;
 }
 
-.delBtnLocked{
+.actionBtnLocked{
 opacity:0.45;
 }
 
@@ -191,12 +191,12 @@ opacity:0.45;
 
 
 <!-- =========================
-     COMMON DELETE MODE
+     COMMON EDIT / DELETE MODE
 ========================= -->
 <div class="deleteModeBar" id="deleteModeBar">
   <label class="deleteModeLabel">
     <input type="checkbox" id="commonDeleteCheck">
-    <span>Common Delete Mode</span>
+    <span>Common Edit / Delete Mode</span>
   </label>
   <span id="deleteModeStatus">🔒 OFF</span>
 </div>
@@ -364,7 +364,7 @@ id="noteBody"
 
 
 <!-- ==================================================
-     COMMON DELETE PASSWORD MODAL
+     COMMON PASSWORD MODAL
 ================================================== -->
 
 <div
@@ -375,11 +375,11 @@ id="passModal"
 <div class="modal-content deleteBox">
 
 <h3>
-🔐 Delete Password
+🔐 Security Password
 </h3>
 
 <p>
-Common Delete Mode चालू करने के लिए पासवर्ड डालें:
+Edit / Delete चालू करने के लिए पासवर्ड डालें:
 </p>
 
 <input
@@ -399,7 +399,7 @@ id="verifyPassBtn"
 onclick="verifyDeletePassword()"
 class="blueBtn"
 >
-Unlock Delete
+Unlock
 </button>
 
 <button
@@ -602,11 +602,11 @@ let editId = null;
 
 let deleteId = null;
 
-let pendingDeleteId = null;
+let pendingAction = null;
 
 let unsubscribe = null;
 
-let isDeleteUnlocked = false;
+let isActionUnlocked = false;
 
 
 
@@ -620,17 +620,17 @@ document.getElementById(id);
 
 
 /* =====================================================
-   COMMON DELETE MODE LOGIC
+   COMMON EDIT / DELETE MODE LOGIC
 ===================================================== */
 
-function updateDeleteUI(){
+function updateSecurityUI(){
     const bar = $("deleteModeBar");
     const status = $("deleteModeStatus");
     const chk = $("commonDeleteCheck");
 
-    chk.checked = isDeleteUnlocked;
+    chk.checked = isActionUnlocked;
 
-    if(isDeleteUnlocked){
+    if(isActionUnlocked){
         bar.classList.add("unlocked");
         status.textContent = "🔓 ON";
     } else {
@@ -638,17 +638,17 @@ function updateDeleteUI(){
         status.textContent = "🔒 OFF";
     }
 
-    document.querySelectorAll(".delActionBtn").forEach(btn => {
-        if(isDeleteUnlocked){
-            btn.classList.remove("delBtnLocked");
+    document.querySelectorAll(".secActionBtn").forEach(btn => {
+        if(isActionUnlocked){
+            btn.classList.remove("actionBtnLocked");
         } else {
-            btn.classList.add("delBtnLocked");
+            btn.classList.add("actionBtnLocked");
         }
     });
 }
 
-function openPasswordPrompt(targetDeleteId = null){
-    pendingDeleteId = targetDeleteId;
+function openPasswordPrompt(actionObj = null){
+    pendingAction = actionObj;
     $("deletePassInput").value = "";
     $("passErrorMsg").style.display = "none";
     $("passModal").style.display = "block";
@@ -660,9 +660,9 @@ $("commonDeleteCheck").addEventListener("change", function(){
         this.checked = false;
         openPasswordPrompt(null);
     } else {
-        isDeleteUnlocked = false;
-        pendingDeleteId = null;
-        updateDeleteUI();
+        isActionUnlocked = false;
+        pendingAction = null;
+        updateSecurityUI();
     }
 });
 
@@ -691,18 +691,24 @@ window.verifyDeletePassword = async function(){
         const savedPass = snap.exists() ? String(snap.data().deletePassword || "") : "";
 
         if(!savedPass){
-            errEl.textContent = "अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+            errEl.textContent = "अभी कोई Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
             errEl.style.display = "block";
         } else if(entered === savedPass){
-            isDeleteUnlocked = true;
+            isActionUnlocked = true;
             $("passModal").style.display = "none";
-            updateDeleteUI();
+            updateSecurityUI();
 
-            if(pendingDeleteId){
-                const idToDelete = pendingDeleteId;
-                pendingDeleteId = null;
-                deleteId = idToDelete;
-                $("deleteModal").style.display = "block";
+            if(pendingAction){
+                const act = pendingAction;
+                pendingAction = null;
+                if(act.type === "delete"){
+                    deleteId = act.id;
+                    $("deleteModal").style.display = "block";
+                } else if(act.type === "editMain"){
+                    openMainEdit(act.id);
+                } else if(act.type === "editNote"){
+                    openNoteEdit(act.id);
+                }
             }
         } else {
             errEl.textContent = "❌ गलत पासवर्ड!";
@@ -714,24 +720,24 @@ window.verifyDeletePassword = async function(){
         errEl.style.display = "block";
     } finally {
         btn.disabled = false;
-        btn.textContent = "Unlock Delete";
+        btn.textContent = "Unlock";
     }
 };
 
 window.closePassModal = function(){
     $("passModal").style.display = "none";
-    pendingDeleteId = null;
-    isDeleteUnlocked = false;
-    updateDeleteUI();
+    pendingAction = null;
+    isActionUnlocked = false;
+    updateSecurityUI();
 };
 
 window.addEventListener("beforeunload", () => {
-    isDeleteUnlocked = false;
+    isActionUnlocked = false;
 });
 
 window.addEventListener("pagehide", () => {
-    isDeleteUnlocked = false;
-    updateDeleteUI();
+    isActionUnlocked = false;
+    updateSecurityUI();
 });
 
 
@@ -1420,7 +1426,7 @@ function(){
             );
 
 
-            const lockClass = isDeleteUnlocked ? "" : "delBtnLocked";
+            const lockClass = isActionUnlocked ? "" : "actionBtnLocked";
 
 
             mainData.forEach(
@@ -1445,7 +1451,7 @@ function(){
                     <td>
 
                     <button
-                    class="btn"
+                    class="btn secActionBtn ${lockClass}"
                     onclick="openMainEdit('${x.id}')"
                     >
                     ✏️ Edit
@@ -1453,7 +1459,7 @@ function(){
 
 
                     <button
-                    class="btn delActionBtn ${lockClass}"
+                    class="btn secActionBtn ${lockClass}"
                     onclick="openDeleteModal('${x.id}')"
                     >
                     🗑️ Delete
@@ -1489,7 +1495,7 @@ function(){
                     <td>
 
                     <button
-                    class="btn"
+                    class="btn secActionBtn ${lockClass}"
                     onclick="openNoteEdit('${n.id}')"
                     >
                     ✏️ Edit
@@ -1497,7 +1503,7 @@ function(){
 
 
                     <button
-                    class="btn delActionBtn ${lockClass}"
+                    class="btn secActionBtn ${lockClass}"
                     onclick="openDeleteModal('${n.id}')"
                     >
                     🗑️ Delete
@@ -1527,8 +1533,8 @@ function(){
 window.openDeleteModal =
 function(id){
 
-    if(!isDeleteUnlocked){
-        openPasswordPrompt(id);
+    if(!isActionUnlocked){
+        openPasswordPrompt({ type: "delete", id });
         return;
     }
 
@@ -1565,9 +1571,9 @@ window.confirmDelete =
 async function(){
 
 
-    if(!isDeleteUnlocked){
+    if(!isActionUnlocked){
         $("deleteModal").style.display = "none";
-        openPasswordPrompt(deleteId);
+        openPasswordPrompt({ type: "delete", id: deleteId });
         return;
     }
 
@@ -1603,11 +1609,6 @@ async function(){
 
         console.error(error);
 
-
-        alert(
-            "Delete नहीं हुआ।"
-        );
-
     }
 
 };
@@ -1620,6 +1621,11 @@ async function(){
 
 window.openMainEdit =
 async function(id){
+
+    if(!isActionUnlocked){
+        openPasswordPrompt({ type: "editMain", id });
+        return;
+    }
 
 
     let snap =
@@ -1702,6 +1708,12 @@ function(){
 window.updateMainData =
 async function(){
 
+    if(!isActionUnlocked){
+        $("mainModal").style.display = "none";
+        openPasswordPrompt({ type: "editMain", id: editId });
+        return;
+    }
+
 
     if(!editId){
 
@@ -1777,11 +1789,6 @@ async function(){
 
         console.error(error);
 
-
-        alert(
-            "Update नहीं हुआ।"
-        );
-
     }
 
 };
@@ -1794,6 +1801,11 @@ async function(){
 
 window.openNoteEdit =
 async function(id){
+
+    if(!isActionUnlocked){
+        openPasswordPrompt({ type: "editNote", id });
+        return;
+    }
 
 
     let snap =
@@ -1862,6 +1874,12 @@ function(){
 window.updateNoteData =
 async function(){
 
+    if(!isActionUnlocked){
+        $("noteModal").style.display = "none";
+        openPasswordPrompt({ type: "editNote", id: editId });
+        return;
+    }
+
 
     if(!editId){
 
@@ -1926,11 +1944,6 @@ async function(){
     catch(error){
 
         console.error(error);
-
-
-        alert(
-            "Note Update नहीं हुआ।"
-        );
 
     }
 
@@ -2187,7 +2200,7 @@ function(){
    INITIAL LOAD
 ===================================================== */
 
-updateDeleteUI();
+updateSecurityUI();
 loadData();
 
 
