@@ -52,8 +52,48 @@ cursor:pointer;
 .redBtn{background:red;}
 .blueBtn{background:#007bff;}
 
+/* COMMON DELETE MODE BAR */
+.deleteModeBar{
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:#fff3cd;
+border:1px solid #ffeeba;
+padding:8px 12px;
+border-radius:8px;
+margin:8px 0 12px 0;
+font-size:14px;
+font-weight:bold;
+color:#856404;
+}
+
+.deleteModeBar.unlocked{
+background:#f8d7da;
+border-color:#f5c6cb;
+color:#721c24;
+}
+
+.deleteModeLabel{
+display:flex;
+align-items:center;
+gap:8px;
+cursor:pointer;
+margin:0;
+}
+
+.deleteModeLabel input[type="checkbox"]{
+width:18px;
+height:18px;
+margin:0;
+cursor:pointer;
+}
+
+.delBtnLocked{
+opacity:0.45;
+}
+
 @media print{
-input,button,.action,.popup,#datePicker,#e_datePicker{display:none !important;}
+input,button,.action,.popup,#datePicker,#e_datePicker,.deleteModeBar{display:none !important;}
 body{background:white;padding:0;}
 .box{max-width:100%;margin:0;padding:10px;box-shadow:none;}
 .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
@@ -69,6 +109,15 @@ h2{text-align:center;margin:0 0 10px 0;}
 <div class="box">
 
 <h2>बकाया</h2>
+
+<!-- COMMON DELETE MODE -->
+<div class="deleteModeBar" id="deleteModeBar">
+  <label class="deleteModeLabel">
+    <input type="checkbox" id="commonDeleteCheck">
+    <span>Common Delete Mode</span>
+  </label>
+  <span id="deleteModeStatus">🔒 OFF</span>
+</div>
 
 <div class="dateWrap">
 <input id="date" placeholder="दिनांक" readonly>
@@ -87,6 +136,18 @@ h2{text-align:center;margin:0 0 10px 0;}
 
 <div id="list"></div>
 
+</div>
+
+<!-- COMMON DELETE PASSWORD POPUP -->
+<div class="popup" id="passPopup" style="z-index:2000;">
+<div class="popup-box" style="text-align:center;">
+<h3>🔐 Delete Password</h3>
+<p style="font-size:14px; color:#444;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+<input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
+<p id="passErrorMsg" style="color:red; font-size:13px; display:none; margin:5px 0;"></p>
+<button id="verifyPassBtn" onclick="verifyDeletePassword()" class="blueBtn">Unlock Delete</button>
+<button onclick="closePassPopup()" class="redBtn">Cancel</button>
+</div>
 </div>
 
 <div class="popup" id="editPopup">
@@ -138,9 +199,128 @@ getDoc
 const colRef = collection(db,"bakaya");
 let editId=null;
 let deleteId=null;
+let pendingDeleteId=null;
+let isDeleteUnlocked=false;
 
 const $ = (id)=>document.getElementById(id);
 
+/* =====================================================
+   COMMON DELETE MODE LOGIC
+===================================================== */
+function updateDeleteUI(){
+const bar=$("deleteModeBar");
+const status=$("deleteModeStatus");
+const chk=$("commonDeleteCheck");
+
+chk.checked=isDeleteUnlocked;
+
+if(isDeleteUnlocked){
+bar.classList.add("unlocked");
+status.textContent="🔓 ON";
+}else{
+bar.classList.remove("unlocked");
+status.textContent="🔒 OFF";
+}
+
+document.querySelectorAll(".delActionBtn").forEach(btn=>{
+if(isDeleteUnlocked){
+btn.classList.remove("delBtnLocked");
+}else{
+btn.classList.add("delBtnLocked");
+}
+});
+}
+
+function openPasswordPrompt(targetId=null){
+pendingDeleteId=targetId;
+$("deletePassInput").value="";
+$("passErrorMsg").style.display="none";
+$("passModal" in window ? "passModal" : "passPopup").style.display="flex";
+setTimeout(()=>$("deletePassInput").focus(),100);
+}
+
+$("commonDeleteCheck").addEventListener("change",function(){
+if(this.checked){
+this.checked=false;
+openPasswordPrompt(null);
+}else{
+isDeleteUnlocked=false;
+pendingDeleteId=null;
+updateDeleteUI();
+}
+});
+
+$("deletePassInput").addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+verifyDeletePassword();
+}
+});
+
+window.verifyDeletePassword=async function(){
+const entered=$("deletePassInput").value.trim();
+const errEl=$("passErrorMsg");
+const btn=$("verifyPassBtn");
+
+if(!entered){
+errEl.textContent="कृपया पासवर्ड डालें।";
+errEl.style.display="block";
+return;
+}
+
+btn.disabled=true;
+btn.textContent="जाँच हो रही है...";
+
+try{
+const snap=await getDoc(doc(db,"security","config"));
+const savedPass=snap.exists()?String(snap.data().deletePassword||""):"";
+
+if(!savedPass){
+errEl.textContent="अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+errEl.style.display="block";
+}else if(entered===savedPass){
+isDeleteUnlocked=true;
+$("passPopup").style.display="none";
+updateDeleteUI();
+
+if(pendingDeleteId){
+const idToDelete=pendingDeleteId;
+pendingDeleteId=null;
+deleteId=idToDelete;
+$("deletePopup").style.display="flex";
+}
+}else{
+errEl.textContent="❌ गलत पासवर्ड!";
+errEl.style.display="block";
+}
+}catch(err){
+console.error(err);
+errEl.textContent="त्रुटि हुई: इंटरनेट या Firebase जाँचें।";
+errEl.style.display="block";
+}finally{
+btn.disabled=false;
+btn.textContent="Unlock Delete";
+}
+};
+
+window.closePassPopup=function(){
+$("passPopup").style.display="none";
+pendingDeleteId=null;
+isDeleteUnlocked=false;
+updateDeleteUI();
+};
+
+window.addEventListener("beforeunload",()=>{
+isDeleteUnlocked=false;
+});
+
+window.addEventListener("pagehide",()=>{
+isDeleteUnlocked=false;
+updateDeleteUI();
+});
+
+/* =====================================================
+   EXISTING APP FUNCTIONS
+===================================================== */
 $("phone1").addEventListener("dblclick",()=>{
 $("phone2").style.display="block";
 $("phone2").focus();
@@ -238,6 +418,7 @@ return d1-d2;
 });
 
 let html="";
+const lockClass=isDeleteUnlocked?"":"delBtnLocked";
 
 arr.forEach(x=>{
 
@@ -285,7 +466,7 @@ ${callButtons}
 
 <div class="action">
 <button onclick="editData('${x.id}')">✏️</button>
-<button onclick="openDeletePopup('${x.id}')">🗑️</button>
+<button class="delActionBtn ${lockClass}" onclick="openDeletePopup('${x.id}')">🗑️</button>
 </div>
 
 </div>
@@ -297,6 +478,10 @@ $("list").innerHTML=html;
 });
 
 window.openDeletePopup=(id)=>{
+if(!isDeleteUnlocked){
+openPasswordPrompt(id);
+return;
+}
 deleteId=id;
 $("deletePopup").style.display="flex";
 }
@@ -307,6 +492,11 @@ $("deletePopup").style.display="none";
 }
 
 window.confirmDelete=async()=>{
+if(!isDeleteUnlocked){
+$("deletePopup").style.display="none";
+openPasswordPrompt(deleteId);
+return;
+}
 if(!deleteId) return;
 
 await deleteDoc(doc(db,"bakaya",deleteId));
@@ -370,6 +560,8 @@ editId=null;
 
 window.printData=()=>window.print();
 
+updateDeleteUI();
+
 </script>
 
 <script src="pwa.js"></script>
@@ -377,12 +569,12 @@ window.printData=()=>window.print();
 <script>
 /* AUTO BACK TO ADMIN PASSWORD */
 (function(){
-  history.pushState(null, "", location.href);
+  history.pushState(null, "", location.href);
 
-  window.addEventListener("popstate", function(){
-    localStorage.removeItem("login");
-    location.replace("index.html"); 
-  });
+  window.addEventListener("popstate", function(){
+    localStorage.removeItem("login");
+    location.replace("index.html"); 
+  });
 })();
 </script>
 
