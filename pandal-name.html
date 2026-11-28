@@ -55,7 +55,7 @@ h2{
 }
 
 /* =========================
-   COMMON DELETE TICK BAR
+   COMMON EDIT / DELETE TICK BAR
 ========================= */
 
 .security-bar{
@@ -94,7 +94,7 @@ h2{
     cursor:pointer;
 }
 
-.delBtnLocked{
+.actionBtnLocked{
     opacity:0.45;
 }
 
@@ -238,13 +238,13 @@ button:disabled{
 </div>
 
 <!-- =========================
-     COMMON DELETE SECURITY TICK
+     COMMON EDIT / DELETE SECURITY TICK
 ========================== -->
 
 <div class="security-bar" id="securityBar">
     <label class="security-label">
         <input type="checkbox" id="commonDeleteTick">
-        <span>Common Delete Mode</span>
+        <span>Common Edit / Delete Mode</span>
     </label>
     <span id="securityStatus">🔒 OFF</span>
 </div>
@@ -262,17 +262,17 @@ onclick="addSlot()"
 
 
 <!-- ==================================================
-     COMMON DELETE PASSWORD MODAL
+     COMMON PASSWORD MODAL
 ================================================== -->
 
 <div class="modal" id="passModal">
     <div class="modal-content">
-        <h3>🔐 Delete Password</h3>
-        <p style="font-size:14px; color:#444; margin:6px 0;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+        <h3>🔐 Security Password</h3>
+        <p style="font-size:14px; color:#444; margin:6px 0;">Edit / Delete चालू करने के लिए पासवर्ड डालें:</p>
         <input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
         <p id="passErrorMsg" style="color:#dc3545; font-size:13px; display:none; margin:5px 0;"></p>
         <div class="modal-actions">
-            <button class="editBtn" id="verifyPassBtn">Unlock Delete</button>
+            <button class="editBtn" id="verifyPassBtn">Unlock</button>
             <button class="deleteBtn" id="closePassBtn">Cancel</button>
         </div>
     </div>
@@ -315,11 +315,11 @@ setDoc
 
 
 /* =====================================================
-   COMMON PASSWORD & DELETE SECURITY SYSTEM
+   COMMON PASSWORD & EDIT / DELETE SECURITY SYSTEM
 ===================================================== */
 
-let isCommonDeleteUnlocked = false;
-let pendingDeleteSlot = null;
+let isActionUnlocked = false;
+let pendingAction = null;
 let targetDeleteSlot = null;
 
 const commonTick = document.getElementById("commonDeleteTick");
@@ -337,8 +337,8 @@ function showToast(msg){
 }
 
 function updateSecurityUI(){
-    commonTick.checked = isCommonDeleteUnlocked;
-    if(isCommonDeleteUnlocked){
+    commonTick.checked = isActionUnlocked;
+    if(isActionUnlocked){
         securityBar.classList.add("unlocked");
         securityStatus.textContent = "🔓 ON";
     } else {
@@ -346,17 +346,17 @@ function updateSecurityUI(){
         securityStatus.textContent = "🔒 OFF";
     }
 
-    document.querySelectorAll(".deleteBtn.slotDelBtn").forEach(btn => {
-        if(isCommonDeleteUnlocked){
-            btn.classList.remove("delBtnLocked");
+    document.querySelectorAll(".secActionBtn").forEach(btn => {
+        if(isActionUnlocked){
+            btn.classList.remove("actionBtnLocked");
         } else {
-            btn.classList.add("delBtnLocked");
+            btn.classList.add("actionBtnLocked");
         }
     });
 }
 
-function openPasswordPrompt(slotToDelete = null){
-    pendingDeleteSlot = slotToDelete;
+function openPasswordPrompt(actionObj = null){
+    pendingAction = actionObj;
     document.getElementById("deletePassInput").value = "";
     document.getElementById("passErrorMsg").style.display = "none";
     document.getElementById("passModal").style.display = "block";
@@ -382,19 +382,23 @@ async function verifyDeletePassword(){
         const passSnap = await getDoc(passDocRef);
 
         if(!passSnap.exists() || !passSnap.data().deletePassword){
-            errEl.textContent = "अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+            errEl.textContent = "अभी कोई Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
             errEl.style.display = "block";
         } else {
             const realPassword = String(passSnap.data().deletePassword);
             if(enteredPass === realPassword){
-                isCommonDeleteUnlocked = true;
+                isActionUnlocked = true;
                 document.getElementById("passModal").style.display = "none";
                 updateSecurityUI();
 
-                if(pendingDeleteSlot !== null){
-                    const s = pendingDeleteSlot;
-                    pendingDeleteSlot = null;
-                    openDeleteConfirmModal(s);
+                if(pendingAction){
+                    const act = pendingAction;
+                    pendingAction = null;
+                    if(act.type === "delete"){
+                        openDeleteConfirmModal(act.slot);
+                    } else if(act.type === "edit"){
+                        editName(act.slot);
+                    }
                 }
             } else {
                 errEl.textContent = "❌ गलत पासवर्ड!";
@@ -407,14 +411,14 @@ async function verifyDeletePassword(){
         errEl.style.display = "block";
     } finally {
         btn.disabled = false;
-        btn.textContent = "Unlock Delete";
+        btn.textContent = "Unlock";
     }
 }
 
 function closePassModal(){
     document.getElementById("passModal").style.display = "none";
-    pendingDeleteSlot = null;
-    isCommonDeleteUnlocked = false;
+    pendingAction = null;
+    isActionUnlocked = false;
     updateSecurityUI();
 }
 
@@ -430,16 +434,16 @@ commonTick.addEventListener("change", function(){
         commonTick.checked = false;
         openPasswordPrompt(null);
     } else {
-        isCommonDeleteUnlocked = false;
-        pendingDeleteSlot = null;
+        isActionUnlocked = false;
+        pendingAction = null;
         updateSecurityUI();
     }
 });
 
 /* पेज छोड़ते ही Tick अपने आप OFF हो जाए */
 function resetSecurityOnLeave(){
-    isCommonDeleteUnlocked = false;
-    pendingDeleteSlot = null;
+    isActionUnlocked = false;
+    pendingAction = null;
     if(commonTick) commonTick.checked = false;
     updateSecurityUI();
 }
@@ -503,7 +507,7 @@ function renderSlots(){
         return;
     }
 
-    const lockClass = isCommonDeleteUnlocked ? "" : "delBtnLocked";
+    const lockClass = isActionUnlocked ? "" : "actionBtnLocked";
 
     slots.forEach(slot=>{
 
@@ -531,7 +535,7 @@ function renderSlots(){
             >
 
             <button
-                class="editBtn"
+                class="editBtn secActionBtn ${lockClass}"
                 id="pandal-edit-${slot}"
             >
                 ✏️ Edit
@@ -546,7 +550,7 @@ function renderSlots(){
             </button>
 
             <button
-                class="deleteBtn slotDelBtn ${lockClass}"
+                class="deleteBtn secActionBtn ${lockClass}"
                 id="pandal-delete-${slot}"
             >
                 🗑️ Delete
@@ -681,12 +685,25 @@ async function(){
                     "pandal-name-"+nextSlot
                 );
 
+            const editBtn =
+                document.getElementById(
+                    "pandal-edit-"+nextSlot
+                );
+
+            const saveBtn =
+                document.getElementById(
+                    "pandal-save-"+nextSlot
+                );
+
             if(input){
 
                 input.disabled = false;
                 input.focus();
 
             }
+
+            if(editBtn) editBtn.disabled = true;
+            if(saveBtn) saveBtn.disabled = false;
 
         },300);
 
@@ -723,6 +740,13 @@ function(slot){
 
     if(!input)
         return;
+
+
+    /* यदि स्लॉट में पहले से नाम है और Security OFF है तो पासवर्ड मांगें */
+    if(input.value.trim() !== "" && !isActionUnlocked){
+        openPasswordPrompt({ type: "edit", slot });
+        return;
+    }
 
 
     input.disabled = false;
@@ -845,9 +869,9 @@ function closeDeleteConfirmModal(){
 document.getElementById("cancelDeleteBtn").addEventListener("click", closeDeleteConfirmModal);
 
 document.getElementById("confirmDeleteBtn").addEventListener("click", async function(){
-    if(!isCommonDeleteUnlocked){
+    if(!isActionUnlocked){
         closeDeleteConfirmModal();
-        openPasswordPrompt(targetDeleteSlot);
+        openPasswordPrompt({ type: "delete", slot: targetDeleteSlot });
         return;
     }
 
@@ -889,8 +913,8 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", async func
 window.deleteName =
 function(slot){
 
-    if(!isCommonDeleteUnlocked){
-        openPasswordPrompt(slot);
+    if(!isActionUnlocked){
+        openPasswordPrompt({ type: "delete", slot });
         return;
     }
 
