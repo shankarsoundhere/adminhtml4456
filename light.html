@@ -602,6 +602,8 @@ let editId = null;
 
 let deleteId = null;
 
+let pendingDeleteId = null;
+
 let unsubscribe = null;
 
 let isDeleteUnlocked = false;
@@ -645,15 +647,21 @@ function updateDeleteUI(){
     });
 }
 
+function openPasswordPrompt(targetDeleteId = null){
+    pendingDeleteId = targetDeleteId;
+    $("deletePassInput").value = "";
+    $("passErrorMsg").style.display = "none";
+    $("passModal").style.display = "block";
+    setTimeout(() => $("deletePassInput").focus(), 100);
+}
+
 $("commonDeleteCheck").addEventListener("change", function(){
     if(this.checked){
         this.checked = false;
-        $("deletePassInput").value = "";
-        $("passErrorMsg").style.display = "none";
-        $("passModal").style.display = "block";
-        setTimeout(() => $("deletePassInput").focus(), 100);
+        openPasswordPrompt(null);
     } else {
         isDeleteUnlocked = false;
+        pendingDeleteId = null;
         updateDeleteUI();
     }
 });
@@ -689,6 +697,13 @@ window.verifyDeletePassword = async function(){
             isDeleteUnlocked = true;
             $("passModal").style.display = "none";
             updateDeleteUI();
+
+            if(pendingDeleteId){
+                const idToDelete = pendingDeleteId;
+                pendingDeleteId = null;
+                deleteId = idToDelete;
+                $("deleteModal").style.display = "block";
+            }
         } else {
             errEl.textContent = "❌ गलत पासवर्ड!";
             errEl.style.display = "block";
@@ -705,6 +720,7 @@ window.verifyDeletePassword = async function(){
 
 window.closePassModal = function(){
     $("passModal").style.display = "none";
+    pendingDeleteId = null;
     isDeleteUnlocked = false;
     updateDeleteUI();
 };
@@ -1512,7 +1528,7 @@ window.openDeleteModal =
 function(id){
 
     if(!isDeleteUnlocked){
-        alert("🔒 पहले ऊपर 'Common Delete Mode' चालू करें और पासवर्ड डालें।");
+        openPasswordPrompt(id);
         return;
     }
 
@@ -1551,7 +1567,7 @@ async function(){
 
     if(!isDeleteUnlocked){
         $("deleteModal").style.display = "none";
-        alert("🔒 Common Delete Mode बंद है।");
+        openPasswordPrompt(deleteId);
         return;
     }
 
