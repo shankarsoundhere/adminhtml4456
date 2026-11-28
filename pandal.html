@@ -96,6 +96,46 @@ border-radius:10px;
 
 .redBtn{background:red;}
 .blueBtn{background:#007bff;}
+
+/* COMMON DELETE MODE BAR */
+.deleteModeBar{
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:#fff3cd;
+border:1px solid #ffeeba;
+padding:8px 12px;
+border-radius:8px;
+margin:8px 0 12px 0;
+font-size:14px;
+font-weight:bold;
+color:#856404;
+}
+
+.deleteModeBar.unlocked{
+background:#f8d7da;
+border-color:#f5c6cb;
+color:#721c24;
+}
+
+.deleteModeLabel{
+display:flex;
+align-items:center;
+gap:8px;
+cursor:pointer;
+margin:0;
+}
+
+.deleteModeLabel input[type="checkbox"]{
+width:18px;
+height:18px;
+margin:0;
+cursor:pointer;
+}
+
+.delBtnLocked{
+opacity:0.45;
+}
 </style>
 </head>
 
@@ -104,6 +144,15 @@ border-radius:10px;
 <div class="box">
 
 <h2>🏠 पंडाल मिस्त्री</h2>
+
+<!-- COMMON DELETE MODE -->
+<div class="deleteModeBar" id="deleteModeBar">
+  <label class="deleteModeLabel">
+    <input type="checkbox" id="commonDeleteCheck">
+    <span>Common Delete Mode</span>
+  </label>
+  <span id="deleteModeStatus">🔒 OFF</span>
+</div>
 
 <select id="slot" onchange="loadData()"></select>
 
@@ -184,6 +233,20 @@ onclick="printData()"
 
 </table>
 
+</div>
+
+
+<!-- COMMON DELETE PASSWORD MODAL -->
+
+<div class="modal" id="passModal">
+<div class="modal-content deleteBox">
+<h3>🔐 Delete Password</h3>
+<p>Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+<input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
+<p id="passErrorMsg" style="color:red; font-size:13px; display:none; margin:5px 0;"></p>
+<button id="verifyPassBtn" onclick="verifyDeletePassword()" class="blueBtn">Unlock Delete</button>
+<button onclick="closePassModal()" class="redBtn">Cancel</button>
+</div>
 </div>
 
 
@@ -316,29 +379,135 @@ updateDoc
 
 let editId = null;
 let deleteId = null;
+let pendingDeleteId = null;
 let unsubscribe = null;
 let unsubscribeNames = null;
+let isDeleteUnlocked = false;
 
 
 const $ = (id) =>
 document.getElementById(id);
 
 
+/* =====================================================
+   COMMON DELETE MODE LOGIC
+===================================================== */
+
+function updateDeleteUI(){
+    const bar = $("deleteModeBar");
+    const status = $("deleteModeStatus");
+    const chk = $("commonDeleteCheck");
+
+    chk.checked = isDeleteUnlocked;
+
+    if(isDeleteUnlocked){
+        bar.classList.add("unlocked");
+        status.textContent = "🔓 ON";
+    } else {
+        bar.classList.remove("unlocked");
+        status.textContent = "🔒 OFF";
+    }
+
+    document.querySelectorAll(".delActionBtn").forEach(btn => {
+        if(isDeleteUnlocked){
+            btn.classList.remove("delBtnLocked");
+        } else {
+            btn.classList.add("delBtnLocked");
+        }
+    });
+}
+
+function openPasswordPrompt(targetDeleteId = null){
+    pendingDeleteId = targetDeleteId;
+    $("deletePassInput").value = "";
+    $("passErrorMsg").style.display = "none";
+    $("passModal").style.display = "block";
+    setTimeout(() => $("deletePassInput").focus(), 100);
+}
+
+$("commonDeleteCheck").addEventListener("change", function(){
+    if(this.checked){
+        this.checked = false;
+        openPasswordPrompt(null);
+    } else {
+        isDeleteUnlocked = false;
+        pendingDeleteId = null;
+        updateDeleteUI();
+    }
+});
+
+$("deletePassInput").addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        verifyDeletePassword();
+    }
+});
+
+window.verifyDeletePassword = async function(){
+    const entered = $("deletePassInput").value.trim();
+    const errEl = $("passErrorMsg");
+    const btn = $("verifyPassBtn");
+
+    if(!entered){
+        errEl.textContent = "कृपया पासवर्ड डालें।";
+        errEl.style.display = "block";
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "जाँच हो रही है...";
+
+    try{
+        const snap = await getDoc(doc(db, "security", "config"));
+        const savedPass = snap.exists() ? String(snap.data().deletePassword || "") : "";
+
+        if(!savedPass){
+            errEl.textContent = "अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+            errEl.style.display = "block";
+        } else if(entered === savedPass){
+            isDeleteUnlocked = true;
+            $("passModal").style.display = "none";
+            updateDeleteUI();
+
+            if(pendingDeleteId){
+                const idToDelete = pendingDeleteId;
+                pendingDeleteId = null;
+                deleteId = idToDelete;
+                $("deleteModal").style.display = "block";
+            }
+        } else {
+            errEl.textContent = "❌ गलत पासवर्ड!";
+            errEl.style.display = "block";
+        }
+    } catch(err){
+        console.error(err);
+        errEl.textContent = "त्रुटि हुई: इंटरनेट या Firebase जाँचें।";
+        errEl.style.display = "block";
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Unlock Delete";
+    }
+};
+
+window.closePassModal = function(){
+    $("passModal").style.display = "none";
+    pendingDeleteId = null;
+    isDeleteUnlocked = false;
+    updateDeleteUI();
+};
+
+window.addEventListener("beforeunload", () => {
+    isDeleteUnlocked = false;
+});
+
+window.addEventListener("pagehide", () => {
+    isDeleteUnlocked = false;
+    updateDeleteUI();
+});
+
+
 /*
 ==================================================
 PANDAL NAMES FIREBASE से READ
-==================================================
-
-Collection:
-pandal_names
-
-Firebase में जितने भी documents होंगे,
-सभी यहाँ automatically दिखाई देंगे।
-
-कोई 1-10 की limit नहीं है।
-
-Admin page से नाम add/edit/delete होंगे।
-यह page केवल READ करेगा।
 ==================================================
 */
 
@@ -421,11 +590,6 @@ function loadPandalNames(){
                 });
 
 
-                /*
-                पहले वाला slot मौजूद है
-                तो वही selected रहेगा
-                */
-
                 if(
                     currentSlot &&
                     names.some(
@@ -439,10 +603,6 @@ function loadPandalNames(){
                         currentSlot;
 
                 }
-
-                /*
-                पहली बार पहला slot
-                */
 
                 else if(names.length){
 
@@ -804,10 +964,6 @@ function(){
                         d.data();
 
 
-                    /*
-                    MAIN DATA
-                    */
-
                     if(
 
                         (x.date &&
@@ -847,10 +1003,6 @@ function(){
                     }
 
 
-                    /*
-                    NOTES
-                    */
-
                     if(
                         (x.note || "")
                         .trim() !== ""
@@ -873,10 +1025,6 @@ function(){
 
                 });
 
-
-                /*
-                MAIN DATA SORT
-                */
 
                 mainData.sort(
                     (a,b) => {
@@ -910,9 +1058,8 @@ function(){
                 );
 
 
-                /*
-                MAIN TABLE
-                */
+                const lockClass = isDeleteUnlocked ? "" : "delBtnLocked";
+
 
                 mainData.forEach(x => {
 
@@ -944,7 +1091,7 @@ function(){
 
 
                     <button
-                    class="btn"
+                    class="btn delActionBtn ${lockClass}"
                     onclick="openDeleteModal('${x.id}')"
                     >
                     🗑️ Delete
@@ -959,19 +1106,11 @@ function(){
                 });
 
 
-                /*
-                NOTES SORT
-                */
-
                 notes.sort(
                     (a,b) =>
                         a.time - b.time
                 );
 
-
-                /*
-                NOTES TABLE
-                */
 
                 notes.forEach(n => {
 
@@ -995,7 +1134,7 @@ function(){
 
 
                     <button
-                    class="btn"
+                    class="btn delActionBtn ${lockClass}"
                     onclick="openDeleteModal('${n.id}')"
                     >
                     🗑️ Delete
@@ -1024,6 +1163,11 @@ DELETE MODAL
 window.openDeleteModal =
 function(id){
 
+    if(!isDeleteUnlocked){
+        openPasswordPrompt(id);
+        return;
+    }
+
     deleteId = id;
 
     $("deleteModal")
@@ -1049,6 +1193,12 @@ function(){
 
 window.confirmDelete =
 async function(){
+
+    if(!isDeleteUnlocked){
+        $("deleteModal").style.display = "none";
+        openPasswordPrompt(deleteId);
+        return;
+    }
 
     if(!deleteId)
         return;
@@ -1530,6 +1680,7 @@ START
 ==================================================
 */
 
+updateDeleteUI();
 loadPandalNames();
 
 </script>
