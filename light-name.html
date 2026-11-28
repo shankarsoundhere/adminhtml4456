@@ -94,9 +94,9 @@ h2{
 }
 
 .security-bar.unlocked{
-    background:#d4edda;
-    border-color:#c3e6cb;
-    color:#155724;
+    background:#f8d7da;
+    border-color:#f5c6cb;
+    color:#721c24;
 }
 
 .security-label{
@@ -113,6 +113,10 @@ h2{
     height:18px;
     margin:0;
     cursor:pointer;
+}
+
+.delBtnLocked{
+    opacity:0.45;
 }
 
 
@@ -229,13 +233,62 @@ button:disabled{
 
 
 /* =========================
-   EMPTY MESSAGE
+   CUSTOM MODAL & TOAST
 ========================= */
 
-.empty{
-    text-align:center;
-    color:#777;
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:9999;
     padding:15px;
+}
+
+.modal-content{
+    background:white;
+    width:100%;
+    max-width:380px;
+    margin:100px auto;
+    padding:18px;
+    border-radius:12px;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+}
+
+.modal-content h3{
+    margin:0 0 8px 0;
+}
+
+.modal-actions{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+}
+
+.modal-actions button{
+    flex:1;
+    margin:0;
+    padding:11px;
+    font-size:15px;
+    font-weight:bold;
+}
+
+#toastMsg{
+    position:fixed;
+    bottom:25px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#222;
+    color:white;
+    padding:11px 18px;
+    border-radius:10px;
+    font-size:14px;
+    z-index:99999;
+    display:none;
+    box-shadow:0 3px 12px rgba(0,0,0,0.25);
+    text-align:center;
+    max-width:90%;
 }
 
 </style>
@@ -274,7 +327,7 @@ button:disabled{
     <div class="security-bar" id="securityBar">
         <label class="security-label">
             <input type="checkbox" id="commonDeleteTick">
-            <span>🔓 Common Delete Mode (बिना बार-बार पासवर्ड के Delete)</span>
+            <span>Common Delete Mode</span>
         </label>
         <span id="securityStatus">🔒 OFF</span>
     </div>
@@ -301,6 +354,42 @@ button:disabled{
 
 </div>
 
+
+<!-- ==================================================
+     COMMON DELETE PASSWORD MODAL
+================================================== -->
+
+<div class="modal" id="passModal">
+    <div class="modal-content">
+        <h3>🔐 Delete Password</h3>
+        <p style="font-size:14px; color:#444; margin:6px 0;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+        <input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
+        <p id="passErrorMsg" style="color:#dc3545; font-size:13px; display:none; margin:5px 0;"></p>
+        <div class="modal-actions">
+            <button class="editBtn" id="verifyPassBtn">Unlock Delete</button>
+            <button class="deleteBtn" id="closePassBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==================================================
+     CONFIRM DELETE MODAL
+================================================== -->
+
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <h3>Delete करना है?</h3>
+        <p id="deleteConfirmText" style="font-size:14px; color:#444; margin:8px 0;"></p>
+        <div class="modal-actions">
+            <button class="deleteBtn" id="confirmDeleteBtn">🗑️ Delete</button>
+            <button class="editBtn" id="cancelDeleteBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="toastMsg"></div>
 
 
 <script type="module">
@@ -330,81 +419,134 @@ import {
 ===================================================== */
 
 let isCommonDeleteUnlocked = false;
+let pendingDeleteSlot = null;
+let targetDeleteSlot = null;
 
 const commonTick = document.getElementById("commonDeleteTick");
 const securityBar = document.getElementById("securityBar");
 const securityStatus = document.getElementById("securityStatus");
 
+function showToast(msg){
+    const box = document.getElementById("toastMsg");
+    box.textContent = msg;
+    box.style.display = "block";
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => {
+        box.style.display = "none";
+    }, 2400);
+}
+
 function updateSecurityUI(){
     commonTick.checked = isCommonDeleteUnlocked;
     if(isCommonDeleteUnlocked){
         securityBar.classList.add("unlocked");
-        securityStatus.textContent = "✅ ON";
+        securityStatus.textContent = "🔓 ON";
     } else {
         securityBar.classList.remove("unlocked");
         securityStatus.textContent = "🔒 OFF";
     }
+
+    document.querySelectorAll(".deleteBtn.slotDelBtn").forEach(btn => {
+        if(isCommonDeleteUnlocked){
+            btn.classList.remove("delBtnLocked");
+        } else {
+            btn.classList.add("delBtnLocked");
+        }
+    });
 }
 
-/* Firebase से Common Password वेरिफाई करने का फंक्शन */
-async function verifyCommonPassword(){
-    const enteredPass = prompt("🔐 Delete करने के लिए Common Password दर्ज करें:");
-    if(enteredPass === null) return false;
+function openPasswordPrompt(slotToDelete = null){
+    pendingDeleteSlot = slotToDelete;
+    document.getElementById("deletePassInput").value = "";
+    document.getElementById("passErrorMsg").style.display = "none";
+    document.getElementById("passModal").style.display = "block";
+    setTimeout(() => document.getElementById("deletePassInput").focus(), 100);
+}
+
+async function verifyDeletePassword(){
+    const enteredPass = document.getElementById("deletePassInput").value.trim();
+    const errEl = document.getElementById("passErrorMsg");
+    const btn = document.getElementById("verifyPassBtn");
+
+    if(!enteredPass){
+        errEl.textContent = "कृपया पासवर्ड डालें।";
+        errEl.style.display = "block";
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "जाँच हो रही है...";
 
     try{
         const passDocRef = doc(db, "security", "config");
         const passSnap = await getDoc(passDocRef);
 
         if(!passSnap.exists() || !passSnap.data().deletePassword){
-            alert("⚠️ Firebase में Common Password (security/config -> deletePassword) सेट नहीं है!");
-            return false;
-        }
-
-        const realPassword = String(passSnap.data().deletePassword);
-
-        if(enteredPass === realPassword){
-            return true;
+            errEl.textContent = "अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+            errEl.style.display = "block";
         } else {
-            alert("❌ गलत Password! Delete रद्द कर दिया गया।");
-            return false;
+            const realPassword = String(passSnap.data().deletePassword);
+            if(enteredPass === realPassword){
+                isCommonDeleteUnlocked = true;
+                document.getElementById("passModal").style.display = "none";
+                updateSecurityUI();
+
+                if(pendingDeleteSlot !== null){
+                    const s = pendingDeleteSlot;
+                    pendingDeleteSlot = null;
+                    openDeleteConfirmModal(s);
+                }
+            } else {
+                errEl.textContent = "❌ गलत पासवर्ड!";
+                errEl.style.display = "block";
+            }
         }
     } catch(err){
         console.error("Password Verification Error:", err);
-        alert("⚠️ Password जांचने में समस्या आई। इंटरनेट या Firebase जांचें।");
-        return false;
+        errEl.textContent = "त्रुटि हुई: इंटरनेट या Firebase जांचें।";
+        errEl.style.display = "block";
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Unlock Delete";
     }
 }
 
+function closePassModal(){
+    document.getElementById("passModal").style.display = "none";
+    pendingDeleteSlot = null;
+    isCommonDeleteUnlocked = false;
+    updateSecurityUI();
+}
+
+document.getElementById("verifyPassBtn").addEventListener("click", verifyDeletePassword);
+document.getElementById("closePassBtn").addEventListener("click", closePassModal);
+document.getElementById("deletePassInput").addEventListener("keypress", function(e){
+    if(e.key === "Enter") verifyDeletePassword();
+});
+
 /* Tick ON/OFF हैंडलर */
-commonTick.addEventListener("change", async function(){
+commonTick.addEventListener("change", function(){
     if(commonTick.checked){
-        // Tick ON करने से पहले Password मांगें
-        commonTick.checked = false; // वेरिफिकेशन तक OFF रखें
-        const isValid = await verifyCommonPassword();
-        if(isValid){
-            isCommonDeleteUnlocked = true;
-            updateSecurityUI();
-        }
+        commonTick.checked = false;
+        openPasswordPrompt(null);
     } else {
-        // यूजर द्वारा मैन्युअल OFF करने पर
         isCommonDeleteUnlocked = false;
+        pendingDeleteSlot = null;
         updateSecurityUI();
     }
 });
 
-/* पेज छोड़ते ही (Back / Close / Navigate) Tick अपने आप OFF हो जाए */
+/* पेज छोड़ते ही Tick अपने आप OFF हो जाए */
 function resetSecurityOnLeave(){
     isCommonDeleteUnlocked = false;
+    pendingDeleteSlot = null;
     if(commonTick) commonTick.checked = false;
     updateSecurityUI();
 }
 
 window.addEventListener("pagehide", resetSecurityOnLeave);
 window.addEventListener("beforeunload", resetSecurityOnLeave);
-window.addEventListener("pageshow", function(event){
-    // यदि Back बटन से पेज कैश (bfcache) से वापस खुले तो भी OFF रहे
-    resetSecurityOnLeave();
-});
+window.addEventListener("pageshow", resetSecurityOnLeave);
 
 
 
@@ -424,21 +566,7 @@ const colRef =
    VARIABLES
 ===================================================== */
 
-
-/*
-   कम से कम 10 slots दिखाई देंगे।
-   उसके बाद Plus से बढ़ेंगे।
-*/
-
 let maxSlot = 10;
-
-
-
-/*
-   यह पता रखेगा कि कौन-सा slot
-   अभी edit mode में है।
-*/
-
 const editingSlots = new Set();
 
 
@@ -469,11 +597,6 @@ function createSlot(
     name = ""
 ){
 
-    /*
-       अगर यह slot पहले से बना हुआ है
-       तो दोबारा create नहीं करेंगे।
-    */
-
     if(
         document.getElementById(
             "row-"+slot
@@ -485,17 +608,11 @@ function createSlot(
     }
 
 
-
     const list =
         document.getElementById(
             "lightList"
         );
 
-
-
-    /*
-       Row बनाना
-    */
 
     const row =
         document.createElement(
@@ -511,10 +628,8 @@ function createSlot(
         "row-"+slot;
 
 
+    const lockClass = isCommonDeleteUnlocked ? "" : "delBtnLocked";
 
-    /*
-       Row HTML
-    */
 
     row.innerHTML = `
 
@@ -550,7 +665,7 @@ function createSlot(
 
 
         <button
-            class="deleteBtn"
+            class="deleteBtn slotDelBtn ${lockClass}"
             id="light-delete-${slot}"
         >
             🗑️ Delete
@@ -559,18 +674,8 @@ function createSlot(
     `;
 
 
-
-    /*
-       List में जोड़ना
-    */
-
     list.appendChild(row);
 
-
-
-    /* =================================================
-       EDIT BUTTON
-    ================================================= */
 
     document.getElementById(
         "light-edit-"+slot
@@ -584,11 +689,6 @@ function createSlot(
     );
 
 
-
-    /* =================================================
-       SAVE BUTTON
-    ================================================= */
-
     document.getElementById(
         "light-save-"+slot
     ).addEventListener(
@@ -600,11 +700,6 @@ function createSlot(
         }
     );
 
-
-
-    /* =================================================
-       DELETE BUTTON
-    ================================================= */
 
     document.getElementById(
         "light-delete-"+slot
@@ -647,38 +742,15 @@ document.getElementById(
     "click",
     function(){
 
-        /*
-           अगला slot
-        */
-
         maxSlot++;
-
-
-
-        /*
-           नया slot बनाएं
-        */
 
         createSlot(
             maxSlot
         );
 
-
-
-        /*
-           नया slot automatically
-           Edit mode में खोलें
-        */
-
         editName(
             maxSlot
         );
-
-
-
-        /*
-           नए slot तक scroll करें
-        */
 
         setTimeout(
             function(){
@@ -687,7 +759,6 @@ document.getElementById(
                     document.getElementById(
                         "row-"+maxSlot
                     );
-
 
                 if(row){
 
@@ -721,53 +792,29 @@ function editName(slot){
             "light-name-"+slot
         );
 
-
     const editBtn =
         document.getElementById(
             "light-edit-"+slot
         );
-
 
     const saveBtn =
         document.getElementById(
             "light-save-"+slot
         );
 
-
-
     if(!input)
         return;
-
-
-
-    /*
-       Edit mode
-    */
 
     input.disabled =
         false;
 
-
     input.focus();
-
-
-
-    /*
-       Buttons
-    */
 
     editBtn.disabled =
         true;
 
-
     saveBtn.disabled =
         false;
-
-
-
-    /*
-       Editing list में डालें
-    */
 
     editingSlots.add(
         slot
@@ -788,42 +835,21 @@ async function saveName(slot){
             "light-name-"+slot
         );
 
-
     if(!input)
         return;
-
-
 
     const name =
         input.value.trim();
 
-
-
-    /*
-       खाली नाम
-    */
-
     if(name === ""){
 
-        alert(
-            "नाम खाली नहीं हो सकता।"
-        );
-
-
+        showToast("नाम खाली नहीं हो सकता।");
         input.focus();
-
-
         return;
 
     }
 
-
-
     try{
-
-        /*
-           Firebase document
-        */
 
         const nameRef =
             doc(
@@ -832,22 +858,10 @@ async function saveName(slot){
                 String(slot)
             );
 
-
-
-        /*
-           Check existing document
-        */
-
         const oldData =
             await getDoc(
                 nameRef
             );
-
-
-
-        /*
-           Existing document
-        */
 
         if(
             oldData.exists()
@@ -871,11 +885,6 @@ async function saveName(slot){
 
         }
 
-
-        /*
-           New document
-        */
-
         else{
 
             await setDoc(
@@ -896,43 +905,24 @@ async function saveName(slot){
 
         }
 
-
-
-        /*
-           Input lock
-        */
-
         input.disabled =
             true;
-
-
-
-        /*
-           Buttons वापस normal
-        */
 
         document.getElementById(
             "light-edit-"+slot
         ).disabled =
             false;
 
-
         document.getElementById(
             "light-save-"+slot
         ).disabled =
             true;
 
-
-
-        /*
-           Editing list से हटाएं
-        */
-
         editingSlots.delete(
             slot
         );
 
-
+        showToast("✅ नाम Save हो गया");
 
     }
 
@@ -943,10 +933,7 @@ async function saveName(slot){
             error
         );
 
-
-        alert(
-            "नाम Save नहीं हुआ। Firebase Error देखें।"
-        );
+        showToast("❌ नाम Save नहीं हुआ।");
 
     }
 
@@ -958,50 +945,34 @@ async function saveName(slot){
    DELETE NAME (WITH COMMON SECURITY SYSTEM)
 ===================================================== */
 
-async function deleteName(slot){
+function openDeleteConfirmModal(slot){
+    targetDeleteSlot = slot;
+    document.getElementById("deleteConfirmText").textContent =
+        "लाइट मिस्त्री Slot " + slot + " का नाम Delete करना है?";
+    document.getElementById("deleteModal").style.display = "block";
+}
 
-    /*
-       यदि Common Tick OFF है तो पहले Password मांगें
-    */
+function closeDeleteConfirmModal(){
+    targetDeleteSlot = null;
+    document.getElementById("deleteModal").style.display = "none";
+}
 
+document.getElementById("cancelDeleteBtn").addEventListener("click", closeDeleteConfirmModal);
+
+document.getElementById("confirmDeleteBtn").addEventListener("click", async function(){
     if(!isCommonDeleteUnlocked){
-
-        const isValid = await verifyCommonPassword();
-
-        if(!isValid)
-            return;
-
+        closeDeleteConfirmModal();
+        openPasswordPrompt(targetDeleteSlot);
+        return;
     }
 
-
-
-    /*
-       Confirmation
-    */
-
-    const yes =
-        confirm(
-
-            "लाइट मिस्त्री Slot "
-            +
-            slot
-            +
-            " का नाम Delete करना है?"
-
-        );
-
-
-
-    if(!yes)
+    if(targetDeleteSlot === null)
         return;
 
-
+    const slot = targetDeleteSlot;
+    closeDeleteConfirmModal();
 
     try{
-
-        /*
-           Firebase document delete
-        */
 
         await deleteDoc(
 
@@ -1013,46 +984,30 @@ async function deleteName(slot){
 
         );
 
-
-
-        /*
-           Input खाली करें
-        */
-
         const input =
             document.getElementById(
                 "light-name-"+slot
             );
-
 
         if(input){
 
             input.value =
                 "";
 
-
             input.disabled =
                 true;
 
         }
-
-
-
-        /*
-           Buttons reset
-        */
 
         const editBtn =
             document.getElementById(
                 "light-edit-"+slot
             );
 
-
         const saveBtn =
             document.getElementById(
                 "light-save-"+slot
             );
-
 
         if(editBtn){
 
@@ -1061,7 +1016,6 @@ async function deleteName(slot){
 
         }
 
-
         if(saveBtn){
 
             saveBtn.disabled =
@@ -1069,17 +1023,11 @@ async function deleteName(slot){
 
         }
 
-
-
-        /*
-           Editing से हटाएं
-        */
-
         editingSlots.delete(
             slot
         );
 
-
+        showToast("🗑️ नाम Delete हो गया");
 
     }
 
@@ -1090,12 +1038,19 @@ async function deleteName(slot){
             error
         );
 
-
-        alert(
-            "नाम Delete नहीं हुआ।"
-        );
+        showToast("❌ नाम Delete नहीं हुआ।");
 
     }
+});
+
+function deleteName(slot){
+
+    if(!isCommonDeleteUnlocked){
+        openPasswordPrompt(slot);
+        return;
+    }
+
+    openDeleteConfirmModal(slot);
 
 }
 
@@ -1111,11 +1066,6 @@ onSnapshot(
 
     function(snapshot){
 
-        /*
-           Firebase में जितने documents हैं,
-           उनके अनुसार slots बनाएं।
-        */
-
         snapshot.forEach(
             function(item){
 
@@ -1123,11 +1073,6 @@ onSnapshot(
                     Number(
                         item.id
                     );
-
-
-                /*
-                   Invalid slot ignore
-                */
 
                 if(
                     !Number.isInteger(slot)
@@ -1139,12 +1084,6 @@ onSnapshot(
 
                 }
 
-
-
-                /*
-                   maxSlot update
-                */
-
                 if(
                     slot > maxSlot
                 ){
@@ -1154,21 +1093,8 @@ onSnapshot(
 
                 }
 
-
-
-                /*
-                   Firebase data
-                */
-
                 const data =
                     item.data();
-
-
-
-                /*
-                   अगर slot HTML में नहीं है
-                   तो create करें
-                */
 
                 createSlot(
 
@@ -1178,27 +1104,13 @@ onSnapshot(
 
                 );
 
-
-
-                /*
-                   Input
-                */
-
                 const input =
                     document.getElementById(
                         "light-name-"+slot
                     );
 
-
                 if(!input)
                     return;
-
-
-
-                /*
-                   अगर अभी edit नहीं हो रहा है
-                   तो Firebase का नाम दिखाएं
-                */
 
                 if(
                     !editingSlots.has(slot)
@@ -1212,13 +1124,6 @@ onSnapshot(
             }
         );
 
-
-
-        /*
-           Firebase में document delete होने पर
-           UI से नाम हटाएं।
-        */
-
         for(
             let i = 1;
             i <= maxSlot;
@@ -1230,18 +1135,10 @@ onSnapshot(
                     "row-"+i
                 );
 
-
             const input =
                 document.getElementById(
                     "light-name-"+i
                 );
-
-
-            /*
-               अगर edit नहीं हो रहा
-               और Firebase में document नहीं है
-               तो खाली रखें।
-            */
 
             if(
                 row &&
@@ -1259,7 +1156,6 @@ onSnapshot(
 
                         }
                     );
-
 
                 if(!exists){
 
@@ -1282,14 +1178,11 @@ onSnapshot(
             error
         );
 
-
-        console.error(
-            "Firebase realtime listener error."
-        );
-
     }
 
 );
+
+updateSecurityUI();
 
 </script>
 
