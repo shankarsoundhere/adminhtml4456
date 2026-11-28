@@ -138,6 +138,80 @@
             font-size: 12px;
             border-radius: 20px
         }
+
+        /* COMMON DELETE MODE BAR */
+        .deleteModeBar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin: 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #856404;
+        }
+        .deleteModeBar.unlocked {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .deleteModeLabel {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin: 0;
+        }
+        .deleteModeLabel input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+        }
+        .delBtnLocked {
+            opacity: 0.45;
+        }
+
+        /* CUSTOM MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #ffffff;
+            width: 100%;
+            max-width: 380px;
+            margin: 100px auto;
+            padding: 18px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 {
+            margin: 0 0 8px 0;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .modal-actions button {
+            flex: 1;
+            margin: 0;
+        }
+        .blueBtn {
+            background: #0984e3;
+        }
+        .redBtn {
+            background: #d63031;
+        }
     </style>
 </head>
 
@@ -146,6 +220,15 @@
     <div class="container">
 
         <h2>डायरी हिसाब</h2>
+
+        <!-- COMMON DELETE MODE -->
+        <div class="deleteModeBar" id="deleteModeBar">
+            <label class="deleteModeLabel">
+                <input type="checkbox" id="commonDeleteCheck">
+                <span>Common Delete Mode</span>
+            </label>
+            <span id="deleteModeStatus">🔒 OFF</span>
+        </div>
 
         <div class="formBox">
             <input type="text" id="name" placeholder="नाम">
@@ -165,26 +248,171 @@
 
     </div>
 
+    <!-- PASSWORD MODAL -->
+    <div class="modal" id="passModal">
+        <div class="modal-content">
+            <h3>🔐 Delete Password</h3>
+            <p style="font-size:14px; color:#444; margin:6px 0;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+            <input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
+            <p id="passErrorMsg" style="color:#d63031; font-size:13px; display:none; margin:5px 0;"></p>
+            <div class="modal-actions">
+                <button class="blueBtn" id="verifyPassBtn" onclick="verifyDeletePassword()">Unlock Delete</button>
+                <button class="redBtn" onclick="closePassModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM DELETE MODAL -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <h3>Delete करना है?</h3>
+            <p style="font-size:14px; color:#444; margin:8px 0;">क्या आप सच में इस रिकॉर्ड को delete करना चाहते हैं?</p>
+            <div class="modal-actions">
+                <button class="redBtn" onclick="confirmDelete()">🗑️ Delete</button>
+                <button class="blueBtn" onclick="closeDeleteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
 
         import {
-            db
-        } from "./firebase.js";
-
-        import {
+            db,
             collection,
             addDoc,
             onSnapshot,
             doc,
+            getDoc,
             updateDoc,
             deleteDoc
-        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        } from "./firebase.js";
 
         const colRef = collection(db, "tdm");
 
         let allData = [];
         let editId = null;
+        let deleteId = null;
+        let pendingDeleteId = null;
+        let isDeleteUnlocked = false;
 
+        const $ = (id) => document.getElementById(id);
+
+        /* =====================================================
+           COMMON DELETE MODE LOGIC
+        ===================================================== */
+        function updateDeleteUI() {
+            const bar = $("deleteModeBar");
+            const status = $("deleteModeStatus");
+            const chk = $("commonDeleteCheck");
+
+            chk.checked = isDeleteUnlocked;
+
+            if (isDeleteUnlocked) {
+                bar.classList.add("unlocked");
+                status.textContent = "🔓 ON";
+            } else {
+                bar.classList.remove("unlocked");
+                status.textContent = "🔒 OFF";
+            }
+
+            document.querySelectorAll(".delActionBtn").forEach(btn => {
+                if (isDeleteUnlocked) {
+                    btn.classList.remove("delBtnLocked");
+                } else {
+                    btn.classList.add("delBtnLocked");
+                }
+            });
+        }
+
+        function openPasswordPrompt(targetId = null) {
+            pendingDeleteId = targetId;
+            $("deletePassInput").value = "";
+            $("passErrorMsg").style.display = "none";
+            $("passModal").style.display = "block";
+            setTimeout(() => $("deletePassInput").focus(), 100);
+        }
+
+        $("commonDeleteCheck").addEventListener("change", function() {
+            if (this.checked) {
+                this.checked = false;
+                openPasswordPrompt(null);
+            } else {
+                isDeleteUnlocked = false;
+                pendingDeleteId = null;
+                updateDeleteUI();
+            }
+        });
+
+        $("deletePassInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                verifyDeletePassword();
+            }
+        });
+
+        window.verifyDeletePassword = async function() {
+            const entered = $("deletePassInput").value.trim();
+            const errEl = $("passErrorMsg");
+            const btn = $("verifyPassBtn");
+
+            if (!entered) {
+                errEl.textContent = "कृपया पासवर्ड डालें।";
+                errEl.style.display = "block";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "जाँच हो रही है...";
+
+            try {
+                const snap = await getDoc(doc(db, "security", "config"));
+                const savedPass = snap.exists() ? String(snap.data().deletePassword || "") : "";
+
+                if (!savedPass) {
+                    errEl.textContent = "अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+                    errEl.style.display = "block";
+                } else if (entered === savedPass) {
+                    isDeleteUnlocked = true;
+                    $("passModal").style.display = "none";
+                    updateDeleteUI();
+
+                    if (pendingDeleteId) {
+                        const idToDelete = pendingDeleteId;
+                        pendingDeleteId = null;
+                        openDeleteModal(idToDelete);
+                    }
+                } else {
+                    errEl.textContent = "❌ गलत पासवर्ड!";
+                    errEl.style.display = "block";
+                }
+            } catch (err) {
+                console.error(err);
+                errEl.textContent = "त्रुटि हुई: इंटरनेट या Firebase जाँचें।";
+                errEl.style.display = "block";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Unlock Delete";
+            }
+        };
+
+        window.closePassModal = function() {
+            $("passModal").style.display = "none";
+            pendingDeleteId = null;
+            isDeleteUnlocked = false;
+            updateDeleteUI();
+        };
+
+        window.addEventListener("beforeunload", () => {
+            isDeleteUnlocked = false;
+        });
+
+        window.addEventListener("pagehide", () => {
+            isDeleteUnlocked = false;
+            updateDeleteUI();
+        });
+
+        /* =====================================================
+           EXISTING APP FUNCTIONS
+        ===================================================== */
         function cleanPhone(phone) {
             return String(phone || "").replace(/\s+/g, "").trim();
         }
@@ -270,7 +498,7 @@
             let notes = getNotes();
 
             if (!name) {
-                alert("नाम लिखें");
+                document.getElementById("name").focus();
                 return;
             }
 
@@ -306,6 +534,7 @@
         function render() {
 
             let html = "";
+            const lockClass = isDeleteUnlocked ? "" : "delBtnLocked";
 
             allData.forEach((x, i)=> {
 
@@ -345,7 +574,7 @@
                 ${phone1Call ? `<a href="tel:${phone1Call}" class="call">📞 Call</a>`: ""}
                 ${phone2Call ? `<a href="tel:${phone2Call}" class="call">📞 Call</a>`: ""}
                 <button class="smallBtn edit" onclick="editData(${i})">Edit</button>
-                <button class="smallBtn del" onclick="deleteData('${x.id}')">Delete</button>
+                <button class="smallBtn del delActionBtn ${lockClass}" onclick="deleteData('${x.id}')">Delete</button>
                 </div>
                 </div>
 
@@ -405,7 +634,7 @@
             let notes = getNotes();
 
             if (!name) {
-                alert("नाम लिखें");
+                document.getElementById("name").focus();
                 return;
             }
 
@@ -430,19 +659,37 @@
             document.getElementById("cancelBtn").style.display = "none";
         }
 
-        window.deleteData = async function(id) {
+        window.openDeleteModal = function(id) {
+            deleteId = id;
+            $("deleteModal").style.display = "block";
+        };
 
-            let pass = prompt("Delete password डालें");
+        window.closeDeleteModal = function() {
+            deleteId = null;
+            $("deleteModal").style.display = "none";
+        };
 
-            if (pass !== "1234") {
-                alert("Wrong password");
+        window.confirmDelete = async function() {
+            if (!isDeleteUnlocked) {
+                $("deleteModal").style.display = "none";
+                openPasswordPrompt(deleteId);
                 return;
             }
+            if (!deleteId) return;
 
-            if (confirm("क्या आप सच में delete करना चाहते हैं?")) {
-                await deleteDoc(doc(db, "tdm", id));
+            await deleteDoc(doc(db, "tdm", deleteId));
+            closeDeleteModal();
+        };
+
+        window.deleteData = function(id) {
+            if (!isDeleteUnlocked) {
+                openPasswordPrompt(id);
+                return;
             }
+            openDeleteModal(id);
         }
+
+        updateDeleteUI();
 
     </script>
 
