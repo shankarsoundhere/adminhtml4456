@@ -74,6 +74,46 @@ gap:8px;
 flex:1;
 }
 
+/* COMMON DELETE MODE BAR */
+.deleteModeBar{
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:#fff3cd;
+border:1px solid #ffeeba;
+padding:8px 12px;
+border-radius:8px;
+margin:8px 0 12px 0;
+font-size:14px;
+font-weight:bold;
+color:#856404;
+}
+
+.deleteModeBar.unlocked{
+background:#f8d7da;
+border-color:#f5c6cb;
+color:#721c24;
+}
+
+.deleteModeLabel{
+display:flex;
+align-items:center;
+gap:8px;
+cursor:pointer;
+margin:0;
+}
+
+.deleteModeLabel input[type="checkbox"]{
+width:18px;
+height:18px;
+margin:0;
+cursor:pointer;
+}
+
+.delBtnLocked{
+opacity:0.45;
+}
+
 #toastMsg{
 position:fixed;
 bottom:25px;
@@ -103,7 +143,7 @@ td,th{padding:4px 2px}
 @page{size:A4;margin:8mm}
 body{background:white;padding:0}
 .box{width:100%;padding:0;box-shadow:none}
-h3,input,textarea,button,.popup,.datePicker,.noPrint{display:none!important}
+h3,input,textarea,button,.popup,.datePicker,.noPrint,.deleteModeBar{display:none!important}
 .tableWrap{overflow:visible}
 table{font-size:11px}
 th:last-child,td:last-child{display:none}
@@ -114,6 +154,15 @@ th:last-child,td:last-child{display:none}
 <body>
 <div class="box">
 <h2>👷 झारकिला लेबर</h2>
+
+<!-- COMMON DELETE MODE -->
+<div class="deleteModeBar" id="deleteModeBar">
+  <label class="deleteModeLabel">
+    <input type="checkbox" id="commonDeleteCheck">
+    <span>Common Delete Mode</span>
+  </label>
+  <span id="deleteModeStatus">🔒 OFF</span>
+</div>
 
 <div class="dateWrap">
 <input id="date" placeholder="दिनांक" readonly>
@@ -157,6 +206,20 @@ th:last-child,td:last-child{display:none}
 <div class="section">
 <h3>👷 झारकिला लेबर</h3>
 <div id="workerList"><p class="muted">नाम लोड हो रहे हैं...</p></div>
+</div>
+</div>
+
+<!-- COMMON DELETE PASSWORD POPUP -->
+<div class="popup" id="passPopup" style="z-index:2000;">
+<div class="popup-box" style="max-width:380px; text-align:center;">
+<h3>🔐 Delete Password</h3>
+<p style="font-size:14px; color:#444;">Common Delete Mode चालू करने के लिए पासवर्ड डालें:</p>
+<input type="password" id="deletePassInput" placeholder="पासवर्ड डालें" autocomplete="off">
+<p id="passErrorMsg" style="color:#dc3545; font-size:13px; display:none; margin:6px 0;"></p>
+<div class="popupActions">
+<button class="blueBtn" id="verifyPassBtn" onclick="verifyDeletePassword()">Unlock Delete</button>
+<button class="redBtn" onclick="closePassPopup()">Cancel</button>
+</div>
 </div>
 </div>
 
@@ -287,6 +350,126 @@ let paymentDeleteId=null;
 let workers=[],attendanceData=[],payments=[],selectedWorker=null;
 let workerSyncRunning=false,workersLoaded=false,attendanceLoaded=false;
 let accountHistoryActive=false,ignoreNextPopstate=false;
+
+let isDeleteUnlocked=false;
+let pendingAction=null;
+
+/* =====================================================
+   COMMON DELETE MODE LOGIC
+===================================================== */
+function updateDeleteUI(){
+const bar=$("deleteModeBar");
+const status=$("deleteModeStatus");
+const chk=$("commonDeleteCheck");
+
+chk.checked=isDeleteUnlocked;
+
+if(isDeleteUnlocked){
+bar.classList.add("unlocked");
+status.textContent="🔓 ON";
+}else{
+bar.classList.remove("unlocked");
+status.textContent="🔒 OFF";
+}
+
+document.querySelectorAll(".delActionBtn").forEach(btn=>{
+if(isDeleteUnlocked){
+btn.classList.remove("delBtnLocked");
+}else{
+btn.classList.add("delBtnLocked");
+}
+});
+}
+
+function openPasswordPrompt(actionObj=null){
+pendingAction=actionObj;
+$("deletePassInput").value="";
+$("passErrorMsg").style.display="none";
+$("passPopup").style.display="flex";
+setTimeout(()=>$("deletePassInput").focus(),100);
+}
+
+$("commonDeleteCheck").addEventListener("change",function(){
+if(this.checked){
+this.checked=false;
+openPasswordPrompt(null);
+}else{
+isDeleteUnlocked=false;
+pendingAction=null;
+updateDeleteUI();
+}
+});
+
+$("deletePassInput").addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+verifyDeletePassword();
+}
+});
+
+window.verifyDeletePassword=async function(){
+const entered=$("deletePassInput").value.trim();
+const errEl=$("passErrorMsg");
+const btn=$("verifyPassBtn");
+
+if(!entered){
+errEl.textContent="कृपया पासवर्ड डालें।";
+errEl.style.display="block";
+return;
+}
+
+btn.disabled=true;
+btn.textContent="जाँच हो रही है...";
+
+try{
+const snap=await getDoc(doc(db,"security","config"));
+const savedPass=snap.exists()?String(snap.data().deletePassword||""):"";
+
+if(!savedPass){
+errEl.textContent="अभी कोई Delete Password सेट नहीं है। पहले Dashboard → Password से पासवर्ड सेट करें।";
+errEl.style.display="block";
+}else if(entered===savedPass){
+isDeleteUnlocked=true;
+$("passPopup").style.display="none";
+updateDeleteUI();
+
+if(pendingAction){
+const act=pendingAction;
+pendingAction=null;
+if(act.kind==="main_or_note"){
+openDeletePopup(act.id,act.type);
+}else if(act.kind==="payment"){
+deletePayment(act.id);
+}
+}
+}else{
+errEl.textContent="❌ गलत पासवर्ड!";
+errEl.style.display="block";
+}
+}catch(err){
+console.error(err);
+errEl.textContent="त्रुटि हुई: इंटरनेट या Firebase जाँचें।";
+errEl.style.display="block";
+}finally{
+btn.disabled=false;
+btn.textContent="Unlock Delete";
+}
+};
+
+window.closePassPopup=function(){
+$("passPopup").style.display="none";
+pendingAction=null;
+isDeleteUnlocked=false;
+updateDeleteUI();
+};
+
+window.addEventListener("beforeunload",()=>{
+isDeleteUnlocked=false;
+});
+
+window.addEventListener("pagehide",()=>{
+isDeleteUnlocked=false;
+updateDeleteUI();
+});
 
 history.pushState({adminPage:true},"",location.href);
 
@@ -439,6 +622,7 @@ attendanceData.sort((a,b)=>{
 let x=dateSort(a.date),y=dateSort(b.date);
 return x===y?a.time-b.time:x-y;
 });
+const lockClass=isDeleteUnlocked?"":"delBtnLocked";
 $("tbody").innerHTML=attendanceData.map(x=>`
 <tr>
 <td>${safe(x.date)}</td><td>${safe(x.n1)}</td><td>${safe(x.n2)}</td>
@@ -446,7 +630,7 @@ $("tbody").innerHTML=attendanceData.map(x=>`
 <td>${safe(x.n6)}</td>
 <td>
 <button class="actionBtn" onclick="editData('${x.id}')">✏️</button>
-<button class="actionBtn redBtn" onclick="openDeletePopup('${x.id}','main')">🗑️</button>
+<button class="actionBtn redBtn delActionBtn ${lockClass}" onclick="openDeletePopup('${x.id}','main')">🗑️</button>
 </td></tr>`).join("");
 syncWorkersFromAttendance();
 renderWorkers();
@@ -465,10 +649,11 @@ onSnapshot(collection(db,"jharkila_note"),snap=>{
 let arr=[];
 snap.forEach(d=>arr.push({id:d.id,text:d.data().text||"",time:d.data().time||0}));
 arr.sort((a,b)=>a.time-b.time);
+const lockClass=isDeleteUnlocked?"":"delBtnLocked";
 $("noteBody").innerHTML=arr.map(n=>`
 <tr><td>${safe(n.text)}</td><td>
 <button class="actionBtn" onclick="editNoteData('${n.id}')">✏️</button>
-<button class="actionBtn redBtn" onclick="openDeletePopup('${n.id}','note')">🗑️</button>
+<button class="actionBtn redBtn delActionBtn ${lockClass}" onclick="openDeletePopup('${n.id}','note')">🗑️</button>
 </td></tr>`).join("");
 });
 
@@ -612,12 +797,13 @@ $("attendanceHistory").innerHTML=dates.length?dates.map(d=>`
 <div class="paymentRow"><div>काम किया</div><strong>${safe(d)}</strong><div>${money(DAILY_RATE)}</div></div>
 `).join(""):'<p class="muted">अभी कोई हाजिरी नहीं मिली।</p>';
 
+const lockClass=isDeleteUnlocked?"":"delBtnLocked";
 $("paymentHistory").innerHTML=workerPayments.length?workerPayments.map(p=>`
 <div class="paymentRow">
 <div><strong>${safe(p.type==="Advance"?"Advance":"भुगतान")}</strong>
 <div class="muted">${safe(p.date)} ${p.note?"· "+safe(p.note):""}</div></div>
 <strong>${money(p.amount)}</strong>
-<button class="actionBtn redBtn" onclick="deletePayment('${p.id}')">🗑️</button>
+<button class="actionBtn redBtn delActionBtn ${lockClass}" onclick="deletePayment('${p.id}')">🗑️</button>
 </div>`).join(""):'<p class="muted">अभी कोई भुगतान दर्ज नहीं है।</p>';
 }
 
@@ -654,6 +840,10 @@ showToast("भुगतान का रिकॉर्ड Save हो गया
 
 /* PAYMENT DELETE - INLINE CONFIRMATION */
 window.deletePayment=id=>{
+if(!isDeleteUnlocked){
+openPasswordPrompt({kind:"payment",id});
+return;
+}
 paymentDeleteId=id;
 $("paymentDeleteBox").style.display="block";
 };
@@ -664,6 +854,11 @@ $("paymentDeleteBox").style.display="none";
 };
 
 window.confirmPaymentDelete=async()=>{
+if(!isDeleteUnlocked){
+$("paymentDeleteBox").style.display="none";
+openPasswordPrompt({kind:"payment",id:paymentDeleteId});
+return;
+}
 if(!paymentDeleteId)return;
 
 try{
@@ -722,6 +917,10 @@ window.closeNotePopup=()=>{$("notePopup").style.display="none";noteEditId=null;}
 
 /* DELETE DAILY DATA / NOTE */
 window.openDeletePopup=(id,type)=>{
+if(!isDeleteUnlocked){
+openPasswordPrompt({kind:"main_or_note",id,type});
+return;
+}
 deleteId=id;
 deleteType=type;
 
@@ -739,6 +938,11 @@ $("deletePopup").style.display="none";
 };
 
 window.confirmDelete=async()=>{
+if(!isDeleteUnlocked){
+$("deletePopup").style.display="none";
+openPasswordPrompt({kind:"main_or_note",id:deleteId,type:deleteType});
+return;
+}
 if(!deleteId)return;
 
 try{
@@ -759,6 +963,8 @@ showToast("Delete नहीं हुआ: "+e.message);
 
 /* PRINT */
 window.printData=()=>window.print();
+
+updateDeleteUI();
 
 </script>
 
